@@ -1,3 +1,4 @@
+import user1 from '/user1.jpg';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
