@@ -40,7 +40,7 @@ const Testimonials = () => {
       name: 'Fernanda Oliveira',
       location: 'Curitiba, PR',
       rating: 5,
-      text: 'Atendimento excepcional! Desde o primeiro contato pelo WhatsApp até o fim da viagem, tudo perfeito. Os motoristas são super simpáticos e conhecem muito bem a região. Voltarei com certeza!',
+      text: 'Atendimento sensacional! Desde o primeiro contato pelo WhatsApp até o fim da viagem, tudo perfeito. Os motoristas são super simpáticos e conhecem muito bem a região. Voltarei com certeza!',
       image: '/user5.jpg'
     }
   ];
