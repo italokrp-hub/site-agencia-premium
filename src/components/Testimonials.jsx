@@ -96,7 +96,7 @@ const Testimonials = () => {
                   <img 
                     className="w-full h-full object-cover"
                     alt={testimonial.name}
-                   src="https://images.unsplash.com/photo-1595872018818-97555653a011" />
+                   src={testimonial.image} />
                 </div>
                 <div>
                   <div className="font-bold text-gray-900">{testimonial.name}</div>
