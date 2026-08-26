@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { Check, Moon, ArrowRightLeft, Car, Plane, Map, Sun } from 'lucide-react';
+import { Check, Moon, ArrowRightLeft, Car, Plane, Map, Sun, Compass, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { transfersData, tours, formatPrice } from '@/data/catalog';
+import { transfersData, toursData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
 
 const Pricing = () => {
@@ -12,8 +12,13 @@ const Pricing = () => {
   const [activeTab, setActiveTab] = useState('transfers');
   const [bookingItem, setBookingItem] = useState(null);
 
-  const handleOpenBooking = (item, type, tripType = 'roundTrip') => {
-    setBookingItem({ ...item, selectedType: type, selectedTripType: tripType });
+  const handleOpenBooking = (item, type = 'Privativo', tripType = 'roundTrip', selectedVehicleType = 'Buggy') => {
+    setBookingItem({
+      ...item,
+      selectedType: type,
+      selectedTripType: tripType,
+      selectedVehicleType: selectedVehicleType,
+    });
   };
 
   return (
@@ -193,57 +198,90 @@ const Pricing = () => {
             transition={{ duration: 0.4 }}
             className="max-w-6xl mx-auto"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {tours.map((tour) => (
-                <div
-                  key={tour.id}
-                  className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${
-                    tour.type === 'Privativo' ? 'border-[#D4AF37]' : 'border-[#2C7A7B]'
-                  }`}
-                >
-                  <div className="p-6 flex-1 flex flex-col">
-                    <div className="mb-4">
-                      <span
-                        className={`text-xs font-bold px-3 py-1 rounded-full ${
-                          tour.type === 'Privativo'
-                            ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
-                            : 'bg-[#2C7A7B]/10 text-[#2C7A7B]'
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {toursData.map((tour) => {
+                const isPremium = tour.requireWhatsApp;
+                const vehicles = tour.options?.private?.vehicles || [];
+                const startingPrice = vehicles[0]?.price || 0;
+
+                return (
+                  <div
+                    key={tour.id}
+                    className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${
+                      isPremium ? 'border-[#D4AF37]' : 'border-[#2C7A7B]'
+                    }`}
+                  >
+                    <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="mb-4">
+                          <span
+                            className={`text-xs font-bold px-3 py-1 rounded-full ${
+                              isPremium
+                                ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                                : 'bg-[#2C7A7B]/10 text-[#2C7A7B]'
+                            }`}
+                          >
+                            {isPremium ? 'Experiência Premium' : 'Atração Imperdível'}
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
+
+                        <div className="mb-6">
+                          {isPremium ? (
+                            <div>
+                              <span className="text-2xl font-bold text-[#D4AF37]">Sob Consulta</span>
+                              <p className="text-xs text-gray-500 mt-1">Atendimento exclusivo via WhatsApp</p>
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="text-3xl font-bold text-gray-900">
+                                {formatPrice(startingPrice)}
+                              </span>
+                              <p className="text-xs text-gray-500 mt-1">
+                                a partir de (por veículo Buggy ou Quadri)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {tour.locations && (
+                          <div className="space-y-2 mb-6">
+                            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                              Pontos Visitados:
+                            </h4>
+                            <ul className="space-y-1.5">
+                              {tour.locations.map((loc, i) => (
+                                <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                                  <Check className="w-3.5 h-3.5 text-[#2C7A7B] mt-0.5 flex-shrink-0" />
+                                  <span>{loc}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {tour.description && (
+                          <p className="text-xs text-gray-600 mb-6 leading-relaxed">
+                            {tour.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <Button
+                        onClick={() => handleOpenBooking(tour, 'Privativo')}
+                        className={`w-full font-semibold mt-4 ${
+                          isPremium
+                            ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-white'
+                            : 'bg-[#2C7A7B] hover:bg-[#1A5557] text-white'
                         }`}
                       >
-                        {tour.badge}
-                      </span>
+                        {isPremium ? 'Consultar no WhatsApp' : 'Reservar Passeio'}
+                      </Button>
                     </div>
-
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
-                    <div className="mb-6">
-                      <span className="text-3xl font-bold text-gray-900">
-                        {formatPrice(tour.unitPrice)}
-                      </span>
-                      <p className="text-xs text-gray-500 mt-1">{tour.per}</p>
-                    </div>
-
-                    <ul className="space-y-3 mb-6 flex-1">
-                      {tour.details.map((detail, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                          <Check className="w-4 h-4 text-[#2C7A7B] mt-0.5 flex-shrink-0" />
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
-                      onClick={() => handleOpenBooking(tour, tour.type)}
-                      className={`w-full font-semibold ${
-                        tour.type === 'Privativo'
-                          ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-white'
-                          : 'bg-[#2C7A7B] hover:bg-[#1A5557] text-white'
-                      }`}
-                    >
-                      Reservar Agora
-                    </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         )}

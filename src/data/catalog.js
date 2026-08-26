@@ -87,121 +87,106 @@ export const transfers = transfersData.map((item) => ({
   raw: item,
 }));
 
-export const tours = [
+export const toursData = [
   {
-    id: 'tour-lado-leste-privativo',
-    title: 'Lado Leste (Privativo)',
+    id: 'tour-leste',
+    title: 'Passeio Lado Leste',
     category: 'tour',
-    type: 'Privativo',
-    unitPrice: 450,
-    priceType: 'fixed_vehicle',
-    badge: 'Mais Popular',
-    per: 'por veículo (Buggy ou Quadri)',
-    description: 'Explore a Lagoa do Paraíso, Lagoa Azul, Árvore da Preguiça e o incrível Buraco Azul.',
-    details: [
-      'Lagoa do Paraíso',
-      'Lagoa do Amâncio',
-      'Alchymist Beach Club',
-      'Buraco Azul ou Lagun Beach',
-      'Trilhas do Parque Nacional',
-      'Praia do Préa',
+    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    locations: [
       'Árvore da Preguiça',
-      'Pedra Furada',
+      'Praia do Preá',
+      'Trilhas do Parque Nacional',
+      'Buraco Azul ou Lugar Beach',
+      'Alchymist (Opcional)',
+      'Lagoa do Amâncio',
+      'Lagoa do Paraíso',
+      'Pedra Furada (Opcional)'
     ],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    options: {
+      shared: { available: true, price: 75, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
+      private: {
+        available: true,
+        vehicles: [
+          { type: 'Buggy', maxCapacity: 4, price: 450 },
+          { type: 'Quadriciclo', maxCapacity: 2, price: 450 },
+          { type: 'Jardineira', maxCapacity: 10, price: 500 },
+          { type: 'SW4', maxCapacity: 6, price: 600 },
+          { type: 'UTV', requireWhatsApp: true }
+        ]
+      }
+    }
   },
   {
-    id: 'tour-lado-oeste-privativo',
-    title: 'Lado Oeste (Privativo)',
+    id: 'tour-oeste',
+    title: 'Passeio Lado Oeste',
     category: 'tour',
-    type: 'Privativo',
-    unitPrice: 480,
-    priceType: 'fixed_vehicle',
-    badge: 'Aventura',
-    per: 'por veículo (Buggy ou Quadri)',
-    description: 'Aventura garantida com Lagoa de Tatajuba, Mangue Seco, travessia de balsa e os cavalos marinhos.',
-    details: [
-      'Lagoa de Tatajuba',
-      'Tirolesa e toboagua',
-      'Mangue Seco',
-      'Travessia de Balsa',
-      'Cavalos Marinhos',
-    ],
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
-  },
-  {
-    id: 'tour-lado-leste-compartilhado',
-    title: 'Lado Leste (Compartilhado)',
-    category: 'tour',
-    type: 'Compartilhado',
-    unitPrice: 70,
-    priceType: 'per_person',
-    badge: 'Econômico',
-    per: 'por pessoa (Jardineira)',
-    description: 'Roteiro igual ao privativo com guia credenciado e socialização.',
-    details: [
-      'Roteiro igual ao privativo',
-      'Guia credenciado',
-      'Ótimo custo-benefício',
-      'Socialização',
+    locations: [
+      'Visual Beira da Praia',
+      'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)',
+      'Área de Cavalos Marinhos (Opcional - Ingresso no local)'
     ],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
-  },
-  {
-    id: 'tour-lado-oeste-compartilhado',
-    title: 'Lado Oeste (Compartilhado)',
-    category: 'tour',
-    type: 'Compartilhado',
-    unitPrice: 75,
-    priceType: 'per_person',
-    badge: 'Econômico',
-    per: 'por pessoa (Jardineira)',
-    description: 'Roteiro igual ao privativo com guia credenciado e paisagens incríveis.',
-    details: [
-      'Roteiro igual ao privativo',
-      'Guia credenciado',
-      'Ótimo custo-benefício',
-      'Paisagens incríveis',
-    ],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    options: {
+      shared: { available: true, price: 80, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
+      private: {
+        available: true,
+        vehicles: [
+          { type: 'Buggy', maxCapacity: 4, price: 500 },
+          { type: 'Quadriciclo', maxCapacity: 2, price: 500 },
+          { type: 'Jardineira', maxCapacity: 10, price: 600 },
+          { type: 'SW4', maxCapacity: 6, price: 700 },
+          { type: 'UTV', requireWhatsApp: true }
+        ]
+      }
+    }
   },
   {
     id: 'tour-helicoptero',
     title: 'Passeio de Helicóptero',
     category: 'tour',
-    type: 'Privativo',
-    unitPrice: 900,
-    priceType: 'fixed_vehicle',
-    badge: 'Premium',
-    per: 'por pessoa',
-    description: 'Viva a experiência única de sobrevoar Jericoacoara de helicóptero, contemplando do alto as dunas, lagoas e o litoral paradisíaco.',
-    details: [
-      'Sobrevoo pelas dunas',
-      'Vista das lagoas',
-      'Litoral paradisíaco',
-      'Experiência inesquecível',
-    ],
     image: 'https://images.unsplash.com/photo-1700644860189-b244bdb52a4d',
-  },
-  {
-    id: 'tour-utv',
-    title: 'Passeio de UTV',
+    requireWhatsApp: true,
+    description: 'Experiência Premium com vistas panorâmicas inesquecíveis.'
+  }
+];
+
+export const tours = toursData.map((tour) => {
+  if (tour.requireWhatsApp) {
+    return {
+      id: tour.id,
+      title: tour.title,
+      category: 'tour',
+      type: 'Privativo',
+      unitPrice: 0,
+      priceType: 'fixed_vehicle',
+      badge: 'Premium',
+      per: 'Sob consulta no WhatsApp',
+      description: tour.description,
+      details: ['Experiência Premium', 'Vistas panorâmicas inesquecíveis'],
+      image: tour.image,
+      requireWhatsApp: true,
+      raw: tour,
+    };
+  }
+
+  const buggyOpt = tour.options?.private?.vehicles?.find((v) => v.type === 'Buggy');
+
+  return {
+    id: tour.id,
+    title: tour.title,
     category: 'tour',
     type: 'Privativo',
-    unitPrice: 400,
+    unitPrice: buggyOpt?.price || 450,
     priceType: 'fixed_vehicle',
-    badge: 'Aventura',
-    per: 'por veículo',
-    description: 'Aventure-se em um emocionante passeio de UTV pelas dunas e trilhas de Jericoacoara.',
-    details: [
-      'Dunas de Jericoacoara',
-      'Trilhas off-road',
-      'Contato com a natureza',
-      'Segurança garantida',
-    ],
-    image: 'https://images.unsplash.com/photo-1676954054657-223a1bdb8f0c',
-  },
-];
+    badge: 'Mais Popular',
+    per: `a partir de ${formatPrice(buggyOpt?.price || 450)} (Buggy / Quadri)`,
+    description: `Explore as melhores atrações do ${tour.title}.`,
+    details: tour.locations || [],
+    image: tour.image,
+    raw: tour,
+  };
+});
 
 export const allServices = [
   {
@@ -209,14 +194,14 @@ export const allServices = [
     title: 'Passeios Lado Leste',
     description: 'Explore a famosa Lagoa do Paraíso, Lagoa Azul, Árvore da Preguiça e o incrível Buraco Azul. Opções em Buggy ou Quadriciclo.',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
-    tourIds: ['tour-lado-leste-privativo', 'tour-lado-leste-compartilhado'],
+    tourIds: ['tour-leste'],
   },
   {
     id: 'servico-lado-oeste',
     title: 'Passeios Lado Oeste',
     description: 'Aventura garantida com Lagoa de Tatajuba, Mangue Seco, travessia de balsa e os cavalos marinhos. Natureza exuberante.',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
-    tourIds: ['tour-lado-oeste-privativo', 'tour-lado-oeste-compartilhado'],
+    tourIds: ['tour-oeste'],
   },
   {
     id: 'servico-roteiros',
@@ -237,7 +222,7 @@ export const allServices = [
     title: 'Passeio de UTV',
     description: 'Aventure-se em um emocionante passeio de UTV pelas dunas e trilhas de Jericoacoara, com muita adrenalina, segurança e contato direto com a natureza.',
     image: 'https://images.unsplash.com/photo-1676954054657-223a1bdb8f0c',
-    tourIds: ['tour-utv'],
+    tourIds: ['tour-leste'],
   },
 ];
 
@@ -345,6 +330,100 @@ export function calculateTransferPrice({ transfer, optionType = 'private', tripT
     total,
     pixDiscountAmount,
     pixTotal,
+  };
+}
+
+export function calculateTourPrice({ tour, optionType = 'private', selectedVehicleType = '', passengers = 1 }) {
+  if (!tour) {
+    return {
+      isWhatsAppOnly: false,
+      optionType,
+      selectedVehicle: null,
+      vehicleCount: 1,
+      subtotal: 0,
+      total: 0,
+      pixTotal: 0,
+      isPerPerson: false,
+    };
+  }
+
+  if (tour.requireWhatsApp) {
+    return {
+      isWhatsAppOnly: true,
+      optionType: 'private',
+      selectedVehicle: null,
+      vehicleCount: 1,
+      subtotal: 0,
+      total: 0,
+      pixTotal: 0,
+      isPerPerson: false,
+    };
+  }
+
+  const isShared = optionType === 'shared';
+
+  if (isShared && tour.options?.shared?.available) {
+    const unitPrice = tour.options.shared.price || 0;
+    const total = unitPrice * passengers;
+    const pixTotal = total * (1 - PIX_DISCOUNT_PERCENT);
+    return {
+      isWhatsAppOnly: false,
+      optionType: 'shared',
+      selectedVehicle: { type: tour.options.shared.vehicle || 'Jardineira', price: unitPrice },
+      vehicleCount: 1,
+      unitPrice,
+      subtotal: total,
+      total,
+      pixTotal,
+      isPerPerson: true,
+    };
+  }
+
+  const vehicles = tour.options?.private?.vehicles || [];
+  const selectedVehicleObj = vehicles.find((v) => v.type === selectedVehicleType) || vehicles[0];
+
+  if (!selectedVehicleObj) {
+    return {
+      isWhatsAppOnly: false,
+      optionType: 'private',
+      selectedVehicle: null,
+      vehicleCount: 1,
+      subtotal: 0,
+      total: 0,
+      pixTotal: 0,
+      isPerPerson: false,
+    };
+  }
+
+  if (selectedVehicleObj.requireWhatsApp) {
+    return {
+      isWhatsAppOnly: true,
+      optionType: 'private',
+      selectedVehicle: selectedVehicleObj,
+      vehicleCount: 1,
+      subtotal: 0,
+      total: 0,
+      pixTotal: 0,
+      isPerPerson: false,
+    };
+  }
+
+  const maxCap = selectedVehicleObj.maxCapacity || 1;
+  const vehicleCount = Math.ceil(passengers / maxCap);
+  const total = vehicleCount * (selectedVehicleObj.price || 0);
+  const pixTotal = total * (1 - PIX_DISCOUNT_PERCENT);
+
+  return {
+    isWhatsAppOnly: false,
+    optionType: 'private',
+    selectedVehicle: selectedVehicleObj,
+    vehicleCount,
+    maxCapacity: maxCap,
+    unitPrice: selectedVehicleObj.price,
+    subtotal: total,
+    total,
+    pixTotal,
+    isPerPerson: false,
   };
 }
 

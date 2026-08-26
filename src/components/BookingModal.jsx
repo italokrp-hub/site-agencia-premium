@@ -14,6 +14,8 @@ import {
   Tag,
   Car,
   QrCode,
+  Info,
+  Compass,
 } from 'lucide-react';
 import {
   Dialog,
@@ -37,6 +39,7 @@ import {
   calculateTotal,
   formatPrice,
   calculateTransferPrice,
+  calculateTourPrice,
 } from '@/data/catalog';
 import { createCheckout, createPixPayment } from '@/services/payment';
 
@@ -55,9 +58,12 @@ const initialForm = {
   time: '12:00',
   pickup: '',
   passengers: 1,
+  // Campos de Transfer
   tripType: 'roundTrip', // 'oneWay' | 'returnWay' | 'roundTrip'
   optionType: 'private', // 'shared' | 'private'
   selectedTierIndex: undefined,
+  // Campos de Passeio (Tour)
+  selectedVehicleType: 'Buggy',
 };
 
 export default function BookingModal({ item, open, onOpenChange }) {
@@ -70,17 +76,30 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [error, setError] = useState(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // Identifica se o item possui a estrutura aninhada de transfer (transfersData)
+  // Identifica se o item é um Transfer (estrutura aninhada)
   const transferItem = useMemo(() => {
     if (!item) return null;
-    if (item.options) return item;
-    if (item.raw?.options) return item.raw;
+    if (item.category === 'transfer' && item.options) return item;
+    if (item.raw?.category === 'transfer' && item.raw?.options) return item.raw;
+    if (item.options?.private?.tiers) return item;
+    if (item.raw?.options?.private?.tiers) return item.raw;
+    return null;
+  }, [item]);
+
+  // Identifica se o item é um Passeio (Tour)
+  const tourItem = useMemo(() => {
+    if (!item) return null;
+    if (item.category === 'tour' && item.options) return item;
+    if (item.raw?.category === 'tour' && item.raw?.options) return item.raw;
+    if (item.category === 'tour' && item.requireWhatsApp) return item;
+    if (item.raw?.category === 'tour') return item.raw;
     return null;
   }, [item]);
 
   const isTransfer = Boolean(transferItem || item?.category === 'transfer');
+  const isTour = Boolean(tourItem || item?.category === 'tour');
 
-  // Ao abrir o modal, define os valores iniciais adequados
+  // Define os valores iniciais adequados quando o modal é aberto
   useEffect(() => {
     if (transferItem) {
       const sharedAvailable = transferItem.options?.shared?.available;
@@ -91,10 +110,19 @@ export default function BookingModal({ item, open, onOpenChange }) {
         optionType: initialType,
         tripType: initialTrip,
       }));
+    } else if (tourItem) {
+      const sharedAvailable = tourItem.options?.shared?.available;
+      const initialType = item?.selectedType === 'Compartilhado' && sharedAvailable ? 'shared' : 'private';
+      const defaultVehicle = tourItem.options?.private?.vehicles?.[0]?.type || 'Buggy';
+      setForm((prev) => ({
+        ...prev,
+        optionType: initialType,
+        selectedVehicleType: item?.selectedVehicleType || defaultVehicle,
+      }));
     }
-  }, [transferItem, item]);
+  }, [transferItem, tourItem, item]);
 
-  // Cálculo da precificação e veículo selecionado
+  // Cálculo de preço de Transfer
   const transferPriceInfo = useMemo(() => {
     if (transferItem) {
       return calculateTransferPrice({
@@ -109,24 +137,48 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return null;
   }, [transferItem, form.optionType, form.tripType, form.passengers, form.selectedTierIndex, form.time]);
 
-  const isPrivate = transferPriceInfo ? transferPriceInfo.isPrivate : item?.selectedType === 'Privativo';
+  // Cálculo de preço de Passeio (Tour)
+  const tourPriceInfo = useMemo(() => {
+    if (tourItem) {
+      return calculateTourPrice({
+        tour: tourItem,
+        optionType: form.optionType,
+        selectedVehicleType: form.selectedVehicleType,
+        passengers: form.passengers,
+      });
+    }
+    return null;
+  }, [tourItem, form.optionType, form.selectedVehicleType, form.passengers]);
+
+  // Verifica se o item/veículo exige atendimento via WhatsApp
+  const isWhatsAppOnly = useMemo(() => {
+    if (tourPriceInfo) return tourPriceInfo.isWhatsAppOnly;
+    if (item?.requireWhatsApp) return true;
+    return false;
+  }, [tourPriceInfo, item]);
+
+  const isPrivate = useMemo(() => {
+    if (transferPriceInfo) return transferPriceInfo.isPrivate;
+    if (tourPriceInfo) return tourPriceInfo.optionType === 'private';
+    return item?.selectedType === 'Privativo';
+  }, [transferPriceInfo, tourPriceInfo, item]);
+
   const selectedTier = transferPriceInfo?.selectedTier;
   const nightFeeApplied = transferPriceInfo ? transferPriceInfo.nightFeeApplied : false;
 
+  // Cálculo dos totais (Cartão e Pix 5% OFF)
   const total = useMemo(() => {
-    if (transferPriceInfo) {
-      return transferPriceInfo.total;
-    }
+    if (transferPriceInfo) return transferPriceInfo.total;
+    if (tourPriceInfo) return tourPriceInfo.total;
     if (item?.priceType === 'per_person') return item.unitPrice * form.passengers;
     return item?.unitPrice || 0;
-  }, [transferPriceInfo, item, form.passengers]);
+  }, [transferPriceInfo, tourPriceInfo, item, form.passengers]);
 
   const totalPix = useMemo(() => {
-    if (transferPriceInfo) {
-      return transferPriceInfo.pixTotal;
-    }
+    if (transferPriceInfo) return transferPriceInfo.pixTotal;
+    if (tourPriceInfo) return tourPriceInfo.pixTotal;
     return total * 0.95;
-  }, [transferPriceInfo, total]);
+  }, [transferPriceInfo, tourPriceInfo, total]);
 
   const handleChange = useCallback((field) => (e) => {
     if (field === 'whatsapp') {
@@ -169,16 +221,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
   );
 
   const serviceTitle = useMemo(() => {
-    if (transferItem) {
-      return transferItem.title;
-    }
-    if (isTransfer && item) {
-      return `${item.title} (${item.selectedType})`;
-    }
-    return item?.title || 'Serviço';
-  }, [transferItem, isTransfer, item]);
+    if (transferItem) return transferItem.title;
+    if (tourItem) return tourItem.title;
+    if (item?.title) return item.title;
+    return 'Serviço';
+  }, [transferItem, tourItem, item]);
 
-  // Checkout Pro Mercado Pago (Envio do total normal)
+  // Mercado Pago Checkout Pro (Envio do total normal)
   const handleMercadoPago = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -194,10 +243,10 @@ export default function BookingModal({ item, open, onOpenChange }) {
         },
         metadata: {
           serviceId: item?.id || 'service',
-          category: item?.category || 'transfer',
+          category: item?.category || (isTransfer ? 'transfer' : 'tour'),
           tripType: form.tripType,
           optionType: form.optionType,
-          vehicle: selectedTier?.vehicle || undefined,
+          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
           date: format(form.date, 'yyyy-MM-dd'),
           time: form.time,
           pickup: form.pickup,
@@ -216,9 +265,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, total, serviceTitle, item, selectedTier]);
+  }, [form, total, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
 
-  // Geração Direta de Pix (Envio do totalPix com 5% de desconto)
+  // Geração Direta de Pix (Envio do totalPix com 5% OFF)
   const handlePixPayment = useCallback(async () => {
     setLoadingPix(true);
     setError(null);
@@ -234,10 +283,10 @@ export default function BookingModal({ item, open, onOpenChange }) {
         },
         metadata: {
           serviceId: item?.id || 'service',
-          category: item?.category || 'transfer',
+          category: item?.category || (isTransfer ? 'transfer' : 'tour'),
           tripType: form.tripType,
           optionType: form.optionType,
-          vehicle: selectedTier?.vehicle || undefined,
+          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
           date: format(form.date, 'yyyy-MM-dd'),
           time: form.time,
           pickup: form.pickup,
@@ -262,39 +311,44 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, totalPix, serviceTitle, item, selectedTier]);
+  }, [form, totalPix, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
-    const tripLabelMap = {
-      oneWay: 'Somente Ida',
-      returnWay: 'Somente Volta',
-      roundTrip: 'Ida e Volta',
-    };
-    const tripText = tripLabelMap[form.tripType] || 'Ida e Volta';
-    const modeText =
-      form.optionType === 'shared'
-        ? 'Compartilhado'
-        : `Privativo (${selectedTier?.vehicle || 'Veículo Exclusivo'})`;
+    let msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
 
-    const nightText = nightFeeApplied ? '\n+ R$ 20 (Tarifa Noturna após 18h)' : '';
+    if (isTransfer) {
+      const tripLabelMap = {
+        oneWay: 'Somente Ida',
+        returnWay: 'Somente Volta',
+        roundTrip: 'Ida e Volta',
+      };
+      msgText += `Trajeto: ${tripLabelMap[form.tripType] || 'Ida e Volta'}\n`;
+      msgText += `Serviço: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
+    } else if (isTour) {
+      msgText += `Modalidade: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
+      if (tourPriceInfo?.vehicleCount > 1) {
+        msgText += `Veículos: ${tourPriceInfo.vehicleCount}x ${tourPriceInfo.selectedVehicle?.type}\n`;
+      }
+    }
 
-    const msg = encodeURIComponent(
-      `Olá! Gostaria de reservar:\n\n` +
-        `*${serviceTitle}*\n` +
-        `Trajeto: ${tripText}\n` +
-        `Serviço: ${modeText}\n` +
-        `Data: ${format(form.date, 'dd/MM/yyyy')} às ${form.time}h\n` +
-        (form.pickup ? `Ponto de Partida: ${form.pickup}\n` : '') +
-        `Passageiros: ${form.passengers}\n` +
-        `Cartão: ${formatPrice(total)}${nightText}\n` +
-        `PIX (5% OFF): *${formatPrice(totalPix)}*\n\n` +
-        `Nome: ${form.name}\n` +
-        `WhatsApp: ${form.whatsapp}` +
-        (form.email ? `\nE-mail: ${form.email}` : '')
-    );
-    window.open(`https://wa.me/5592981038749?text=${msg}`, '_blank');
-  }, [form, serviceTitle, total, totalPix, selectedTier, nightFeeApplied]);
+    msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
+    if (form.pickup) msgText += `Ponto de Partida: ${form.pickup}\n`;
+    msgText += `Passageiros: ${form.passengers}\n`;
+
+    if (!isWhatsAppOnly) {
+      const nightText = nightFeeApplied ? ' (+ R$ 20 Tarifa Noturna)' : '';
+      msgText += `Cartão: ${formatPrice(total)}${nightText}\n`;
+      msgText += `PIX (5% OFF): *${formatPrice(totalPix)}*\n`;
+    } else {
+      msgText += `Solicito informações de horários e reserva.\n`;
+    }
+
+    msgText += `\nNome: ${form.name}\nWhatsApp: ${form.whatsapp}`;
+    if (form.email) msgText += `\nE-mail: ${form.email}`;
+
+    window.open(`https://wa.me/5592981038749?text=${encodeURIComponent(msgText)}`, '_blank');
+  }, [form, serviceTitle, isTransfer, isTour, isWhatsAppOnly, total, totalPix, selectedTier, tourPriceInfo, nightFeeApplied]);
 
   const handleCopyPix = useCallback(() => {
     if (pixData?.qrCode) {
@@ -310,7 +364,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
       <DialogContent className="z-[60] w-[95vw] max-w-lg mx-auto max-h-[90dvh] overflow-hidden rounded-xl bg-white p-0 shadow-xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
         <DialogHeader className="px-5 pt-5 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-gray-100 shrink-0">
           <DialogTitle className="text-lg font-bold text-gray-900 pr-8">
-            {step === 'pix' ? 'Pagamento via Pix' : 'Reservar Serviço'}
+            {step === 'pix' ? 'Pagamento via Pix' : isWhatsAppOnly ? 'Consultar Atendimento Premium' : 'Reservar Serviço'}
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
             {step === 'pix'
@@ -322,10 +376,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
         {step === 'form' && (
           <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
             {/* Campos adicionais para Transfer */}
-            {isTransfer && (
+            {isTransfer && transferItem && (
               <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Trajeto (Select) */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-gray-700">Trajeto *</Label>
                     <Select
@@ -343,7 +396,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     </Select>
                   </div>
 
-                  {/* Tipo de Serviço (Select) */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-gray-700">Tipo de Serviço *</Label>
                     <Select
@@ -363,7 +415,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   </div>
                 </div>
 
-                {/* Horário de Chegada / Partida */}
                 <div className="space-y-1.5">
                   <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
                     Horário de Chegada/Partida *
@@ -379,6 +430,62 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Campos adicionais para Passeio (Tour) */}
+            {isTour && tourItem && (
+              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-700">Modalidade *</Label>
+                    <Select
+                      value={form.optionType}
+                      onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
+                    >
+                      <SelectTrigger className="h-10 bg-white text-xs font-medium">
+                        <SelectValue placeholder="Selecione a modalidade" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
+                        <SelectItem value="private">Privativo</SelectItem>
+                        {tourItem.options?.shared?.available && (
+                          <SelectItem value="shared">Compartilhado</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {form.optionType === 'private' && tourItem.options?.private?.vehicles && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-gray-700">Veículo *</Label>
+                      <Select
+                        value={form.selectedVehicleType}
+                        onValueChange={(val) => setForm((prev) => ({ ...prev, selectedVehicleType: val }))}
+                      >
+                        <SelectTrigger className="h-10 bg-white text-xs font-medium">
+                          <SelectValue placeholder="Selecione o veículo" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
+                          {tourItem.options.private.vehicles.map((v) => (
+                            <SelectItem key={v.type} value={v.type}>
+                              {v.type} {v.requireWhatsApp ? '(WhatsApp)' : `- ${formatPrice(v.price)}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Aviso visual de múltiplos veículos se multiplier > 1 */}
+                {!isWhatsAppOnly && tourPriceInfo?.vehicleCount > 1 && (
+                  <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-2.5 flex items-center gap-2 text-xs font-medium">
+                    <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>
+                      Serão necessários <strong>{tourPriceInfo.vehicleCount} {tourPriceInfo.selectedVehicle?.type}s</strong> para acomodar {form.passengers} pessoas (capacidade máxima de {tourPriceInfo.maxCapacity} pessoas por veículo).
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -438,7 +545,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   }`}
                 >
                   <CalendarIcon className="mr-1.5 h-4 w-4" />
-                  {form.date ? format(form.date, "dd/MM/yy") : 'Data'}
+                  {form.date ? format(form.date, 'dd/MM/yy') : 'Data'}
                 </Button>
                 {isCalendarOpen && (
                   <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
@@ -482,76 +589,108 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </div>
             </div>
 
-            {/* Etapa 4: Exibição de Resumo e Desconto Pix */}
-            <div className="bg-gray-50 p-4 rounded-lg mt-4 border border-gray-100 space-y-1.5">
-              {isPrivate && selectedTier && (
-                <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
-                  <Car className="w-4 h-4 text-[#2C7A7B]" />
-                  Veículo: <span className="font-semibold">{selectedTier.vehicle}</span>
-                </p>
-              )}
-              {nightFeeApplied && (
-                <p className="text-sm text-amber-600 mb-2 font-medium flex items-center gap-1.5">
-                  <Moon className="w-4 h-4 text-amber-600 shrink-0" />
-                  + R$ 20 (Tarifa Noturna após 18h)
-                </p>
-              )}
+            {/* Renderização Condicional: Se isWhatsAppOnly for true, esconde os botões e resumo de checkout */}
+            {!isWhatsAppOnly ? (
+              <>
+                {/* Resumo e Desconto Pix */}
+                <div className="bg-gray-50 p-4 rounded-lg mt-4 border border-gray-100 space-y-1.5">
+                  {isPrivate && selectedTier && (
+                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
+                      <Car className="w-4 h-4 text-[#2C7A7B]" />
+                      Veículo: <span className="font-semibold">{selectedTier.vehicle}</span>
+                    </p>
+                  )}
+                  {isPrivate && isTour && tourPriceInfo?.selectedVehicle && (
+                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
+                      <Compass className="w-4 h-4 text-[#2C7A7B]" />
+                      Veículo: <span className="font-semibold">{tourPriceInfo.vehicleCount > 1 ? `${tourPriceInfo.vehicleCount}x ` : ''}{tourPriceInfo.selectedVehicle.type}</span>
+                    </p>
+                  )}
+                  {nightFeeApplied && (
+                    <p className="text-sm text-amber-600 mb-2 font-medium flex items-center gap-1.5">
+                      <Moon className="w-4 h-4 text-amber-600 shrink-0" />
+                      + R$ 20 (Tarifa Noturna após 18h)
+                    </p>
+                  )}
 
-              <p className="text-gray-500 line-through text-xs font-medium">
-                Cartão: {formatPrice(total)}
-              </p>
-              <p className="text-2xl font-bold text-emerald-600">
-                PIX (5% OFF): {formatPrice(totalPix)}
-              </p>
-            </div>
+                  <p className="text-gray-500 line-through text-xs font-medium">
+                    Cartão: {formatPrice(total)}
+                  </p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    PIX (5% OFF): {formatPrice(totalPix)}
+                  </p>
+                </div>
 
-            {error && (
-              <div className="bg-red-50 text-red-700 text-sm rounded-lg p-3 border border-red-200">
-                {error}
+                {error && (
+                  <div className="bg-red-50 text-red-700 text-sm rounded-lg p-3 border border-red-200">
+                    {error}
+                  </div>
+                )}
+
+                {/* Botões Padrão de Pagamento */}
+                <div className="space-y-2">
+                  <Button
+                    onClick={handlePixPayment}
+                    disabled={!isFormValid || loadingPix || loading}
+                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
+                  >
+                    {loadingPix ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <QrCode className="w-5 h-5" />
+                    )}
+                    {loadingPix ? 'Gerando Pix...' : `Pagar com Pix (${formatPrice(totalPix)})`}
+                  </Button>
+
+                  <Button
+                    onClick={handleMercadoPago}
+                    disabled={!isFormValid || loading || loadingPix}
+                    className="w-full h-11 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="w-4 h-4" />
+                    )}
+                    {loading ? 'Processando...' : `Pagar no Cartão (${formatPrice(total)})`}
+                  </Button>
+
+                  <Button
+                    onClick={handleWhatsApp}
+                    disabled={!isFormValid}
+                    variant="outline"
+                    className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Finalizar no WhatsApp
+                  </Button>
+                </div>
+              </>
+            ) : (
+              /* Modo WhatsApp Only (Helicóptero / UTV / Serviços Premium) */
+              <div className="pt-2 space-y-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                  <p className="text-sm font-semibold text-emerald-900 mb-1">
+                    Atendimento Premium Exclusivo
+                  </p>
+                  <p className="text-xs text-emerald-700 leading-relaxed">
+                    Devido à altíssima procura e requisitos personalizados deste passeio, o agendamento é feito diretamente com a nossa equipe no WhatsApp.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleWhatsApp}
+                  disabled={!isFormValid}
+                  className="w-full h-14 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <MessageCircle className="w-6 h-6" />
+                  Consultar Disponibilidade no WhatsApp
+                </Button>
               </div>
             )}
 
-            {/* Botões de Ação */}
-            <div className="space-y-2">
-              <Button
-                onClick={handlePixPayment}
-                disabled={!isFormValid || loadingPix || loading}
-                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
-              >
-                {loadingPix ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <QrCode className="w-5 h-5" />
-                )}
-                {loadingPix ? 'Gerando Pix...' : `Pagar com Pix (${formatPrice(totalPix)})`}
-              </Button>
-
-              <Button
-                onClick={handleMercadoPago}
-                disabled={!isFormValid || loading || loadingPix}
-                className="w-full h-11 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <CreditCard className="w-4 h-4" />
-                )}
-                {loading ? 'Processando...' : `Pagar no Cartão (${formatPrice(total)})`}
-              </Button>
-
-              <Button
-                onClick={handleWhatsApp}
-                disabled={!isFormValid}
-                variant="outline"
-                className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Finalizar no WhatsApp
-              </Button>
-            </div>
-
             <p className="text-[11px] text-gray-400 text-center leading-relaxed pb-1">
-              Pagamento seguro via Mercado Pago (Pix ou Cartão de Crédito).
+              Atendimento garantido Jericoacoara Premium.
               <br />
               Ao continuar, você concorda com nossos Termos de Uso.
             </p>
