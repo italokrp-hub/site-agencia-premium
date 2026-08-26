@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarDays, Loader2, MessageCircle, CreditCard, Copy, CheckCheck } from 'lucide-react';
+import { CalendarDays, Loader2, MessageCircle, CreditCard, Copy, CheckCheck, CalendarIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { calculateTotal, formatPrice } from '@/data/catalog';
 import { createCheckout } from '@/services/payment';
 
@@ -227,16 +228,29 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Data do Serviço *</Label>
-              <div className="border border-gray-200 rounded-lg p-1 bg-white relative z-[70]">
-                <Calendar
-                  mode="single"
-                  selected={form.date}
-                  onSelect={handleDateSelect}
-                  disabled={(date) => isBefore(date, startOfDay(addDays(new Date(), 1)))}
-                  locale={ptBR}
-                  className="w-full"
-                />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 ${form.date ? 'text-gray-900' : 'text-muted-foreground'}`}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.date ? format(form.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0 bg-white z-[100] shadow-2xl border border-gray-300 relative"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    selected={form.date}
+                    onSelect={handleDateSelect}
+                    disabled={(date) => isBefore(date, startOfDay(addDays(new Date(), 1)))}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
               {form.date && (
                 <p className="text-xs text-[#2C7A7B] font-medium">
                   <CalendarDays className="inline w-3 h-3 mr-1" />
