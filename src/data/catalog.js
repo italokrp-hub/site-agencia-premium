@@ -89,57 +89,72 @@ export const transfers = transfersData.map((item) => ({
 
 export const toursData = [
   {
-    id: 'tour-leste',
-    title: 'Passeio Lado Leste',
+    id: 'tour-leste-shared',
+    title: 'Passeio Lado Leste (Compartilhado)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
-    locations: [
-      'Árvore da Preguiça',
-      'Praia do Preá',
-      'Trilhas do Parque Nacional',
-      'Buraco Azul ou Lugar Beach',
-      'Alchymist (Opcional)',
-      'Lagoa do Amâncio',
-      'Lagoa do Paraíso',
-      'Pedra Furada (Opcional)'
-    ],
+    locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lugar Beach', 'Alchemist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
     options: {
       shared: { available: true, price: 75, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
+      private: { available: false }
+    }
+  },
+  {
+    id: 'tour-leste-private',
+    title: 'Passeio Lado Leste (Privativo)',
+    category: 'tour',
+    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lugar Beach', 'Alchemist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
+    options: {
+      shared: { available: false },
       private: {
         available: true,
         vehicles: [
           { type: 'Buggy', maxCapacity: 4, price: 450 },
           { type: 'Quadriciclo', maxCapacity: 2, price: 450 },
           { type: 'Jardineira', maxCapacity: 10, price: 500 },
-          { type: 'SW4', maxCapacity: 6, price: 600 },
-          { type: 'UTV', requireWhatsApp: true }
+          { type: 'SW4', maxCapacity: 6, price: 600 }
         ]
       }
     }
   },
   {
-    id: 'tour-oeste',
-    title: 'Passeio Lado Oeste',
+    id: 'tour-oeste-shared',
+    title: 'Passeio Lado Oeste (Compartilhado)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
-    locations: [
-      'Visual Beira da Praia',
-      'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)',
-      'Área de Cavalos Marinhos (Opcional - Ingresso no local)'
-    ],
+    locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
     options: {
       shared: { available: true, price: 80, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
+      private: { available: false }
+    }
+  },
+  {
+    id: 'tour-oeste-private',
+    title: 'Passeio Lado Oeste (Privativo)',
+    category: 'tour',
+    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
+    options: {
+      shared: { available: false },
       private: {
         available: true,
         vehicles: [
           { type: 'Buggy', maxCapacity: 4, price: 500 },
           { type: 'Quadriciclo', maxCapacity: 2, price: 500 },
           { type: 'Jardineira', maxCapacity: 10, price: 600 },
-          { type: 'SW4', maxCapacity: 6, price: 700 },
-          { type: 'UTV', requireWhatsApp: true }
+          { type: 'SW4', maxCapacity: 6, price: 700 }
         ]
       }
     }
+  },
+  {
+    id: 'tour-utv',
+    title: 'Passeio de UTV',
+    category: 'tour',
+    image: 'https://images.unsplash.com/photo-1676954054657-223a1bdb8f0c',
+    requireWhatsApp: true,
+    description: 'Aventura Premium off-road. Consulte opções de roteiro e disponibilidade.'
   },
   {
     id: 'tour-helicoptero',

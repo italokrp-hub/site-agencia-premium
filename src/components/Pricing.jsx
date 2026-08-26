@@ -198,30 +198,44 @@ const Pricing = () => {
             transition={{ duration: 0.4 }}
             className="max-w-6xl mx-auto"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {toursData.map((tour) => {
                 const isPremium = tour.requireWhatsApp;
+                const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
+                const isPrivateOnly = tour.options?.private?.available && !tour.options?.shared?.available;
+
+                const sharedPrice = tour.options?.shared?.price;
                 const vehicles = tour.options?.private?.vehicles || [];
                 const startingPrice = vehicles[0]?.price || 0;
+
+                let badgeText = 'Mais Popular';
+                let borderClass = 'border-[#2C7A7B]';
+                let badgeClass = 'bg-[#2C7A7B]/10 text-[#2C7A7B]';
+
+                if (isPremium) {
+                  badgeText = 'Experiência Premium';
+                  borderClass = 'border-[#D4AF37]';
+                  badgeClass = 'bg-[#D4AF37]/10 text-[#D4AF37]';
+                } else if (isSharedOnly) {
+                  badgeText = 'Econômico';
+                  borderClass = 'border-[#2C7A7B]';
+                  badgeClass = 'bg-[#2C7A7B]/10 text-[#2C7A7B]';
+                } else if (isPrivateOnly) {
+                  badgeText = 'Privativo Exclusivo';
+                  borderClass = 'border-[#D4AF37]';
+                  badgeClass = 'bg-[#D4AF37]/10 text-[#D4AF37]';
+                }
 
                 return (
                   <div
                     key={tour.id}
-                    className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${
-                      isPremium ? 'border-[#D4AF37]' : 'border-[#2C7A7B]'
-                    }`}
+                    className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${borderClass}`}
                   >
                     <div className="p-6 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="mb-4">
-                          <span
-                            className={`text-xs font-bold px-3 py-1 rounded-full ${
-                              isPremium
-                                ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
-                                : 'bg-[#2C7A7B]/10 text-[#2C7A7B]'
-                            }`}
-                          >
-                            {isPremium ? 'Experiência Premium' : 'Atração Imperdível'}
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeClass}`}>
+                            {badgeText}
                           </span>
                         </div>
 
@@ -232,6 +246,13 @@ const Pricing = () => {
                             <div>
                               <span className="text-2xl font-bold text-[#D4AF37]">Sob Consulta</span>
                               <p className="text-xs text-gray-500 mt-1">Atendimento exclusivo via WhatsApp</p>
+                            </div>
+                          ) : isSharedOnly ? (
+                            <div>
+                              <span className="text-3xl font-bold text-gray-900">
+                                {formatPrice(sharedPrice)}
+                              </span>
+                              <p className="text-xs text-gray-500 mt-1">por pessoa (Jardineira)</p>
                             </div>
                           ) : (
                             <div>
@@ -248,7 +269,7 @@ const Pricing = () => {
                         {tour.locations && (
                           <div className="space-y-2 mb-6">
                             <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                              Pontos Visitados:
+                              Roteiro Inclui:
                             </h4>
                             <ul className="space-y-1.5">
                               {tour.locations.map((loc, i) => (
@@ -269,14 +290,21 @@ const Pricing = () => {
                       </div>
 
                       <Button
-                        onClick={() => handleOpenBooking(tour, 'Privativo')}
+                        onClick={() =>
+                          handleOpenBooking(
+                            tour,
+                            isSharedOnly ? 'Compartilhado' : 'Privativo',
+                            'roundTrip',
+                            vehicles[0]?.type || 'Buggy'
+                          )
+                        }
                         className={`w-full font-semibold mt-4 ${
-                          isPremium
+                          isPremium || isPrivateOnly
                             ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-white'
                             : 'bg-[#2C7A7B] hover:bg-[#1A5557] text-white'
                         }`}
                       >
-                        {isPremium ? 'Consultar no WhatsApp' : 'Reservar Passeio'}
+                        {isPremium ? 'Consultar no WhatsApp' : isSharedOnly ? 'Reservar Compartilhado' : 'Reservar Privativo'}
                       </Button>
                     </div>
                   </div>
