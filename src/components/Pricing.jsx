@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { Check, Car, Plane, Map, Sun } from 'lucide-react';
+import { Check, Moon, ArrowRightLeft, Car, Plane, Map, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { transfers, tours, formatPrice } from '@/data/catalog';
+import { transfersData, tours, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
 
 const Pricing = () => {
@@ -12,8 +12,8 @@ const Pricing = () => {
   const [activeTab, setActiveTab] = useState('transfers');
   const [bookingItem, setBookingItem] = useState(null);
 
-  const handleOpenBooking = (item, type) => {
-    setBookingItem({ ...item, selectedType: type });
+  const handleOpenBooking = (item, type, tripType = 'roundTrip') => {
+    setBookingItem({ ...item, selectedType: type, selectedTripType: tripType });
   };
 
   return (
@@ -65,56 +65,122 @@ const Pricing = () => {
             className="max-w-5xl mx-auto"
           >
             <div className="grid gap-6">
-              {transfers.map((transfer) => (
-                <div
-                  key={transfer.id}
-                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="p-6 flex flex-col md:flex-row items-center gap-6">
-                    <div className="flex items-center gap-4 w-full md:w-1/3">
-                      <div className="w-12 h-12 bg-[#2C7A7B]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <transfer.icon className="w-6 h-6 text-[#2C7A7B]" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">{transfer.title}</h3>
-                        <p className="text-xs text-gray-500">{transfer.subtitle}</p>
-                      </div>
-                    </div>
+              {transfersData.map((transfer) => {
+                const IconComponent = transfer.icon || Car;
+                const sharedOpt = transfer.options.shared;
+                const privateOpt = transfer.options.private;
 
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                      <div className="bg-gray-50 p-4 rounded-lg text-center border border-gray-100">
-                        <div className="text-xs font-semibold text-[#2C7A7B] uppercase mb-1">Privativo</div>
-                        <div className="text-2xl font-bold text-gray-900">{formatPrice(transfer.privatePrice)}</div>
-                        <div className="text-xs text-gray-500">{transfer.privateNote}</div>
-                        <Button
-                          onClick={() => handleOpenBooking(transfer, 'Privativo')}
-                          variant="ghost"
-                          className="mt-2 w-full h-8 text-xs hover:bg-[#2C7A7B] hover:text-white"
-                        >
-                          Reservar
-                        </Button>
+                return (
+                  <div
+                    key={transfer.id}
+                    className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="p-6 flex flex-col md:flex-row items-center gap-6">
+                      {/* Título & Ícone */}
+                      <div className="flex items-center gap-4 w-full md:w-1/3">
+                        <div className="w-12 h-12 bg-[#2C7A7B]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <IconComponent className="w-6 h-6 text-[#2C7A7B]" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">{transfer.title}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                              <ArrowRightLeft className="w-3 h-3 text-[#2C7A7B]" />
+                              Ida ou Ida e Volta
+                            </span>
+                            {transfer.nightFee && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                <Moon className="w-3 h-3 text-amber-600" />
+                                Taxa Noturna (>=18h)
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="bg-gray-50 p-4 rounded-lg text-center border border-gray-100">
-                        <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Compartilhado</div>
-                        <div className="text-2xl font-bold text-gray-900">{formatPrice(transfer.sharedPrice)}</div>
-                        <div className="text-xs text-gray-500">{transfer.sharedNote}</div>
-                        <Button
-                          onClick={() => handleOpenBooking(transfer, 'Compartilhado')}
-                          variant="ghost"
-                          className="mt-2 w-full h-8 text-xs hover:bg-gray-600 hover:text-white"
-                        >
-                          Reservar
-                        </Button>
+
+                      {/* Opções Privativo vs Compartilhado */}
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                        {/* Privativo */}
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                          <div>
+                            <div className="text-xs font-semibold text-[#2C7A7B] uppercase mb-1">
+                              Privativo
+                            </div>
+                            {privateOpt?.tiers ? (
+                              <div className="space-y-1.5 my-2">
+                                {privateOpt.tiers.map((tier, idx) => (
+                                  <div key={idx} className="flex justify-between items-center text-xs">
+                                    <span className="font-semibold text-gray-700">
+                                      {tier.vehicle} ({tier.maxCapacity}p):
+                                    </span>
+                                    <span className="font-bold text-gray-900">
+                                      {formatPrice(tier.roundTrip)}{' '}
+                                      <span className="text-[10px] text-gray-400 font-normal">(I/V)</span>
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-2xl font-bold text-gray-900">Sob consulta</div>
+                            )}
+                          </div>
+
+                          <Button
+                            onClick={() => handleOpenBooking(transfer, 'Privativo')}
+                            variant="ghost"
+                            className="mt-3 w-full h-8 text-xs font-bold hover:bg-[#2C7A7B] hover:text-white border border-[#2C7A7B]/20"
+                          >
+                            Reservar Privativo
+                          </Button>
+                        </div>
+
+                        {/* Compartilhado */}
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                              Compartilhado
+                            </div>
+                            {sharedOpt?.available ? (
+                              <div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                  {formatPrice(sharedOpt.roundTrip)}
+                                </div>
+                                <div className="text-xs text-gray-500 font-medium">
+                                  Ida e Volta (por pessoa)
+                                </div>
+                                <div className="text-[11px] text-gray-400 mt-1">
+                                  Somente Ida: {formatPrice(sharedOpt.oneWay)}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="py-3 text-center">
+                                <span className="inline-block text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full">
+                                  Somente Privativo
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          <Button
+                            onClick={() => handleOpenBooking(transfer, 'Compartilhado')}
+                            disabled={!sharedOpt?.available}
+                            variant="ghost"
+                            className="mt-3 w-full h-8 text-xs font-bold hover:bg-gray-600 hover:text-white border border-gray-200 disabled:opacity-40"
+                          >
+                            {sharedOpt?.available ? 'Reservar Compartilhado' : 'Indisponível'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
             <div className="mt-8 text-center bg-[#2C7A7B]/5 rounded-lg p-4 border border-[#2C7A7B]/10">
               <p className="text-[#2C7A7B] font-medium flex items-center justify-center gap-2">
                 <Check className="w-5 h-5" />
-                Transfers com conforto, ar-condicionado, pontualidade e motoristas credenciados.
+                Transfers com conforto, ar-condicionado, pontualidade e motoristas credenciados. Desconto de 5% no PIX!
               </p>
             </div>
           </motion.div>
@@ -137,18 +203,22 @@ const Pricing = () => {
                 >
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="mb-4">
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                        tour.type === 'Privativo'
-                          ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
-                          : 'bg-[#2C7A7B]/10 text-[#2C7A7B]'
-                      }`}>
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-full ${
+                          tour.type === 'Privativo'
+                            ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                            : 'bg-[#2C7A7B]/10 text-[#2C7A7B]'
+                        }`}
+                      >
                         {tour.badge}
                       </span>
                     </div>
 
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
                     <div className="mb-6">
-                      <span className="text-3xl font-bold text-gray-900">{formatPrice(tour.unitPrice)}</span>
+                      <span className="text-3xl font-bold text-gray-900">
+                        {formatPrice(tour.unitPrice)}
+                      </span>
                       <p className="text-xs text-gray-500 mt-1">{tour.per}</p>
                     </div>
 

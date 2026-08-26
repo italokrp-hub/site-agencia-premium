@@ -1,59 +1,91 @@
 import { Waves, Compass, Map, Plane, Car, Sun } from 'lucide-react';
 
-export const transfers = [
+export const PIX_DISCOUNT_PERCENT = 0.05;
+
+export const transfersData = [
   {
-    id: 'transfer-fortaleza-jeri',
-    title: 'Fortaleza ⇌ Jericoacoara',
-    subtitle: 'Ida e Volta',
-    category: 'transfer',
+    id: 'fortaleza',
+    title: 'Fortaleza (Hotel/Aeroporto) ↔ Jericoacoara',
     icon: Car,
-    privatePrice: 1800,
-    privateNote: 'até 4 pessoas',
-    sharedPrice: 550,
-    sharedNote: 'por pessoa',
-    description: 'Transfer executivo entre Fortaleza e Jericoacoara com conforto e segurança.',
+    category: 'transfer',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    options: {
+      shared: { available: true, oneWay: 280, roundTrip: 560, perPerson: true },
+      private: {
+        available: true,
+        tiers: [
+          { maxCapacity: 4, vehicle: 'Hilux', oneWay: 900, roundTrip: 1800 },
+          { maxCapacity: 6, vehicle: 'SW4', oneWay: 1100, roundTrip: 2200 }
+        ]
+      }
+    }
   },
   {
-    id: 'transfer-aeroporto-jeri',
-    title: 'Aeroporto Regional ⇌ Jericoacoara',
-    subtitle: 'Ida e Volta',
-    category: 'transfer',
+    id: 'cruz',
+    title: 'Aeroporto Regional de Cruz ↔ Jericoacoara',
     icon: Plane,
-    privatePrice: 600,
-    privateNote: 'até 6 pessoas',
-    sharedPrice: 180,
-    sharedNote: 'por pessoa',
-    description: 'Transfer do aeroporto regional até Jericoacoara.',
+    category: 'transfer',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    options: {
+      shared: { available: true, oneWay: 100, roundTrip: 200, perPerson: true },
+      private: {
+        available: true,
+        tiers: [
+          { maxCapacity: 4, vehicle: 'Hilux', oneWay: 550, roundTrip: 1100 },
+          { maxCapacity: 6, vehicle: 'SW4', oneWay: 700, roundTrip: 1400 }
+        ]
+      }
+    }
   },
   {
-    id: 'transfer-jijoca-jeri',
-    title: 'Jijoca ⇄ Vila de Jeri',
-    subtitle: 'Ida e Volta',
-    category: 'transfer',
+    id: 'jijoca',
+    title: 'Jijoca ↔ Jericoacoara',
     icon: Map,
-    privatePrice: 500,
-    privateNote: 'até 10 pessoas',
-    sharedPrice: 140,
-    sharedNote: 'por pessoa',
-    description: 'Transfer entre Jijoca e a Vila de Jericoacoara.',
+    category: 'transfer',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/0376391c7db96ffaf93689b92c2eeb11.webp',
+    nightFee: 20, // Acréscimo se horário >= 18:00
+    options: {
+      shared: { available: true, oneWay: 50, roundTrip: 100, perPerson: true },
+      private: {
+        available: true,
+        tiers: [
+          { maxCapacity: 10, vehicle: 'Jardineira', oneWay: 250, roundTrip: 500 }
+        ]
+      }
+    }
   },
   {
-    id: 'transfer-prea-jeri',
-    title: 'Preá ⇄ Vila de Jeri',
-    subtitle: 'Ida e Volta',
-    category: 'transfer',
+    id: 'prea',
+    title: 'Preá ↔ Jericoacoara',
     icon: Sun,
-    privatePrice: 560,
-    privateNote: 'até 6 pessoas',
-    sharedPrice: 200,
-    sharedNote: 'por pessoa',
-    description: 'Transfer entre Preá e a Vila de Jericoacoara.',
+    category: 'transfer',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/c41e7ba1c6dcdd06e4d8c07e14a1e531.jpg',
-  },
+    options: {
+      shared: { available: false }, // Somente privativo
+      private: {
+        available: true,
+        tiers: [
+          { maxCapacity: 10, vehicle: 'Jardineira', oneWay: 250, roundTrip: 500 }
+        ]
+      }
+    }
+  }
 ];
+
+export const transfers = transfersData.map((item) => ({
+  id: item.id,
+  title: item.title,
+  subtitle: 'Ida e Volta / Ida',
+  category: 'transfer',
+  icon: item.icon,
+  privatePrice: item.options.private?.tiers?.[0]?.roundTrip || 0,
+  privateNote: item.options.private?.tiers?.[0] ? `até ${item.options.private.tiers[0].maxCapacity} pessoas (${item.options.private.tiers[0].vehicle})` : '',
+  sharedPrice: item.options.shared?.available ? item.options.shared.roundTrip : 0,
+  sharedNote: item.options.shared?.available ? 'por pessoa' : 'Indisponível',
+  description: `Transfer ${item.title}`,
+  image: item.image,
+  raw: item,
+}));
 
 export const tours = [
   {
@@ -210,7 +242,7 @@ export const allServices = [
 ];
 
 export function formatPrice(value) {
-  return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `R$ ${(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function calculateTotal(item, passengers) {
@@ -219,3 +251,100 @@ export function calculateTotal(item, passengers) {
   }
   return item.unitPrice;
 }
+
+export function isNightTime(timeStr) {
+  if (!timeStr) return false;
+  const [hours] = timeStr.split(':').map(Number);
+  return !isNaN(hours) && hours >= 18;
+}
+
+export function calculateTransferPrice({ transfer, optionType = 'private', tripType = 'roundTrip', passengers = 1, selectedTierIndex, time = '' }) {
+  if (!transfer || !transfer.options) {
+    return {
+      optionType,
+      tripType,
+      baseUnitPrice: 0,
+      subtotal: 0,
+      isPerPerson: false,
+      isPrivate: false,
+      vehicle: null,
+      vehicleCount: 1,
+      selectedTier: null,
+      nightFeeAmount: 0,
+      nightFeeApplied: false,
+      total: 0,
+      pixDiscountAmount: 0,
+      pixTotal: 0,
+    };
+  }
+
+  const isShared = optionType === 'shared';
+  const priceKey = tripType === 'roundTrip' ? 'roundTrip' : 'oneWay';
+
+  let baseUnitPrice = 0;
+  let subtotal = 0;
+  let vehicle = null;
+  let vehicleCount = 1;
+  let selectedTier = null;
+  let isPerPerson = false;
+  let isPrivate = false;
+
+  if (isShared && transfer.options.shared?.available) {
+    baseUnitPrice = transfer.options.shared[priceKey] || 0;
+    subtotal = baseUnitPrice * passengers;
+    isPerPerson = true;
+    isPrivate = false;
+  } else if (transfer.options.private?.available) {
+    isPrivate = true;
+    const tiers = transfer.options.private.tiers || [];
+    
+    if (tiers.length > 0) {
+      const largestTier = tiers[tiers.length - 1];
+      
+      if (passengers > largestTier.maxCapacity) {
+        vehicleCount = Math.ceil(passengers / largestTier.maxCapacity);
+        selectedTier = {
+          ...largestTier,
+          vehicle: `${vehicleCount}x ${largestTier.vehicle}`,
+        };
+        baseUnitPrice = largestTier[priceKey] || 0;
+        subtotal = baseUnitPrice * vehicleCount;
+        vehicle = selectedTier.vehicle;
+      } else {
+        if (selectedTierIndex !== undefined && selectedTierIndex !== null && tiers[selectedTierIndex] && passengers <= tiers[selectedTierIndex].maxCapacity) {
+          selectedTier = tiers[selectedTierIndex];
+        } else {
+          selectedTier = tiers.find(t => t.maxCapacity >= passengers) || largestTier;
+        }
+        baseUnitPrice = selectedTier[priceKey] || 0;
+        subtotal = baseUnitPrice;
+        vehicle = selectedTier.vehicle;
+        vehicleCount = 1;
+      }
+    }
+  }
+
+  const nightFeeApplied = Boolean((transfer.nightFee || transfer.id === 'jijoca') && isNightTime(time));
+  const nightFeeAmount = nightFeeApplied ? (transfer.nightFee || 20) : 0;
+  const total = subtotal + nightFeeAmount;
+  const pixTotal = total * 0.95;
+  const pixDiscountAmount = total - pixTotal;
+
+  return {
+    optionType,
+    tripType,
+    baseUnitPrice,
+    subtotal,
+    isPerPerson,
+    isPrivate,
+    vehicle,
+    vehicleCount,
+    selectedTier,
+    nightFeeAmount,
+    nightFeeApplied,
+    total,
+    pixDiscountAmount,
+    pixTotal,
+  };
+}
+
