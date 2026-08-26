@@ -175,9 +175,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto p-0 gap-0">
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle className="text-xl font-bold text-gray-900 pr-8">
+      <DialogContent className="z-[60] w-[95vw] max-w-lg mx-auto max-h-[90dvh] overflow-hidden rounded-xl bg-white p-0 shadow-xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <DialogHeader className="px-5 pt-5 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-gray-100 shrink-0">
+          <DialogTitle className="text-lg font-bold text-gray-900 pr-8">
             {step === 'pix' ? 'Pagamento via Pix' : 'Reservar Serviço'}
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
@@ -188,46 +188,46 @@ export default function BookingModal({ item, open, onOpenChange }) {
         </DialogHeader>
 
         {step === 'form' && (
-          <div className="px-6 pb-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="booking-name">Nome Completo *</Label>
+          <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="booking-name" className="text-xs font-semibold">Nome Completo *</Label>
               <Input
                 id="booking-name"
                 placeholder="Seu nome completo"
                 value={form.name}
                 onChange={handleChange('name')}
-                className="h-11"
+                className="h-11 bg-white"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="booking-whatsapp">WhatsApp *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="booking-whatsapp" className="text-xs font-semibold">WhatsApp *</Label>
                 <Input
                   id="booking-whatsapp"
                   placeholder="(00) 00000-0000"
                   value={form.whatsapp}
                   onChange={handleChange('whatsapp')}
                   maxLength={16}
-                  className="h-11"
+                  className="h-11 bg-white"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="booking-email">E-mail</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="booking-email" className="text-xs font-semibold">E-mail</Label>
                 <Input
                   id="booking-email"
                   type="email"
                   placeholder="seu@email.com"
                   value={form.email}
                   onChange={handleChange('email')}
-                  className="h-11"
+                  className="h-11 bg-white"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Data do Serviço *</Label>
-              <div className="border rounded-lg p-1 bg-white">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Data do Serviço *</Label>
+              <div className="border border-gray-200 rounded-lg p-1 bg-white relative z-[70]">
                 <Calendar
                   mode="single"
                   selected={form.date}
@@ -245,19 +245,19 @@ export default function BookingModal({ item, open, onOpenChange }) {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="booking-pickup">Ponto de Partida / Hotel</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="booking-pickup" className="text-xs font-semibold">Ponto de Partida / Hotel</Label>
                 <Input
                   id="booking-pickup"
                   placeholder="Ex: Hotel Beach Club"
                   value={form.pickup}
                   onChange={handleChange('pickup')}
-                  className="h-11"
+                  className="h-11 bg-white"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="booking-passengers">Pessoas *</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="booking-passengers" className="text-xs font-semibold">Pessoas *</Label>
                 <Input
                   id="booking-passengers"
                   type="number"
@@ -265,16 +265,16 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   max="50"
                   value={form.passengers}
                   onChange={handleChange('passengers')}
-                  className="h-11"
+                  className="h-11 bg-white"
                 />
               </div>
             </div>
 
             {/* Price Summary */}
-            <div className="bg-gradient-to-r from-[#F7F3E9] to-white rounded-xl p-4 border border-[#D4AF37]/20">
+            <div className="bg-gradient-to-r from-[#F7F3E9] to-white rounded-xl p-3.5 sm:p-4 border border-[#D4AF37]/20">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-gray-600">{serviceTitle}</span>
-                <span className="text-xs text-gray-500">{priceLabel}</span>
+                <span className="text-sm text-gray-600 truncate pr-2">{serviceTitle}</span>
+                <span className="text-xs text-gray-500 whitespace-nowrap">{priceLabel}</span>
               </div>
               {isPerPerson && (
                 <div className="flex justify-between items-center mb-2">
@@ -299,7 +299,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
             <Button
               onClick={handleMercadoPago}
               disabled={!isFormValid || loading}
-              className="w-full h-12 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-base rounded-lg transition-all duration-300 flex items-center gap-2"
+              className="w-full h-13 sm:h-12 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -313,13 +313,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
               onClick={handleWhatsApp}
               disabled={!isFormValid}
               variant="outline"
-              className="w-full h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-lg transition-all duration-300 flex items-center gap-2"
+              className="w-full h-13 sm:h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />
               Finalizar no WhatsApp
             </Button>
 
-            <p className="text-[11px] text-gray-400 text-center leading-relaxed">
+            <p className="text-[11px] text-gray-400 text-center leading-relaxed pb-1">
               Pagamento seguro via Mercado Pago (Pix ou Cartão de Crédito).
               <br />
               Ao continuar, você concorda com nossos Termos de Uso.
@@ -328,22 +328,22 @@ export default function BookingModal({ item, open, onOpenChange }) {
         )}
 
         {step === 'pix' && pixData && (
-          <div className="px-6 pb-6 space-y-4">
-            <div className="flex justify-center bg-white p-4 rounded-xl border">
+          <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
+            <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200">
               <img
                 src={`data:image/png;base64,${pixData.qrCodeBase64}`}
                 alt="QR Code Pix"
-                className="w-56 h-56"
+                className="w-48 h-48 sm:w-56 sm:h-56"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Pix Copia e Cola</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Pix Copia e Cola</Label>
               <div className="flex gap-2">
                 <Input
                   readOnly
                   value={pixData.qrCode}
-                  className="h-11 text-xs font-mono"
+                  className="h-11 text-xs font-mono bg-white truncate"
                 />
                 <Button
                   onClick={handleCopyPix}
@@ -378,7 +378,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
             <Button
               onClick={handleWhatsApp}
               variant="outline"
-              className="w-full h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-lg transition-all duration-300 flex items-center gap-2"
+              className="w-full h-13 sm:h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />
               Confirmar Dados no WhatsApp
