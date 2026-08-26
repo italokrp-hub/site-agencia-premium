@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { calculateTotal, formatPrice } from '@/data/catalog';
 import { createCheckout } from '@/services/payment';
 
@@ -40,6 +39,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [pixData, setPixData] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const isTransfer = item.category === 'transfer';
 
@@ -82,6 +82,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   const handleDateSelect = useCallback((date) => {
     setForm((prev) => ({ ...prev, date }));
+    setIsCalendarOpen(false);
   }, []);
 
   const isFormValid = form.name.trim() && form.whatsapp.replace(/\D/g, '').length >= 10 && form.date;
@@ -226,22 +227,19 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="relative space-y-1.5">
               <Label className="text-xs font-semibold">Data do Serviço *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 ${form.date ? 'text-gray-900' : 'text-muted-foreground'}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.date ? format(form.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0 bg-white z-[100] shadow-2xl border border-gray-300 relative"
-                  align="start"
-                >
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCalendarOpen((prev) => !prev)}
+                className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 ${form.date ? 'text-gray-900' : 'text-muted-foreground'}`}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {form.date ? format(form.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}
+              </Button>
+              {isCalendarOpen && (
+                <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
                   <Calendar
                     mode="single"
                     selected={form.date}
@@ -249,9 +247,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     disabled={(date) => isBefore(date, startOfDay(addDays(new Date(), 1)))}
                     locale={ptBR}
                   />
-                </PopoverContent>
-              </Popover>
-              {form.date && (
+                </div>
+              )}
+              {form.date && !isCalendarOpen && (
                 <p className="text-xs text-[#2C7A7B] font-medium">
                   <CalendarDays className="inline w-3 h-3 mr-1" />
                   {format(form.date, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
