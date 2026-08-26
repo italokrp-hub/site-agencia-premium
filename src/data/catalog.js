@@ -31,8 +31,8 @@ export const transfersData = [
       private: {
         available: true,
         tiers: [
-          { maxCapacity: 4, vehicle: 'Hilux', oneWay: 550, roundTrip: 1100 },
-          { maxCapacity: 6, vehicle: 'SW4', oneWay: 700, roundTrip: 1400 }
+          { maxCapacity: 4, vehicle: 'Hilux', oneWay: 275, roundTrip: 550 },
+          { maxCapacity: 6, vehicle: 'SW4', oneWay: 350, roundTrip: 700 }
         ]
       }
     }
