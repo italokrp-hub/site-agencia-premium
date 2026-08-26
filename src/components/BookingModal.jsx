@@ -436,7 +436,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
             {/* Campos adicionais para Passeio (Tour) */}
             {isTour && tourItem && (
               <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={`grid grid-cols-1 ${form.optionType === 'private' ? 'sm:grid-cols-2' : ''} gap-3`}>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-gray-700">Modalidade *</Label>
                     <Select
@@ -477,8 +477,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   )}
                 </div>
 
-                {/* Aviso visual de múltiplos veículos se multiplier > 1 */}
-                {!isWhatsAppOnly && tourPriceInfo?.vehicleCount > 1 && (
+                {/* Aviso visual de múltiplos veículos se multiplier > 1 (Apenas em Privativo) */}
+                {!isWhatsAppOnly && form.optionType === 'private' && tourPriceInfo?.vehicleCount > 1 && (
                   <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-2.5 flex items-center gap-2 text-xs font-medium">
                     <Info className="w-4 h-4 text-blue-600 shrink-0" />
                     <span>
@@ -532,7 +532,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </div>
             </div>
 
-            {/* Data, Ponto de Partida e Pessoas */}
+            {/* Data, Ponto de Partida / Local de Embarque e Pessoas */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="relative space-y-1.5 sm:col-span-1">
                 <Label className="text-xs font-semibold">Data *</Label>
@@ -562,11 +562,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
               <div className="space-y-1.5 sm:col-span-1">
                 <Label htmlFor="booking-pickup" className="text-xs font-semibold">
-                  Ponto de Partida
+                  {isTour ? 'Local de Embarque' : 'Ponto de Partida'}
                 </Label>
                 <Input
                   id="booking-pickup"
-                  placeholder="Ex: Hotel / Voo"
+                  placeholder={isTour ? 'Ex: Nome da Pousada' : 'Ex: Hotel / Voo'}
                   value={form.pickup}
                   onChange={handleChange('pickup')}
                   className="h-11 bg-white text-xs"
