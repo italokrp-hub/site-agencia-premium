@@ -44,6 +44,7 @@ import {
   calculateTourPrice,
 } from '@/data/catalog';
 import { createCheckout, createPixPayment } from '@/services/payment';
+import { registerBookingToERP } from '@/services/bookingIntegration';
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -257,6 +258,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoading(true);
     setError(null);
     try {
+      // Sincronização não-bloqueante com o ERP Supabase
+      registerBookingToERP(form, item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' }, {
+        fullTotal,
+        chargeTotal,
+        paymentMode,
+        paymentMethod: 'Cartão de Crédito',
+        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
+      }).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
         title: `${serviceTitle}${titleSuffix}`,
@@ -304,6 +314,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoadingPix(true);
     setError(null);
     try {
+      // Sincronização não-bloqueante com o ERP Supabase
+      registerBookingToERP(form, item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' }, {
+        fullTotal,
+        chargeTotal: chargePixTotal,
+        paymentMode,
+        paymentMethod: 'Pix',
+        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
+      }).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
         title: `${serviceTitle}${titleSuffix}`,
@@ -354,6 +373,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
+    // Sincronização não-bloqueante com o ERP Supabase
+    registerBookingToERP(form, item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' }, {
+      fullTotal,
+      chargeTotal,
+      paymentMode,
+      paymentMethod: 'WhatsApp',
+      vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
+    }).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+
     let msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
 
     if (isTransfer) {
