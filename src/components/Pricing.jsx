@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { Check, Moon, ArrowRightLeft, Car, Plane, Map, Sun, Compass, Sparkles } from 'lucide-react';
+import { Check, Moon, ArrowRightLeft, Car, CreditCard, Tag, Flame, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { transfersData, toursData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
@@ -59,6 +59,27 @@ const Pricing = () => {
             >
               Passeios
             </button>
+          </div>
+
+          {/* Selo de Condição de Pagamento e Parcelamento */}
+          <div className="max-w-3xl mx-auto bg-white/90 backdrop-blur-sm border border-[#2C7A7B]/20 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#2C7A7B]/10 flex items-center justify-center shrink-0">
+                <CreditCard className="w-5 h-5 text-[#2C7A7B]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  Parcelamos em até 10x no cartão
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  *Consulte taxas da operadora para parcelamento.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-[#25D366]/10 px-3.5 py-1.5 rounded-xl border border-[#25D366]/30 text-xs font-bold text-[#1E7E43] shrink-0">
+              <Tag className="w-4 h-4 text-[#25D366]" />
+              <span>5% OFF no PIX</span>
+            </div>
           </div>
         </motion.div>
 
@@ -142,8 +163,15 @@ const Pricing = () => {
                         {/* Compartilhado */}
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
                           <div>
-                            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
-                              Compartilhado
+                            <div className="flex justify-between items-center mb-1">
+                              <div className="text-xs font-semibold text-gray-500 uppercase">
+                                Compartilhado
+                              </div>
+                              {sharedOpt?.available && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full flex items-center gap-0.5">
+                                  <Flame className="w-3 h-3 text-orange-500" /> 🔥 Mais Vendido
+                                </span>
+                              )}
                             </div>
                             {sharedOpt?.available ? (
                               <div>
@@ -208,40 +236,45 @@ const Pricing = () => {
                 const vehicles = tour.options?.private?.vehicles || [];
                 const startingPrice = vehicles[0]?.price || 0;
 
-                let badgeText = 'Mais Popular';
                 let borderClass = 'border-[#2C7A7B]';
-                let badgeClass = 'bg-[#2C7A7B]/10 text-[#2C7A7B]';
-
-                if (isPremium) {
-                  badgeText = 'Experiência Premium';
-                  borderClass = 'border-[#D4AF37]';
-                  badgeClass = 'bg-[#D4AF37]/10 text-[#D4AF37]';
-                } else if (isSharedOnly) {
-                  badgeText = 'Econômico';
-                  borderClass = 'border-[#2C7A7B]';
-                  badgeClass = 'bg-[#2C7A7B]/10 text-[#2C7A7B]';
-                } else if (isPrivateOnly) {
-                  badgeText = 'Privativo Exclusivo';
-                  borderClass = 'border-[#D4AF37]';
-                  badgeClass = 'bg-[#D4AF37]/10 text-[#D4AF37]';
-                }
 
                 return (
                   <div
                     key={tour.id}
-                    className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${borderClass}`}
+                    className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${
+                      isPremium || isPrivateOnly ? 'border-[#D4AF37]' : borderClass
+                    }`}
                   >
                     <div className="p-6 flex-1 flex flex-col justify-between">
                       <div>
-                        <div className="mb-4">
-                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeClass}`}>
-                            {badgeText}
-                          </span>
+                        {/* Selos / Badges */}
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                          {isPremium && (
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
+                              Experiência Premium
+                            </span>
+                          )}
+                          {isSharedOnly && (
+                            <>
+                              <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#2C7A7B]/10 text-[#2C7A7B]">
+                                Econômico
+                              </span>
+                              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 flex items-center gap-1">
+                                <Flame className="w-3.5 h-3.5 text-orange-500" /> 🔥 Mais Vendido
+                              </span>
+                            </>
+                          )}
+                          {isPrivateOnly && (
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
+                              Privativo Exclusivo
+                            </span>
+                          )}
                         </div>
 
                         <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
 
-                        <div className="mb-6">
+                        {/* Preço */}
+                        <div className="mb-4">
                           {isPremium ? (
                             <div>
                               <span className="text-2xl font-bold text-[#D4AF37]">Sob Consulta</span>
@@ -266,6 +299,26 @@ const Pricing = () => {
                           )}
                         </div>
 
+                        {/* Pílulas Visuais de Veículos (Para Passeios Privativos) */}
+                        {isPrivateOnly && vehicles.length > 0 && (
+                          <div className="mb-4 bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
+                            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1.5">
+                              Veículos Disponíveis:
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {vehicles.map((v, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 bg-white text-emerald-700 text-xs font-semibold rounded border border-emerald-200 shadow-2xs"
+                                >
+                                  {v.type}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Roteiro Inclui */}
                         {tour.locations && (
                           <div className="space-y-2 mb-6">
                             <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
