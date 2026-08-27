@@ -93,7 +93,7 @@ export const toursData = [
     title: 'Passeio Lado Leste (Compartilhado)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
-    locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lugar Beach', 'Alchemist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
+    locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
     options: {
       shared: { available: true, price: 75, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
       private: { available: false }
@@ -104,7 +104,7 @@ export const toursData = [
     title: 'Passeio Lado Leste (Privativo)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
-    locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lugar Beach', 'Alchemist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
+    locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
     options: {
       shared: { available: false },
       private: {
