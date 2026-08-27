@@ -72,6 +72,7 @@ const initialForm = {
 
 export default function BookingModal({ item, open, onOpenChange }) {
   const [form, setForm] = useState(initialForm);
+  const [paymentMode, setPaymentMode] = useState('50'); // '50' | '100'
   const [step, setStep] = useState('form');
   const [loading, setLoading] = useState(false);
   const [loadingPix, setLoadingPix] = useState(false);
@@ -172,19 +173,25 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const selectedTier = transferPriceInfo?.selectedTier;
   const nightFeeApplied = transferPriceInfo ? transferPriceInfo.nightFeeApplied : false;
 
-  // Cálculo dos totais (Cartão e Pix 5% OFF)
-  const total = useMemo(() => {
+  // Cálculo dos totais integrais (Cartão e Pix 5% OFF)
+  const fullTotal = useMemo(() => {
     if (transferPriceInfo) return transferPriceInfo.total;
     if (tourPriceInfo) return tourPriceInfo.total;
     if (item?.priceType === 'per_person') return item.unitPrice * form.passengers;
     return item?.unitPrice || 0;
   }, [transferPriceInfo, tourPriceInfo, item, form.passengers]);
 
-  const totalPix = useMemo(() => {
+  const fullPixTotal = useMemo(() => {
     if (transferPriceInfo) return transferPriceInfo.pixTotal;
     if (tourPriceInfo) return tourPriceInfo.pixTotal;
-    return total * 0.95;
-  }, [transferPriceInfo, tourPriceInfo, total]);
+    return fullTotal * 0.95;
+  }, [transferPriceInfo, tourPriceInfo, fullTotal]);
+
+  // Cálculos considerando o pagamento de sinal de 50% vs 100% integral
+  const isDeposit = paymentMode === '50';
+  const chargeTotal = useMemo(() => (isDeposit ? fullTotal / 2 : fullTotal), [fullTotal, isDeposit]);
+  const chargePixTotal = useMemo(() => (isDeposit ? fullPixTotal / 2 : fullPixTotal), [fullPixTotal, isDeposit]);
+  const remainingBalance = useMemo(() => (isDeposit ? fullTotal / 2 : 0), [fullTotal, isDeposit]);
 
   const handleChange = useCallback((field) => (e) => {
     if (field === 'whatsapp') {
@@ -227,6 +234,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoadingPix(false);
     setIsCalendarOpen(false);
     setIsReturnCalendarOpen(false);
+    setPaymentMode('50');
   }, []);
 
   const handleOpenChange = useCallback(
@@ -244,14 +252,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return 'Serviço';
   }, [transferItem, tourItem, item]);
 
-  // Mercado Pago Checkout Pro (Envio do total normal)
+  // Mercado Pago Checkout Pro (Envio do valor fracionado chargeTotal)
   const handleMercadoPago = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
-        title: serviceTitle,
-        unitPrice: total,
+        title: `${serviceTitle}${titleSuffix}`,
+        unitPrice: chargeTotal,
         quantity: 1,
         payer: {
           name: form.name,
@@ -270,6 +279,10 @@ export default function BookingModal({ item, open, onOpenChange }) {
           pickup: form.pickup,
           passengers: form.passengers,
           flightDetails: form.flightDetails.trim() || undefined,
+          paymentMode,
+          fullTotal,
+          chargeTotal,
+          remainingBalance,
         },
       });
 
@@ -284,16 +297,17 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, total, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
+  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
 
-  // Geração Direta de Pix (Envio do totalPix com 5% OFF)
+  // Geração Direta de Pix (Envio do valor fracionado chargePixTotal)
   const handlePixPayment = useCallback(async () => {
     setLoadingPix(true);
     setError(null);
     try {
+      const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
-        title: `${serviceTitle} - PIX (5% OFF)`,
-        unitPrice: totalPix,
+        title: `${serviceTitle}${titleSuffix}`,
+        unitPrice: chargePixTotal,
         quantity: 1,
         payer: {
           name: form.name,
@@ -312,6 +326,10 @@ export default function BookingModal({ item, open, onOpenChange }) {
           pickup: form.pickup,
           passengers: form.passengers,
           flightDetails: form.flightDetails.trim() || undefined,
+          paymentMode,
+          fullTotal,
+          chargePixTotal,
+          remainingBalance,
           isPixDiscount: true,
         },
       });
@@ -332,7 +350,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, totalPix, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
+  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
@@ -366,9 +384,17 @@ export default function BookingModal({ item, open, onOpenChange }) {
     msgText += `Passageiros: ${form.passengers}\n`;
 
     if (!isWhatsAppOnly) {
+      msgText += `Modalidade de Pagamento: *${isDeposit ? 'Sinal de 50%' : 'Pagamento Integral (100%)'}*\n`;
       const nightText = nightFeeApplied ? ' (+ R$ 20 Tarifa Noturna)' : '';
-      msgText += `Cartão: ${formatPrice(total)}${nightText}\n`;
-      msgText += `PIX (5% OFF): *${formatPrice(totalPix)}*\n`;
+      if (isDeposit) {
+        msgText += `Valor Total do Serviço: ${formatPrice(fullTotal)}${nightText}\n`;
+        msgText += `Sinal no Cartão (50%): ${formatPrice(chargeTotal)}\n`;
+        msgText += `Sinal no PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+        msgText += `Saldo Restante (no embarque): *${formatPrice(remainingBalance)}*\n`;
+      } else {
+        msgText += `Cartão (100%): ${formatPrice(chargeTotal)}${nightText}\n`;
+        msgText += `PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+      }
     } else {
       msgText += `Solicito informações de horários e reserva.\n`;
     }
@@ -377,7 +403,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     if (form.email) msgText += `\nE-mail: ${form.email}`;
 
     window.open(`https://wa.me/5592981038749?text=${encodeURIComponent(msgText)}`, '_blank');
-  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, total, totalPix, selectedTier, tourPriceInfo, nightFeeApplied]);
+  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied]);
 
   const handleCopyPix = useCallback(() => {
     if (pixData?.qrCode) {
@@ -695,8 +721,69 @@ export default function BookingModal({ item, open, onOpenChange }) {
             {/* Renderização Condicional: Se isWhatsAppOnly for true, esconde os botões e resumo de checkout */}
             {!isWhatsAppOnly ? (
               <>
+                {/* Seleção de Fração de Pagamento (Sinal 50% vs Integral 100%) */}
+                <div className="space-y-2 mt-4">
+                  <Label className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                    Como deseja pagar? *
+                  </Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Opção 1: Sinal de 50% */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMode('50')}
+                      className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                        paymentMode === '50'
+                          ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-1">
+                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                          Sinal de 50%
+                          {paymentMode === '50' && (
+                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
+                              ✓
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                          Recomendado
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        Garante a reserva agora. O resto no embarque.
+                      </p>
+                    </button>
+
+                    {/* Opção 2: Integral 100% */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMode('100')}
+                      className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                        paymentMode === '100'
+                          ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-1">
+                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                          Integral (100%)
+                          {paymentMode === '100' && (
+                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
+                              ✓
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        Deixe tudo pago e viaje sem preocupações.
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Resumo e Desconto Pix */}
-                <div className="bg-gray-50 p-4 rounded-lg mt-4 border border-gray-100 space-y-1.5">
+                <div className="bg-gray-50 p-4 rounded-lg mt-3 border border-gray-200 space-y-1.5">
                   {isPrivate && selectedTier && (
                     <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
                       <Car className="w-4 h-4 text-[#2C7A7B]" />
@@ -716,12 +803,35 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     </p>
                   )}
 
-                  <p className="text-gray-500 line-through text-xs font-medium">
-                    Cartão: {formatPrice(total)}
-                  </p>
-                  <p className="text-2xl font-bold text-emerald-600">
-                    PIX (5% OFF): {formatPrice(totalPix)}
-                  </p>
+                  <div className="flex justify-between items-baseline text-xs text-gray-500 pb-1">
+                    <span>Valor Total do Serviço:</span>
+                    <span className="font-semibold text-gray-700">{formatPrice(fullTotal)}</span>
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-200 space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-gray-700">
+                        {isDeposit ? 'Valor a pagar agora (Sinal 50%):' : 'Valor a pagar agora (100%):'}
+                      </span>
+                      <span className="text-gray-400 line-through">
+                        Cartão: {formatPrice(chargeTotal)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-0.5">
+                      <span className="text-xs font-bold text-emerald-800">
+                        PIX (5% OFF no pagamento):
+                      </span>
+                      <span className="text-2xl font-bold text-emerald-600">
+                        {formatPrice(chargePixTotal)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isDeposit && (
+                    <p className="text-xs text-amber-800 font-medium bg-amber-50/90 p-2 rounded border border-amber-200 mt-2">
+                      * O saldo restante de <strong>{formatPrice(remainingBalance)}</strong> deverá ser pago no dia do serviço.
+                    </p>
+                  )}
                 </div>
 
                 {error && (
@@ -742,7 +852,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     ) : (
                       <QrCode className="w-5 h-5" />
                     )}
-                    {loadingPix ? 'Gerando Pix...' : `Pagar com Pix (${formatPrice(totalPix)})`}
+                    {loadingPix ? 'Gerando Pix...' : `Pagar com Pix (${formatPrice(chargePixTotal)})`}
                   </Button>
 
                   <Button
@@ -755,7 +865,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     ) : (
                       <CreditCard className="w-4 h-4" />
                     )}
-                    {loading ? 'Processando...' : `Pagar no Cartão (${formatPrice(total)})`}
+                    {loading ? 'Processando...' : `Pagar no Cartão (${formatPrice(chargeTotal)})`}
                   </Button>
 
                   <Button
