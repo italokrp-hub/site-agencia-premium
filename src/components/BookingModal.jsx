@@ -463,15 +463,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
           <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
             {/* Campos adicionais para Transfer */}
             {isTransfer && transferItem && (
-              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200 w-full max-w-full box-border overflow-hidden">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
-                  <div className="space-y-1.5 w-full max-w-full box-border">
+              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-gray-700">Trajeto *</Label>
                     <Select
                       value={form.tripType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, tripType: val }))}
                     >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium w-full max-w-full box-border">
+                      <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
                         <SelectValue placeholder="Selecione o trajeto" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
@@ -482,13 +482,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     </Select>
                   </div>
 
-                  <div className="space-y-1.5 w-full max-w-full box-border">
+                  <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-gray-700">Tipo de Serviço *</Label>
                     <Select
                       value={form.optionType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
                     >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium w-full max-w-full box-border">
+                      <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
@@ -504,41 +504,41 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 {/* Horários e Dados do Voo (Ida e Volta vs Trajeto Simples) */}
                 {isRoundTrip ? (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
-                      <div className="space-y-1.5 w-full max-w-full box-border">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
                         <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
                           Horário de Chegada (Ida) *
                         </Label>
-                        <div className="relative flex items-center w-full max-w-full box-border">
+                        <div className="relative flex items-center">
                           <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
                           <Input
                             id="booking-time"
                             type="time"
                             value={form.time}
                             onChange={handleChange('time')}
-                            className="h-10 bg-white text-xs pl-9 w-full max-w-full box-border rounded-md border border-gray-200"
+                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60"
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-1.5 w-full max-w-full box-border">
+                      <div className="space-y-1.5">
                         <Label htmlFor="booking-return-time" className="text-xs font-semibold text-gray-700">
                           Horário de Partida (Volta) *
                         </Label>
-                        <div className="relative flex items-center w-full max-w-full box-border">
+                        <div className="relative flex items-center">
                           <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
                           <Input
                             id="booking-return-time"
                             type="time"
                             value={form.returnTime}
                             onChange={handleChange('returnTime')}
-                            className="h-10 bg-white text-xs pl-9 w-full max-w-full box-border rounded-md border border-gray-200"
+                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 w-full max-w-full box-border">
+                    <div className="space-y-1.5">
                       <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
                         Dados do Voo (Opcional)
                       </Label>
@@ -547,29 +547,29 @@ export default function BookingModal({ item, open, onOpenChange }) {
                         placeholder="Ex: LA3330 ou G3 1520"
                         value={form.flightDetails}
                         onChange={handleChange('flightDetails')}
-                        className="h-10 bg-white text-xs w-full max-w-full box-border rounded-md border border-gray-200"
+                        className="h-10 bg-white text-xs px-3 w-full rounded-md border border-gray-200"
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
-                    <div className="space-y-1.5 w-full max-w-full box-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
                       <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
                         Horário de Chegada/Partida *
                       </Label>
-                      <div className="relative flex items-center w-full max-w-full box-border">
+                      <div className="relative flex items-center">
                         <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
                         <Input
                           id="booking-time"
                           type="time"
                           value={form.time}
                           onChange={handleChange('time')}
-                          className="h-10 bg-white text-xs pl-9 w-full max-w-full box-border rounded-md border border-gray-200"
+                          className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 w-full max-w-full box-border">
+                    <div className="space-y-1.5">
                       <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
                         Dados do Voo (Opcional)
                       </Label>
@@ -578,7 +578,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                         placeholder="Ex: LA3330 ou G3 1520"
                         value={form.flightDetails}
                         onChange={handleChange('flightDetails')}
-                        className="h-10 bg-white text-xs w-full max-w-full box-border rounded-md border border-gray-200"
+                        className="h-10 bg-white text-xs px-3 w-full rounded-md border border-gray-200"
                       />
                     </div>
                   </div>
@@ -655,7 +655,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 placeholder="Seu nome completo"
                 value={form.name}
                 onChange={handleChange('name')}
-                className="h-11 bg-white"
+                className="h-10 bg-white text-xs"
               />
             </div>
 
@@ -670,7 +670,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   value={form.whatsapp}
                   onChange={handleChange('whatsapp')}
                   maxLength={16}
-                  className="h-11 bg-white"
+                  className="h-10 bg-white text-xs"
                 />
               </div>
               <div className="space-y-1.5">
@@ -683,7 +683,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   placeholder="seu@email.com"
                   value={form.email}
                   onChange={handleChange('email')}
-                  className="h-11 bg-white"
+                  className="h-10 bg-white text-xs"
                 />
               </div>
             </div>
@@ -701,7 +701,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     setIsCalendarOpen((prev) => !prev);
                     setIsReturnCalendarOpen(false);
                   }}
-                  className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 text-xs ${
+                  className={`w-full justify-start text-left font-normal h-10 bg-white border border-gray-200 text-xs ${
                     form.date ? 'text-gray-900' : 'text-muted-foreground'
                   }`}
                 >
@@ -732,7 +732,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                       setIsReturnCalendarOpen((prev) => !prev);
                       setIsCalendarOpen(false);
                     }}
-                    className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 text-xs ${
+                    className={`w-full justify-start text-left font-normal h-10 bg-white border border-gray-200 text-xs ${
                       form.returnDate ? 'text-gray-900' : 'text-muted-foreground'
                     }`}
                   >
@@ -764,7 +764,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   placeholder={isTour ? 'Ex: Nome da Pousada' : 'Ex: Hotel / Voo'}
                   value={form.pickup}
                   onChange={handleChange('pickup')}
-                  className="h-11 bg-white text-xs"
+                  className="h-10 bg-white text-xs"
                 />
               </div>
 
@@ -772,7 +772,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 <Label htmlFor="booking-passengers" className="text-xs font-semibold">
                   Pessoas *
                 </Label>
-                <div className="flex items-center justify-between h-11 bg-white border border-gray-200 rounded-md px-2 shadow-2xs">
+                <div className="flex items-center justify-between h-10 bg-white border border-gray-200 rounded-md px-2 shadow-2xs">
                   <Button
                     type="button"
                     variant="ghost"
