@@ -38,11 +38,17 @@ export default async function handler(req, res) {
       metadata: metadata || {},
     };
 
+    const idempotencyKey =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
+        'X-Idempotency-Key': idempotencyKey,
       },
       body: JSON.stringify(paymentBody),
     });

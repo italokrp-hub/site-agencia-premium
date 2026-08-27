@@ -16,6 +16,8 @@ import {
   QrCode,
   Info,
   Compass,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import {
   Dialog,
@@ -577,15 +579,32 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 <Label htmlFor="booking-passengers" className="text-xs font-semibold">
                   Pessoas *
                 </Label>
-                <Input
-                  id="booking-passengers"
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={form.passengers}
-                  onChange={handleChange('passengers')}
-                  className="h-11 bg-white text-xs"
-                />
+                <div className="flex items-center justify-between h-11 bg-white border border-gray-200 rounded-md px-2 shadow-2xs">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    disabled={form.passengers <= 1}
+                    onClick={() => setForm((prev) => ({ ...prev, passengers: Math.max(1, prev.passengers - 1) }))}
+                    className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 shrink-0"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+
+                  <span className="text-sm font-bold text-gray-900 min-w-[2rem] text-center select-none">
+                    {form.passengers}
+                  </span>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setForm((prev) => ({ ...prev, passengers: prev.passengers + 1 }))}
+                    className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
