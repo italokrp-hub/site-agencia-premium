@@ -60,6 +60,7 @@ const initialForm = {
   date: undefined,
   returnDate: undefined,
   time: '12:00',
+  returnTime: '12:00',
   pickup: '',
   passengers: 1,
   flightDetails: '',
@@ -286,6 +287,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           date: format(form.date, 'yyyy-MM-dd'),
           returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
           time: form.time,
+          returnTime: isRoundTrip ? form.returnTime : undefined,
           pickup: form.pickup,
           passengers: form.passengers,
           flightDetails: form.flightDetails.trim() || undefined,
@@ -307,7 +309,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
+  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip]);
 
   // Geração Direta de Pix (Envio do valor fracionado chargePixTotal)
   const handlePixPayment = useCallback(async () => {
@@ -342,6 +344,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           date: format(form.date, 'yyyy-MM-dd'),
           returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
           time: form.time,
+          returnTime: isRoundTrip ? form.returnTime : undefined,
           pickup: form.pickup,
           passengers: form.passengers,
           flightDetails: form.flightDetails.trim() || undefined,
@@ -369,7 +372,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer]);
+  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip]);
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
@@ -404,7 +407,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
     if (isRoundTrip && form.returnDate) {
       msgText += `Data da Ida: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
-      msgText += `Data da Volta: ${format(form.returnDate, 'dd/MM/yyyy')}\n`;
+      msgText += `Data da Volta: ${format(form.returnDate, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.returnTime}h` : ''}\n`;
     } else {
       msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
     }
@@ -460,15 +463,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
           <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
             {/* Campos adicionais para Transfer */}
             {isTransfer && transferItem && (
-              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200 w-full max-w-full box-border overflow-hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
+                  <div className="space-y-1.5 w-full max-w-full box-border">
                     <Label className="text-xs font-semibold text-gray-700">Trajeto *</Label>
                     <Select
                       value={form.tripType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, tripType: val }))}
                     >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium">
+                      <SelectTrigger className="h-10 bg-white text-xs font-medium w-full max-w-full box-border">
                         <SelectValue placeholder="Selecione o trajeto" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
@@ -479,13 +482,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     </Select>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 w-full max-w-full box-border">
                     <Label className="text-xs font-semibold text-gray-700">Tipo de Serviço *</Label>
                     <Select
                       value={form.optionType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
                     >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium">
+                      <SelectTrigger className="h-10 bg-white text-xs font-medium w-full max-w-full box-border">
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
@@ -498,36 +501,88 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
-                      Horário de Chegada/Partida *
-                    </Label>
-                    <div className="relative">
+                {/* Horários e Dados do Voo (Ida e Volta vs Trajeto Simples) */}
+                {isRoundTrip ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
+                      <div className="space-y-1.5 w-full max-w-full box-border">
+                        <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
+                          Horário de Chegada (Ida) *
+                        </Label>
+                        <div className="relative flex items-center w-full max-w-full box-border">
+                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
+                          <Input
+                            id="booking-time"
+                            type="time"
+                            value={form.time}
+                            onChange={handleChange('time')}
+                            className="h-10 bg-white text-xs pl-9 w-full max-w-full box-border rounded-md border border-gray-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 w-full max-w-full box-border">
+                        <Label htmlFor="booking-return-time" className="text-xs font-semibold text-gray-700">
+                          Horário de Partida (Volta) *
+                        </Label>
+                        <div className="relative flex items-center w-full max-w-full box-border">
+                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
+                          <Input
+                            id="booking-return-time"
+                            type="time"
+                            value={form.returnTime}
+                            onChange={handleChange('returnTime')}
+                            className="h-10 bg-white text-xs pl-9 w-full max-w-full box-border rounded-md border border-gray-200"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 w-full max-w-full box-border">
+                      <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
+                        Dados do Voo (Opcional)
+                      </Label>
                       <Input
-                        id="booking-time"
-                        type="time"
-                        value={form.time}
-                        onChange={handleChange('time')}
-                        className="h-10 bg-white text-xs pl-9"
+                        id="booking-flight"
+                        placeholder="Ex: LA3330 ou G3 1520"
+                        value={form.flightDetails}
+                        onChange={handleChange('flightDetails')}
+                        className="h-10 bg-white text-xs w-full max-w-full box-border rounded-md border border-gray-200"
                       />
-                      <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
+                    <div className="space-y-1.5 w-full max-w-full box-border">
+                      <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
+                        Horário de Chegada/Partida *
+                      </Label>
+                      <div className="relative flex items-center w-full max-w-full box-border">
+                        <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
+                        <Input
+                          id="booking-time"
+                          type="time"
+                          value={form.time}
+                          onChange={handleChange('time')}
+                          className="h-10 bg-white text-xs pl-9 w-full max-w-full box-border rounded-md border border-gray-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 w-full max-w-full box-border">
+                      <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
+                        Dados do Voo (Opcional)
+                      </Label>
+                      <Input
+                        id="booking-flight"
+                        placeholder="Ex: LA3330 ou G3 1520"
+                        value={form.flightDetails}
+                        onChange={handleChange('flightDetails')}
+                        className="h-10 bg-white text-xs w-full max-w-full box-border rounded-md border border-gray-200"
+                      />
                     </div>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
-                      Dados do Voo (Opcional)
-                    </Label>
-                    <Input
-                      id="booking-flight"
-                      placeholder="Ex: LA3330 ou G3 1520"
-                      value={form.flightDetails}
-                      onChange={handleChange('flightDetails')}
-                      className="h-10 bg-white text-xs"
-                    />
-                  </div>
-                </div>
+                )}
                 <p className="text-xs text-slate-500 mt-1">
                   * Caso não saiba agora, você pode nos informar posteriormente pelo WhatsApp.
                 </p>
