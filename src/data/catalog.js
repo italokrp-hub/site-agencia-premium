@@ -209,14 +209,14 @@ export const allServices = [
     title: 'Passeios Lado Leste',
     description: 'Explore a famosa Lagoa do Paraíso, Lagoa Azul, Árvore da Preguiça e o incrível Buraco Azul. Opções em Buggy ou Quadriciclo.',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
-    tourIds: ['tour-leste'],
+    tourIds: ['tour-leste-private'],
   },
   {
     id: 'servico-lado-oeste',
     title: 'Passeios Lado Oeste',
     description: 'Aventura garantida com Lagoa de Tatajuba, Mangue Seco, travessia de balsa e os cavalos marinhos. Natureza exuberante.',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
-    tourIds: ['tour-oeste'],
+    tourIds: ['tour-oeste-private'],
   },
   {
     id: 'servico-roteiros',
@@ -237,7 +237,7 @@ export const allServices = [
     title: 'Passeio de UTV',
     description: 'Aventure-se em um emocionante passeio de UTV pelas dunas e trilhas de Jericoacoara, com muita adrenalina, segurança e contato direto com a natureza.',
     image: 'https://images.unsplash.com/photo-1676954054657-223a1bdb8f0c',
-    tourIds: ['tour-leste'],
+    tourIds: ['tour-utv'],
   },
 ];
 

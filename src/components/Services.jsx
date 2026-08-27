@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { Waves, Compass, Map, Plane, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { allServices, tours } from '@/data/catalog';
+import { allServices, tours, toursData } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
 
 const iconMap = {
@@ -28,9 +28,17 @@ const Services = () => {
 
   const handleQuickBook = (service) => {
     if (service.tourIds.length === 1) {
-      const tour = tours.find((t) => t.id === service.tourIds[0]);
+      const tourId = service.tourIds[0];
+      const tour = toursData.find((t) => t.id === tourId) || tours.find((t) => t.id === tourId);
       if (tour) {
-        setBookingItem({ ...tour, selectedType: tour.type });
+        const isShared = tour.options?.shared?.available && !tour.options?.private?.available;
+        setBookingItem({
+          ...tour,
+          selectedType: isShared ? 'Compartilhado' : 'Privativo',
+          selectedVehicleType: tour.options?.private?.vehicles?.[0]?.type || 'Buggy',
+        });
+      } else {
+        handleScrollToPricing();
       }
     } else {
       handleScrollToPricing();
