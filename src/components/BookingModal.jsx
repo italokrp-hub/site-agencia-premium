@@ -57,6 +57,7 @@ const initialForm = {
   whatsapp: '',
   email: '',
   date: undefined,
+  returnDate: undefined,
   time: '12:00',
   pickup: '',
   passengers: 1,
@@ -77,6 +78,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isReturnCalendarOpen, setIsReturnCalendarOpen] = useState(false);
 
   // Identifica se o item é um Transfer (estrutura aninhada)
   const transferItem = useMemo(() => {
@@ -100,6 +102,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   const isTransfer = Boolean(transferItem || item?.category === 'transfer');
   const isTour = Boolean(tourItem || item?.category === 'tour');
+  const isRoundTrip = isTransfer && form.tripType === 'roundTrip';
 
   // Define os valores iniciais adequados quando o modal é aberto
   useEffect(() => {
@@ -200,8 +203,17 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setIsCalendarOpen(false);
   }, []);
 
+  const handleReturnDateSelect = useCallback((date) => {
+    setForm((prev) => ({ ...prev, returnDate: date }));
+    setIsReturnCalendarOpen(false);
+  }, []);
+
   const isFormValid = Boolean(
-    form.name.trim() && form.whatsapp.replace(/\D/g, '').length >= 10 && form.date
+    form.name.trim() &&
+    form.whatsapp.replace(/\D/g, '').length >= 10 &&
+    form.date &&
+    form.pickup.trim() !== '' &&
+    (!isRoundTrip || form.returnDate)
   );
 
   const resetModal = useCallback(() => {
@@ -212,6 +224,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setCopied(false);
     setLoading(false);
     setLoadingPix(false);
+    setIsCalendarOpen(false);
+    setIsReturnCalendarOpen(false);
   }, []);
 
   const handleOpenChange = useCallback(
@@ -250,6 +264,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           optionType: form.optionType,
           vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
           date: format(form.date, 'yyyy-MM-dd'),
+          returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
           time: form.time,
           pickup: form.pickup,
           passengers: form.passengers,
@@ -290,6 +305,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           optionType: form.optionType,
           vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
           date: format(form.date, 'yyyy-MM-dd'),
+          returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
           time: form.time,
           pickup: form.pickup,
           passengers: form.passengers,
@@ -334,7 +350,12 @@ export default function BookingModal({ item, open, onOpenChange }) {
       }
     }
 
-    msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
+    if (isRoundTrip && form.returnDate) {
+      msgText += `Data da Ida: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
+      msgText += `Data da Volta: ${format(form.returnDate, 'dd/MM/yyyy')}\n`;
+    } else {
+      msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
+    }
     if (form.pickup) msgText += `Ponto de Partida: ${form.pickup}\n`;
     msgText += `Passageiros: ${form.passengers}\n`;
 
@@ -350,7 +371,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     if (form.email) msgText += `\nE-mail: ${form.email}`;
 
     window.open(`https://wa.me/5592981038749?text=${encodeURIComponent(msgText)}`, '_blank');
-  }, [form, serviceTitle, isTransfer, isTour, isWhatsAppOnly, total, totalPix, selectedTier, tourPriceInfo, nightFeeApplied]);
+  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, total, totalPix, selectedTier, tourPriceInfo, nightFeeApplied]);
 
   const handleCopyPix = useCallback(() => {
     if (pixData?.qrCode) {
@@ -534,14 +555,19 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </div>
             </div>
 
-            {/* Data, Ponto de Partida / Local de Embarque e Pessoas */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Data(s), Ponto de Partida / Local de Embarque e Pessoas */}
+            <div className={`grid grid-cols-1 ${isRoundTrip ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
               <div className="relative space-y-1.5 sm:col-span-1">
-                <Label className="text-xs font-semibold">Data *</Label>
+                <Label className="text-xs font-semibold">
+                  {isRoundTrip ? 'Data da Ida *' : 'Data *'}
+                </Label>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsCalendarOpen((prev) => !prev)}
+                  onClick={() => {
+                    setIsCalendarOpen((prev) => !prev);
+                    setIsReturnCalendarOpen(false);
+                  }}
                   className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 text-xs ${
                     form.date ? 'text-gray-900' : 'text-muted-foreground'
                   }`}
@@ -562,9 +588,43 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 )}
               </div>
 
+              {/* Data da Volta (Apenas para Transfer Ida e Volta) */}
+              {isRoundTrip && (
+                <div className="relative space-y-1.5 sm:col-span-1">
+                  <Label className="text-xs font-semibold">Data da Volta *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsReturnCalendarOpen((prev) => !prev);
+                      setIsCalendarOpen(false);
+                    }}
+                    className={`w-full justify-start text-left font-normal h-11 bg-white border border-gray-200 text-xs ${
+                      form.returnDate ? 'text-gray-900' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <CalendarIcon className="mr-1.5 h-4 w-4" />
+                    {form.returnDate ? format(form.returnDate, 'dd/MM/yy') : 'Retorno'}
+                  </Button>
+                  {isReturnCalendarOpen && (
+                    <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
+                      <Calendar
+                        mode="single"
+                        selected={form.returnDate}
+                        onSelect={handleReturnDateSelect}
+                        disabled={(date) =>
+                          isBefore(date, startOfDay(form.date ? form.date : addDays(new Date(), 1)))
+                        }
+                        locale={ptBR}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-1.5 sm:col-span-1">
                 <Label htmlFor="booking-pickup" className="text-xs font-semibold">
-                  {isTour ? 'Local de Embarque' : 'Ponto de Partida'}
+                  {isTour ? 'Local de Embarque *' : 'Ponto de Partida *'}
                 </Label>
                 <Input
                   id="booking-pickup"
