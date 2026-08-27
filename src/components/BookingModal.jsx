@@ -61,6 +61,7 @@ const initialForm = {
   time: '12:00',
   pickup: '',
   passengers: 1,
+  flightDetails: '',
   // Campos de Transfer
   tripType: 'roundTrip', // 'oneWay' | 'returnWay' | 'roundTrip'
   optionType: 'private', // 'shared' | 'private'
@@ -268,6 +269,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           time: form.time,
           pickup: form.pickup,
           passengers: form.passengers,
+          flightDetails: form.flightDetails.trim() || undefined,
         },
       });
 
@@ -309,6 +311,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           time: form.time,
           pickup: form.pickup,
           passengers: form.passengers,
+          flightDetails: form.flightDetails.trim() || undefined,
           isPixDiscount: true,
         },
       });
@@ -343,6 +346,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
       };
       msgText += `Trajeto: ${tripLabelMap[form.tripType] || 'Ida e Volta'}\n`;
       msgText += `Serviço: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
+      if (form.flightDetails.trim()) {
+        msgText += `Dados do Voo: ${form.flightDetails.trim()}\n`;
+      }
     } else if (isTour) {
       msgText += `Modalidade: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
       if (tourPriceInfo?.vehicleCount > 1) {
@@ -438,21 +444,39 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
-                    Horário de Chegada/Partida *
-                  </Label>
-                  <div className="relative">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
+                      Horário de Chegada/Partida *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="booking-time"
+                        type="time"
+                        value={form.time}
+                        onChange={handleChange('time')}
+                        className="h-10 bg-white text-xs pl-9"
+                      />
+                      <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
+                      Dados do Voo (Opcional)
+                    </Label>
                     <Input
-                      id="booking-time"
-                      type="time"
-                      value={form.time}
-                      onChange={handleChange('time')}
-                      className="h-10 bg-white text-xs pl-9"
+                      id="booking-flight"
+                      placeholder="Ex: LA3330 ou G3 1520"
+                      value={form.flightDetails}
+                      onChange={handleChange('flightDetails')}
+                      className="h-10 bg-white text-xs"
                     />
-                    <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   </div>
                 </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  * Caso não saiba agora, você pode nos informar posteriormente pelo WhatsApp.
+                </p>
               </div>
             )}
 
