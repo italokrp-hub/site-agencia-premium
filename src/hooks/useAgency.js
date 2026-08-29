@@ -339,7 +339,7 @@ export function useAgency() {
       if (activeTab === 'confirmadas' && r.status !== 'confirmada' && r.status !== 'concluida') {
         return false;
       }
-      if (activeTab === 'pendentes' && r.status !== 'pendente') {
+      if (activeTab === 'pendentes' && r.status !== 'pendente' && r.payment_status !== 'pendente') {
         return false;
       }
       if (activeTab === 'a_receber' && r.remaining_balance <= 0) {

@@ -19,34 +19,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    const payload = req.body || {};
+    const body = req.body || {};
     const {
       client_name,
       client_phone,
       client_email,
       payment_method,
-      payment_status,
       amount_paid = 0,
       discount = 0,
       notes = 'Origem: Site Institucional',
       items = [],
-    } = payload;
+    } = body;
 
     if (!client_name && !client_phone) {
       return res.status(400).json({ error: 'Dados do cliente (nome/telefone) são obrigatórios.' });
     }
 
-    // Regra de Status da Reserva (FareHarbor / PMS Specification):
-    // Se payment_status === 'pendente', reservation_status = 'pendente'
-    // Se payment_status === 'sinal_pago' ou 'pago_integral', reservation_status = 'confirmada'
-    let reservationStatus = 'pendente';
-    if (payment_status === 'sinal_pago' || payment_status === 'pago_integral') {
-      reservationStatus = 'confirmada';
-    } else if (payload.status === 'confirmada' || payload.reservation_status === 'confirmada') {
-      reservationStatus = 'confirmada';
-    } else {
-      reservationStatus = 'pendente';
-    }
+    // Regra estrita de status: Se o pagamento for pendente ou valor zerado, status = pendente
+    const rawPaymentStatus = (body.payment_status || body.paymentStatus || '').toLowerCase();
+    const rawReservationStatus = (body.reservation_status || body.status || '').toLowerCase();
+
+    const isPending =
+      rawPaymentStatus === 'pendente' ||
+      rawPaymentStatus === 'pending' ||
+      rawReservationStatus === 'pendente' ||
+      rawReservationStatus === 'pending' ||
+      !body.amount_paid ||
+      Number(body.amount_paid) === 0;
+
+    const reservationStatus = isPending ? 'pendente' : 'confirmada';
+    const paymentStatus = isPending ? 'pendente' : (body.payment_status || 'sinal_pago');
 
     // 1. Tabela agency_customers
     let customerId = null;
@@ -104,7 +106,7 @@ export default async function handler(req, res) {
         price_gross: fullPrice,
         price_final: amount_paid || fullPrice,
         payment_method: payment_method || 'pix',
-        payment_status: payment_status || 'pendente',
+        payment_status: paymentStatus,
         reservation_status: reservationStatus,
         sale_source: notes.includes('Site') ? 'Site Institucional' : 'WhatsApp',
       };

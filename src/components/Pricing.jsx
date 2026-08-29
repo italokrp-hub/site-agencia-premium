@@ -99,19 +99,19 @@ const Pricing = () => {
                 return (
                   <div
                     key={transfer.id}
-                    className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
+                    className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
                   >
                     <div className="p-6 flex flex-col md:flex-row items-center gap-6">
                       {/* Título & Ícone */}
                       <div className="flex items-center gap-4 w-full md:w-1/3">
-                        <div className="w-12 h-12 bg-[#2C7A7B]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                          <IconComponent className="w-6 h-6 text-[#2C7A7B]" />
+                        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl flex items-center justify-center flex-shrink-0 border border-emerald-200/60 dark:border-emerald-800">
+                          <IconComponent className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900">{transfer.title}</h3>
+                          <h3 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">{transfer.title}</h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <ArrowRightLeft className="w-3 h-3 text-[#2C7A7B]" />
+                            <span className="text-xs text-zinc-500 flex items-center gap-1">
+                              <ArrowRightLeft className="w-3 h-3 text-emerald-600" />
                               Ida ou Ida e Volta
                             </span>
                             {transfer.nightFee && (
@@ -127,44 +127,44 @@ const Pricing = () => {
                       {/* Opções Privativo vs Compartilhado */}
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                         {/* Privativo */}
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                        <div className="bg-zinc-50/80 dark:bg-zinc-800/40 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col justify-between">
                           <div>
-                            <div className="text-xs font-semibold text-[#2C7A7B] uppercase mb-1">
+                            <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-1">
                               Privativo
                             </div>
                             {privateOpt?.tiers ? (
                               <div className="space-y-1.5 my-2">
                                 {privateOpt.tiers.map((tier, idx) => (
                                   <div key={idx} className="flex justify-between items-center text-xs">
-                                    <span className="font-semibold text-gray-700">
+                                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">
                                       {tier.vehicle} ({tier.maxCapacity}p):
                                     </span>
-                                    <span className="font-bold text-gray-900">
+                                    <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
                                       {formatPrice(tier.roundTrip)}{' '}
-                                      <span className="text-[10px] text-gray-400 font-normal">(I/V)</span>
+                                      <span className="text-[10px] text-zinc-400 font-normal">(I/V)</span>
                                     </span>
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <div className="text-2xl font-bold text-gray-900">Sob consulta</div>
+                              <div className="text-2xl font-bold text-zinc-900 dark:text-white">Sob consulta</div>
                             )}
                           </div>
 
                           <Button
                             onClick={() => handleOpenBooking(transfer, 'Privativo')}
                             variant="ghost"
-                            className="mt-3 w-full h-8 text-xs font-bold hover:bg-[#2C7A7B] hover:text-white border border-[#2C7A7B]/20"
+                            className="mt-3 w-full h-9 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-300 dark:border-emerald-800 rounded-xl"
                           >
                             Reservar Privativo
                           </Button>
                         </div>
 
                         {/* Compartilhado */}
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                        <div className="bg-zinc-50/80 dark:bg-zinc-800/40 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col justify-between">
                           <div>
                             <div className="flex justify-between items-center mb-1">
-                              <div className="text-xs font-semibold text-gray-500 uppercase">
+                              <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
                                 Compartilhado
                               </div>
                               {sharedOpt?.available && (
@@ -175,13 +175,13 @@ const Pricing = () => {
                             </div>
                             {sharedOpt?.available ? (
                               <div>
-                                <div className="text-2xl font-bold text-gray-900">
+                                <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
                                   {formatPrice(sharedOpt.roundTrip)}
                                 </div>
-                                <div className="text-xs text-gray-500 font-medium">
+                                <div className="text-xs text-zinc-500 font-medium">
                                   Ida e Volta (por pessoa)
                                 </div>
-                                <div className="text-[11px] text-gray-400 mt-1">
+                                <div className="text-[11px] text-zinc-400 mt-1">
                                   Somente Ida: {formatPrice(sharedOpt.oneWay)}
                                 </div>
                               </div>
@@ -198,7 +198,7 @@ const Pricing = () => {
                             onClick={() => handleOpenBooking(transfer, 'Compartilhado')}
                             disabled={!sharedOpt?.available}
                             variant="ghost"
-                            className="mt-3 w-full h-8 text-xs font-bold hover:bg-gray-600 hover:text-white border border-gray-200 disabled:opacity-40"
+                            className="mt-3 w-full h-9 text-xs font-bold hover:bg-zinc-700 hover:text-white border border-zinc-300 dark:border-zinc-700 rounded-xl disabled:opacity-40"
                           >
                             {sharedOpt?.available ? 'Reservar Compartilhado' : 'Indisponível'}
                           </Button>
@@ -210,9 +210,9 @@ const Pricing = () => {
               })}
             </div>
 
-            <div className="mt-8 text-center bg-[#2C7A7B]/5 rounded-lg p-4 border border-[#2C7A7B]/10">
-              <p className="text-[#2C7A7B] font-medium flex items-center justify-center gap-2">
-                <Check className="w-5 h-5" />
+            <div className="mt-8 text-center bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800">
+              <p className="text-emerald-800 dark:text-emerald-300 font-medium text-xs sm:text-sm flex items-center justify-center gap-2">
+                <Check className="w-5 h-5 text-emerald-600" />
                 Transfers com conforto, ar-condicionado, pontualidade e motoristas credenciados. Desconto de 5% no PIX!
               </p>
             </div>
@@ -236,27 +236,23 @@ const Pricing = () => {
                 const vehicles = tour.options?.private?.vehicles || [];
                 const startingPrice = vehicles[0]?.price || 0;
 
-                let borderClass = 'border-[#2C7A7B]';
-
                 return (
                   <div
                     key={tour.id}
-                    className={`bg-white rounded-xl shadow-lg overflow-hidden flex flex-col border-t-4 ${
-                      isPremium || isPrivateOnly ? 'border-[#D4AF37]' : borderClass
-                    }`}
+                    className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden flex flex-col border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
                   >
                     <div className="p-6 flex-1 flex flex-col justify-between">
                       <div>
                         {/* Selos / Badges */}
                         <div className="mb-4 flex flex-wrap items-center gap-2">
                           {isPremium && (
-                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30">
                               Experiência Premium
                             </span>
                           )}
                           {isSharedOnly && (
                             <>
-                              <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#2C7A7B]/10 text-[#2C7A7B]">
+                              <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 Econômico
                               </span>
                               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 flex items-center gap-1">
@@ -265,34 +261,34 @@ const Pricing = () => {
                             </>
                           )}
                           {isPrivateOnly && (
-                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                               Privativo Exclusivo
                             </span>
                           )}
                         </div>
 
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.title}</h3>
+                        <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">{tour.title}</h3>
 
                         {/* Preço */}
                         <div className="mb-4">
                           {isPremium ? (
                             <div>
-                              <span className="text-2xl font-bold text-[#D4AF37]">Sob Consulta</span>
-                              <p className="text-xs text-gray-500 mt-1">Atendimento exclusivo via WhatsApp</p>
+                              <span className="text-2xl font-extrabold text-[#D4AF37]">Sob Consulta</span>
+                              <p className="text-xs text-zinc-500 mt-1">Atendimento exclusivo via WhatsApp</p>
                             </div>
                           ) : isSharedOnly ? (
                             <div>
-                              <span className="text-3xl font-bold text-gray-900">
+                              <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                                 {formatPrice(sharedPrice)}
                               </span>
-                              <p className="text-xs text-gray-500 mt-1">por pessoa (Jardineira)</p>
+                              <p className="text-xs text-zinc-500 mt-1">por pessoa (Jardineira)</p>
                             </div>
                           ) : (
                             <div>
-                              <span className="text-3xl font-bold text-gray-900">
+                              <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                                 {formatPrice(startingPrice)}
                               </span>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-zinc-500 mt-1">
                                 a partir de (por veículo Buggy ou Quadri)
                               </p>
                             </div>
@@ -301,15 +297,15 @@ const Pricing = () => {
 
                         {/* Pílulas Visuais de Veículos (Para Passeios Privativos) */}
                         {isPrivateOnly && vehicles.length > 0 && (
-                          <div className="mb-4 bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
-                            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1.5">
+                          <div className="mb-4 bg-emerald-50/60 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-200/60 dark:border-emerald-800">
+                            <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block mb-1.5">
                               Veículos Disponíveis:
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {vehicles.map((v, idx) => (
                                 <span
                                   key={idx}
-                                  className="px-2 py-0.5 bg-white text-emerald-700 text-xs font-semibold rounded border border-emerald-200 shadow-2xs"
+                                  className="px-2 py-0.5 bg-white dark:bg-zinc-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-lg border border-emerald-200 dark:border-emerald-700"
                                 >
                                   {v.type}
                                 </span>
@@ -321,13 +317,13 @@ const Pricing = () => {
                         {/* Roteiro Inclui */}
                         {tour.locations && (
                           <div className="space-y-2 mb-6">
-                            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                               Roteiro Inclui:
                             </h4>
                             <ul className="space-y-1.5">
                               {tour.locations.map((loc, i) => (
-                                <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
-                                  <Check className="w-3.5 h-3.5 text-[#2C7A7B] mt-0.5 flex-shrink-0" />
+                                <li key={i} className="flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
                                   <span>{loc}</span>
                                 </li>
                               ))}
@@ -336,7 +332,7 @@ const Pricing = () => {
                         )}
 
                         {tour.description && (
-                          <p className="text-xs text-gray-600 mb-6 leading-relaxed">
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
                             {tour.description}
                           </p>
                         )}
@@ -351,10 +347,10 @@ const Pricing = () => {
                             vehicles[0]?.type || 'Buggy'
                           )
                         }
-                        className={`w-full font-semibold mt-4 ${
-                          isPremium || isPrivateOnly
-                            ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-white'
-                            : 'bg-[#2C7A7B] hover:bg-[#1A5557] text-white'
+                        className={`w-full font-bold h-11 rounded-xl shadow-md transition-all duration-300 mt-4 ${
+                          isPremium
+                            ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
                         }`}
                       >
                         {isPremium ? 'Consultar no WhatsApp' : isSharedOnly ? 'Reservar Compartilhado' : 'Reservar Privativo'}
