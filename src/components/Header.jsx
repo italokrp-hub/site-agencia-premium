@@ -24,20 +24,15 @@ const Header = () => {
     { label: 'Valores', href: '#valores' },
     { label: 'Galeria', href: '#galeria' },
     { label: 'Contato', href: '#contato' },
-    { label: 'Painel PMS', href: '/agencia/reservas', isRoute: true },
   ];
 
   const handleWhatsApp = () => {
     window.open('https://wa.me/5592981038749', '_blank');
   };
 
-  const handleNavClick = (item) => {
+  const handleNavClick = (href) => {
     setIsOpen(false);
-    if (item.isRoute) {
-      window.location.href = item.href;
-      return;
-    }
-    const element = document.querySelector(item.href);
+    const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -76,7 +71,7 @@ const Header = () => {
                 transition={{ duration: 0.5, delay: index * 0.05 }}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleNavClick(item);
+                  handleNavClick(item.href);
                 }}
                 className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#2C7A7B] transition-colors duration-200 relative group"
               >
@@ -130,7 +125,7 @@ const Header = () => {
                     href={item.href}
                     onClick={(e) => {
                       e.preventDefault();
-                      handleNavClick(item);
+                      handleNavClick(item.href);
                     }}
                     className="block px-3 py-3 text-base font-medium text-gray-700 hover:text-[#2C7A7B] hover:bg-gray-50 rounded-md transition-colors duration-200"
                   >
