@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -227,6 +227,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
     (!isRoundTrip || form.returnDate)
   );
 
+  const hasSentToHotelOpsRef = useRef(false);
+
   const resetModal = useCallback(() => {
     setForm(initialForm);
     setStep('form');
@@ -238,6 +240,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setIsCalendarOpen(false);
     setIsReturnCalendarOpen(false);
     setPaymentMode('50');
+    hasSentToHotelOpsRef.current = false;
   }, []);
 
   const handleOpenChange = useCallback(
@@ -255,26 +258,58 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return 'Serviço';
   }, [transferItem, tourItem, item]);
 
+  // Helper centralizado com controle de envio único (prevenindo registros duplicados no CRM)
+  const triggerHotelOpsSync = useCallback(
+    (paymentMethodName) => {
+      if (hasSentToHotelOpsRef.current) {
+        console.log('[HotelOps Sync] Disparo já realizado para este checkout. Ignorando duplicata.');
+        return;
+      }
+      hasSentToHotelOpsRef.current = true;
+
+      const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
+      const paymentInfo = {
+        fullTotal,
+        fullPixTotal,
+        chargeTotal: paymentMethodName === 'Pix' ? chargePixTotal : chargeTotal,
+        chargePixTotal,
+        remainingBalance,
+        paymentMode,
+        paymentMethod: paymentMethodName,
+        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
+        isWhatsAppOnly,
+        paymentStatus: 'pendente',
+        reservationStatus: 'pendente',
+      };
+
+      sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) =>
+        console.error('Erro na sincronização HotelOps CRM:', e)
+      );
+    },
+    [
+      form,
+      item,
+      serviceTitle,
+      isTransfer,
+      fullTotal,
+      fullPixTotal,
+      chargeTotal,
+      chargePixTotal,
+      remainingBalance,
+      paymentMode,
+      selectedTier,
+      tourPriceInfo,
+      isWhatsAppOnly,
+    ]
+  );
+
   // Mercado Pago Checkout Pro (Envio do valor fracionado chargeTotal)
   const handleMercadoPago = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
-      const paymentInfo = {
-        fullTotal,
-        fullPixTotal,
-        chargeTotal,
-        chargePixTotal,
-        remainingBalance,
-        paymentMode,
-        paymentMethod: 'Cartão de Crédito',
-        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-        isWhatsAppOnly,
-      };
-      // Sincronização não-bloqueante com o ERP Supabase e CRM HotelOps
-      registerBookingToERP(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
-      sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização HotelOps CRM:', e));
+      // Dispara sincronização única com status pendente para o CRM HotelOps
+      triggerHotelOpsSync('Cartão de Crédito');
 
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
@@ -317,28 +352,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, chargeTotal, fullTotal, fullPixTotal, chargePixTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, isWhatsAppOnly]);
+  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
 
   // Geração Direta de Pix (Envio do valor fracionado chargePixTotal)
   const handlePixPayment = useCallback(async () => {
     setLoadingPix(true);
     setError(null);
     try {
-      const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
-      const paymentInfo = {
-        fullTotal,
-        fullPixTotal,
-        chargeTotal: chargePixTotal,
-        chargePixTotal,
-        remainingBalance,
-        paymentMode,
-        paymentMethod: 'Pix',
-        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-        isWhatsAppOnly,
-      };
-      // Sincronização não-bloqueante com o ERP Supabase e CRM HotelOps
-      registerBookingToERP(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
-      sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização HotelOps CRM:', e));
+      // Dispara sincronização única com status pendente para o CRM HotelOps
+      triggerHotelOpsSync('Pix');
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
@@ -387,25 +409,12 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, chargePixTotal, fullTotal, fullPixTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, isWhatsAppOnly]);
+  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
-    const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
-    const paymentInfo = {
-      fullTotal,
-      fullPixTotal,
-      chargeTotal,
-      chargePixTotal,
-      remainingBalance,
-      paymentMode,
-      paymentMethod: 'WhatsApp',
-      vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-      isWhatsAppOnly,
-    };
-    // Sincronização não-bloqueante com o ERP Supabase e CRM HotelOps
-    registerBookingToERP(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
-    sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização HotelOps CRM:', e));
+    // Dispara sincronização única com status pendente para o CRM HotelOps
+    triggerHotelOpsSync('WhatsApp');
 
     let msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
 

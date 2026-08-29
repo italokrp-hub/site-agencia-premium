@@ -59,17 +59,11 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
       paymentMethod = 'pix';
     }
 
-    // Normalização do status de pagamento (sinal_pago | pago_integral | pendente)
-    let paymentStatus = 'pendente';
-    if (paymentInfo.isWhatsAppOnly) {
-      paymentStatus = 'pendente';
-    } else if (paymentInfo.paymentMode === '50') {
-      paymentStatus = 'sinal_pago';
-    } else if (paymentInfo.paymentMode === '100') {
-      paymentStatus = 'pago_integral';
-    } else if (paymentInfo.paymentStatus) {
-      paymentStatus = paymentInfo.paymentStatus;
-    }
+    // O status inicial ao abrir o checkout/gerar Pix/cotação DEVE ser 'pendente'
+    // O status só deve mudar para 'sinal_pago' ou 'pago_integral' se houver confirmação real do pagamento (ex: webhook/gateways)
+    const isConfirmed = Boolean(paymentInfo.isConfirmed);
+    const paymentStatus = isConfirmed ? (paymentInfo.paymentStatus || 'sinal_pago') : 'pendente';
+    const reservationStatus = isConfirmed ? (paymentInfo.reservationStatus || 'confirmada') : 'pendente';
 
     // Cálculo do valor pago e desconto
     let amountPaid = 0;
@@ -143,6 +137,7 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
       client_email: formData.email ? formData.email.trim() : '',
       payment_method: paymentMethod,
       payment_status: paymentStatus,
+      reservation_status: reservationStatus,
       amount_paid: Number(Number(amountPaid).toFixed(2)),
       discount: Number(Number(discount).toFixed(2)),
       notes: notesParts.join(' | '),
