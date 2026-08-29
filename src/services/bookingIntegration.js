@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { sendBookingToHotelOps } from './hotelopsIntegration';
 
 /**
  * Registra a reserva e o cliente no ERP Supabase de forma segura e não destrutiva.
@@ -9,6 +10,10 @@ import { supabase } from '@/lib/supabase';
  * @returns {Promise<{ customerId: string|null, reservationId: string|null }>}
  */
 export async function registerBookingToERP(formData, itemData, paymentInfo = {}) {
+  // Sincronização não-bloqueante com o CRM central HotelOps
+  sendBookingToHotelOps(formData, itemData, paymentInfo).catch((err) => {
+    console.error('HotelOps Integration - Erro não bloqueante ao disparar do ERP wrapper:', err);
+  });
   try {
     if (!formData || !formData.name) {
       console.warn('registerBookingToERP: Dados do formulário incompletos.');

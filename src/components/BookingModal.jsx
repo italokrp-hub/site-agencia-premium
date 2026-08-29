@@ -45,6 +45,7 @@ import {
 } from '@/data/catalog';
 import { createCheckout, createPixPayment } from '@/services/payment';
 import { registerBookingToERP } from '@/services/bookingIntegration';
+import { sendBookingToHotelOps } from '@/services/hotelopsIntegration';
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -259,14 +260,21 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoading(true);
     setError(null);
     try {
-      // Sincronização não-bloqueante com o ERP Supabase
-      registerBookingToERP(form, item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' }, {
+      const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
+      const paymentInfo = {
         fullTotal,
+        fullPixTotal,
         chargeTotal,
+        chargePixTotal,
+        remainingBalance,
         paymentMode,
         paymentMethod: 'Cartão de Crédito',
         vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-      }).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+        isWhatsAppOnly,
+      };
+      // Sincronização não-bloqueante com o ERP Supabase e CRM HotelOps
+      registerBookingToERP(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+      sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização HotelOps CRM:', e));
 
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
@@ -309,21 +317,28 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip]);
+  }, [form, chargeTotal, fullTotal, fullPixTotal, chargePixTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, isWhatsAppOnly]);
 
   // Geração Direta de Pix (Envio do valor fracionado chargePixTotal)
   const handlePixPayment = useCallback(async () => {
     setLoadingPix(true);
     setError(null);
     try {
-      // Sincronização não-bloqueante com o ERP Supabase
-      registerBookingToERP(form, item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' }, {
+      const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
+      const paymentInfo = {
         fullTotal,
+        fullPixTotal,
         chargeTotal: chargePixTotal,
+        chargePixTotal,
+        remainingBalance,
         paymentMode,
         paymentMethod: 'Pix',
         vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-      }).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+        isWhatsAppOnly,
+      };
+      // Sincronização não-bloqueante com o ERP Supabase e CRM HotelOps
+      registerBookingToERP(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+      sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização HotelOps CRM:', e));
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
@@ -372,18 +387,25 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip]);
+  }, [form, chargePixTotal, fullTotal, fullPixTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, isWhatsAppOnly]);
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
-    // Sincronização não-bloqueante com o ERP Supabase
-    registerBookingToERP(form, item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' }, {
+    const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
+    const paymentInfo = {
       fullTotal,
+      fullPixTotal,
       chargeTotal,
+      chargePixTotal,
+      remainingBalance,
       paymentMode,
       paymentMethod: 'WhatsApp',
       vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-    }).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+      isWhatsAppOnly,
+    };
+    // Sincronização não-bloqueante com o ERP Supabase e CRM HotelOps
+    registerBookingToERP(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização ERP Supabase:', e));
+    sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) => console.error('Erro na sincronização HotelOps CRM:', e));
 
     let msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
 
