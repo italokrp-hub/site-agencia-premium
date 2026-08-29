@@ -1049,7 +1049,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
             <div className="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-200">
               <p className="text-base text-gray-900 mb-1">
-                <strong>Total no PIX: {formatPrice(totalPix)}</strong>
+                <strong>Total no PIX: {formatPrice(chargePixTotal)}</strong>
               </p>
               <p className="text-xs text-gray-600">
                 Após o pagamento, confirmaremos sua reserva pelo WhatsApp em até 5 minutos.
