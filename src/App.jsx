@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -11,13 +12,17 @@ import Gallery from '@/components/Gallery';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import { Toaster } from '@/components/ui/toaster';
+import Reservas from '@/pages/agencia/Reservas';
 
-function App() {
+function LandingPage() {
   return (
     <>
       <Helmet>
         <title>Jericoacoara Premium - Transfer, Passeios e Experiências Exclusivas</title>
-        <meta name="description" content="Experiências excepcionais em Jericoacoara com transfer premium, passeios exclusivos e atendimento personalizado. Reserve agora seu transfer Fortaleza ↔ Jeri com conforto e segurança." />
+        <meta
+          name="description"
+          content="Experiências excepcionais em Jericoacoara com transfer premium, passeios exclusivos e atendimento personalizado. Reserve agora seu transfer Fortaleza ↔ Jeri com conforto e segurança."
+        />
       </Helmet>
       <div className="min-h-screen bg-white">
         <Header />
@@ -33,6 +38,18 @@ function App() {
         <Toaster />
       </div>
     </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/agencia/reservas" element={<Reservas />} />
+        <Route path="/reservas" element={<Reservas />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
