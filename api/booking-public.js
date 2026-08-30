@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://lnowzrgmzdmbijckxvrw.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxub3d6cmdtemRtYmlqY2t4dnJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU4MDgsImV4cCI6MjA5MDExMTgwOH0.6SsF31zKpW7r6HQ2U6ryfwTYnmBL7jV3zY7hTLVBtU8';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -158,7 +158,7 @@ export default async function handler(req, res) {
       },
     });
   } catch (err) {
-    console.error('[API booking-public] Erro geral:', err);
-    return res.status(500).json({ error: err.message || 'Erro interno no servidor.' });
+    console.error('[API booking-public] Erro geral interno:', err);
+    return res.status(500).json({ error: 'Erro ao processar reserva no servidor. Tente novamente mais tarde.' });
   }
 }

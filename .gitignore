@@ -1,3 +1,31 @@
-node_modules
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment files (bloqueio rígido de credenciais)
 .env
-dist
+.env.*
+!.env.example
+
+# Production builds & artifacts
+dist/
+build/
+.output/
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# System & OS files
+.DS_Store
+Thumbs.db
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
