@@ -82,7 +82,15 @@ function extractRoutes(appJsxPath) {
 }
 
 function findReactFiles(dir) {
-  return fs.readdirSync(dir).map(item => path.join(dir, item));
+  return fs.readdirSync(dir)
+    .map(item => path.join(dir, item))
+    .filter(itemPath => {
+      try {
+        return fs.statSync(itemPath).isFile();
+      } catch (e) {
+        return false;
+      }
+    });
 }
 
 function extractHelmetData(content, filePath, routes) {
