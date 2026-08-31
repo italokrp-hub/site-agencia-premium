@@ -113,7 +113,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
   useEffect(() => {
     if (transferItem) {
       const sharedAvailable = transferItem.options?.shared?.available;
-      const initialType = item?.selectedType === 'Compartilhado' && sharedAvailable ? 'shared' : 'private';
+      const privateAvailable = transferItem.options?.private?.available !== false;
+      const initialType = (item?.selectedType === 'Compartilhado' || !privateAvailable) && sharedAvailable ? 'shared' : 'private';
       const initialTrip = item?.selectedTripType || 'roundTrip';
       setForm((prev) => ({
         ...prev,
@@ -523,7 +524,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="private">Privativo</SelectItem>
+                        {transferItem?.options?.private?.available !== false && (
+                          <SelectItem value="private">Privativo</SelectItem>
+                        )}
                         {transferItem?.options?.shared?.available !== false && (
                           <SelectItem value="shared">Compartilhado</SelectItem>
                         )}

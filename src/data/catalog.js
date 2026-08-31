@@ -69,6 +69,17 @@ export const transfersData = [
         ]
       }
     }
+  },
+  {
+    id: 'onibus-regular',
+    title: 'Transfer de Ônibus/Van Regular',
+    icon: Car,
+    category: 'transfer',
+    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    options: {
+      shared: { available: true, oneWay: 175, roundTrip: 350, perPerson: true, vehicle: 'Ônibus/Van' },
+      private: { available: false }
+    }
   }
 ];
 
