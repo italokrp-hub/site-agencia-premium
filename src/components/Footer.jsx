@@ -58,10 +58,10 @@ const Footer = () => {
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
                   <a 
-                    href="mailto:contato@jericoacoara.premium"
+                    href="mailto:contato@jericoacoarapremium.com"
                     className="text-white hover:text-[#D4AF37] transition-colors"
                   >
-                    contato@jericoacoara.premium
+                    contato@jericoacoarapremium.com
                   </a>
                 </div>
               </div>
