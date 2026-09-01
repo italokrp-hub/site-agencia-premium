@@ -46,28 +46,28 @@ const Services = () => {
   };
 
   return (
-    <section id="servicos" className="py-20 bg-zinc-50/50 dark:bg-zinc-950">
+    <section id="servicos" className="py-12 md:py-20 bg-zinc-50/50 dark:bg-zinc-950 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16 space-y-4"
+          className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-700 dark:text-emerald-400">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Frota & Roteiros Certificados</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
             Nossos <span className="text-emerald-600 dark:text-emerald-500">Serviços</span>
           </h2>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal">
+          <p className="text-sm md:text-base lg:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal">
             Experiências completas com a garantia de qualidade Jericoacoara Premium
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div className="flex flex-nowrap md:grid md:grid-cols-2 gap-4 md:gap-8 max-w-7xl mx-auto overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
           {allServices.map((service, index) => {
             const Icon = iconMap[service.title] || Map;
             return (
@@ -76,7 +76,7 @@ const Services = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
-                className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+                className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center shrink-0 md:shrink group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
               >
                 {/* Proporção de Imagem 16:10 */}
                 <div className="relative aspect-[16/10] overflow-hidden shrink-0">

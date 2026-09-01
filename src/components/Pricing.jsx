@@ -22,19 +22,19 @@ const Pricing = () => {
   };
 
   return (
-    <section id="valores" className="py-20 bg-gradient-to-b from-white to-[#F7F3E9]">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="valores" className="py-12 md:py-20 bg-gradient-to-b from-white to-[#F7F3E9] overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 md:mb-12"
         >
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-6">
             Tabela de <span className="text-[#2C7A7B]">Preços</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto mb-6 md:mb-8">
             Transparência e qualidade para sua viagem perfeita
           </p>
 
@@ -88,9 +88,9 @@ const Pricing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="max-w-5xl mx-auto"
+            className="max-w-5xl mx-auto w-full"
           >
-            <div className="grid gap-6">
+            <div className="grid gap-4 md:gap-6">
               {transfersData.map((transfer) => {
                 const IconComponent = transfer.icon || Car;
                 const sharedOpt = transfer.options.shared;
@@ -101,7 +101,7 @@ const Pricing = () => {
                     key={transfer.id}
                     className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
                   >
-                    <div className="p-6 flex flex-col md:flex-row items-center gap-6">
+                    <div className="p-4 md:p-6 flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
                       {/* Título & Ícone */}
                       <div className="flex items-center gap-4 w-full md:w-1/3">
                         <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl flex items-center justify-center flex-shrink-0 border border-emerald-200/60 dark:border-emerald-800">
@@ -224,9 +224,9 @@ const Pricing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="max-w-6xl mx-auto"
+            className="max-w-6xl mx-auto w-full"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
               {toursData.map((tour) => {
                 const isPremium = tour.requireWhatsApp;
                 const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
@@ -239,9 +239,9 @@ const Pricing = () => {
                 return (
                   <div
                     key={tour.id}
-                    className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden flex flex-col border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
+                    className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center shrink-0 md:shrink bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden flex flex-col border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
                   >
-                    <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div className="p-5 md:p-6 flex-1 flex flex-col justify-between">
                       <div>
                         {/* Selos / Badges */}
                         <div className="mb-4 flex flex-wrap items-center gap-2">

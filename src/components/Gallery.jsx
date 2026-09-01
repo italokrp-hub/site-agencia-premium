@@ -73,23 +73,23 @@ const Gallery = () => {
   }, [isPaused, nextSlide]);
 
   return (
-    <section id="galeria" className="py-20 bg-gradient-to-b from-[#F7F3E9]/50 via-white to-[#F7F3E9]/30 overflow-hidden">
+    <section id="galeria" className="py-12 md:py-20 bg-gradient-to-b from-[#F7F3E9]/50 via-white to-[#F7F3E9]/30 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 md:mb-12"
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#2C7A7B]/10 border border-[#2C7A7B]/20 text-[#2C7A7B] text-xs font-bold mb-4 uppercase tracking-wider">
             <Camera className="w-4 h-4 text-[#2C7A7B]" />
             Galeria Exclusiva
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Galeria de <span className="text-[#2C7A7B]">Momentos</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
             Explore as paisagens deslumbrantes e viva a magia de Jericoacoara antes mesmo de embarcar
           </p>
         </motion.div>
@@ -101,7 +101,7 @@ const Gallery = () => {
           onMouseLeave={() => setIsPaused(false)}
         >
           {/* Card Principal em Destaque */}
-          <div className="relative h-[420px] sm:h-[500px] md:h-[550px] w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group">
+          <div className="relative h-[350px] sm:h-[450px] md:h-[550px] w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
