@@ -42,6 +42,8 @@ import {
   formatPrice,
   calculateTransferPrice,
   calculateTourPrice,
+  transfersData,
+  toursData,
 } from '@/data/catalog';
 import { createCheckout, createPixPayment } from '@/services/payment';
 import { registerBookingToERP } from '@/services/bookingIntegration';
@@ -74,6 +76,14 @@ const initialForm = {
 };
 
 export default function BookingModal({ item, open, onOpenChange }) {
+  const [internalItem, setInternalItem] = useState(null);
+  
+  useEffect(() => {
+    if (item && (!internalItem || internalItem.id !== item.id)) {
+      setInternalItem(item);
+    }
+  }, [item]);
+
   const [form, setForm] = useState(initialForm);
   const [paymentMode, setPaymentMode] = useState('50'); // '50' | '100'
   const [step, setStep] = useState('form');
@@ -87,26 +97,26 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   // Identifica se o item é um Transfer (estrutura aninhada)
   const transferItem = useMemo(() => {
-    if (!item) return null;
-    if (item.category === 'transfer' && item.options) return item;
-    if (item.raw?.category === 'transfer' && item.raw?.options) return item.raw;
-    if (item.options?.private?.tiers) return item;
-    if (item.raw?.options?.private?.tiers) return item.raw;
+    if (!internalItem) return null;
+    if (internalItem.category === 'transfer' && internalItem.options) return internalItem;
+    if (internalItem.raw?.category === 'transfer' && internalItem.raw?.options) return internalItem.raw;
+    if (internalItem.options?.private?.tiers) return internalItem;
+    if (internalItem.raw?.options?.private?.tiers) return internalItem.raw;
     return null;
-  }, [item]);
+  }, [internalItem]);
 
   // Identifica se o item é um Passeio (Tour)
   const tourItem = useMemo(() => {
-    if (!item) return null;
-    if (item.category === 'tour' && item.options) return item;
-    if (item.raw?.category === 'tour' && item.raw?.options) return item.raw;
-    if (item.category === 'tour' && item.requireWhatsApp) return item;
-    if (item.raw?.category === 'tour') return item.raw;
+    if (!internalItem) return null;
+    if (internalItem.category === 'tour' && internalItem.options) return internalItem;
+    if (internalItem.raw?.category === 'tour' && internalItem.raw?.options) return internalItem.raw;
+    if (internalItem.category === 'tour' && internalItem.requireWhatsApp) return internalItem;
+    if (internalItem.raw?.category === 'tour') return internalItem.raw;
     return null;
-  }, [item]);
+  }, [internalItem]);
 
-  const isTransfer = Boolean(transferItem || item?.category === 'transfer');
-  const isTour = Boolean(tourItem || item?.category === 'tour');
+  const isTransfer = Boolean(transferItem || internalItem?.category === 'transfer');
+  const isTour = Boolean(tourItem || internalItem?.category === 'tour');
   const isRoundTrip = isTransfer && form.tripType === 'roundTrip';
 
   // Define os valores iniciais adequados quando o modal é aberto
@@ -114,8 +124,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
     if (transferItem) {
       const sharedAvailable = transferItem.options?.shared?.available;
       const privateAvailable = transferItem.options?.private?.available !== false;
-      const initialType = (item?.selectedType === 'Compartilhado' || !privateAvailable) && sharedAvailable ? 'shared' : 'private';
-      const initialTrip = item?.selectedTripType || 'roundTrip';
+      const initialType = (internalItem?.selectedType === 'Compartilhado' || !privateAvailable) && sharedAvailable ? 'shared' : 'private';
+      const initialTrip = internalItem?.selectedTripType || 'roundTrip';
       setForm((prev) => ({
         ...prev,
         optionType: initialType,
@@ -123,15 +133,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
       }));
     } else if (tourItem) {
       const sharedAvailable = tourItem.options?.shared?.available;
-      const initialType = item?.selectedType === 'Compartilhado' && sharedAvailable ? 'shared' : 'private';
-      const defaultVehicle = tourItem.options?.private?.vehicles?.[0]?.type || 'Buggy';
+      const initialType = internalItem?.selectedType === 'Compartilhado' && sharedAvailable ? 'shared' : 'private';
+      const defaultVehicle = internalItem?.selectedVehicleType || tourItem.options?.private?.vehicles?.[0]?.type || 'Buggy';
       setForm((prev) => ({
         ...prev,
         optionType: initialType,
-        selectedVehicleType: item?.selectedVehicleType || defaultVehicle,
+        selectedVehicleType: defaultVehicle,
       }));
     }
-  }, [transferItem, tourItem, item]);
+  }, [transferItem, tourItem, internalItem]);
 
   // Cálculo de preço de Transfer
   const transferPriceInfo = useMemo(() => {
@@ -164,15 +174,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
   // Verifica se o item/veículo exige atendimento via WhatsApp
   const isWhatsAppOnly = useMemo(() => {
     if (tourPriceInfo) return tourPriceInfo.isWhatsAppOnly;
-    if (item?.requireWhatsApp) return true;
+    if (internalItem?.requireWhatsApp) return true;
     return false;
-  }, [tourPriceInfo, item]);
+  }, [tourPriceInfo, internalItem]);
 
   const isPrivate = useMemo(() => {
     if (transferPriceInfo) return transferPriceInfo.isPrivate;
     if (tourPriceInfo) return tourPriceInfo.optionType === 'private';
-    return item?.selectedType === 'Privativo';
-  }, [transferPriceInfo, tourPriceInfo, item]);
+    return internalItem?.selectedType === 'Privativo';
+  }, [transferPriceInfo, tourPriceInfo, internalItem]);
 
   const selectedTier = transferPriceInfo?.selectedTier;
   const nightFeeApplied = transferPriceInfo ? transferPriceInfo.nightFeeApplied : false;
@@ -181,9 +191,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const fullTotal = useMemo(() => {
     if (transferPriceInfo) return transferPriceInfo.total;
     if (tourPriceInfo) return tourPriceInfo.total;
-    if (item?.priceType === 'per_person') return item.unitPrice * form.passengers;
-    return item?.unitPrice || 0;
-  }, [transferPriceInfo, tourPriceInfo, item, form.passengers]);
+    if (internalItem?.priceType === 'per_person') return internalItem.unitPrice * form.passengers;
+    return internalItem?.unitPrice || 0;
+  }, [transferPriceInfo, tourPriceInfo, internalItem, form.passengers]);
 
   const fullPixTotal = useMemo(() => {
     if (transferPriceInfo) return transferPriceInfo.pixTotal;
@@ -255,9 +265,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const serviceTitle = useMemo(() => {
     if (transferItem) return transferItem.title;
     if (tourItem) return tourItem.title;
-    if (item?.title) return item.title;
+    if (internalItem?.title) return internalItem.title;
     return 'Serviço';
-  }, [transferItem, tourItem, item]);
+  }, [transferItem, tourItem, internalItem]);
 
   // Helper centralizado com controle de envio único (prevenindo registros duplicados no CRM)
   const triggerHotelOpsSync = useCallback(
@@ -268,7 +278,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
       }
       hasSentToHotelOpsRef.current = true;
 
-      const itemInfo = item || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
+      const itemInfo = internalItem || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
       const paymentInfo = {
         fullTotal,
         fullPixTotal,
@@ -289,7 +299,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     },
     [
       form,
-      item,
+      internalItem,
       serviceTitle,
       isTransfer,
       fullTotal,
@@ -323,8 +333,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
           phone: form.whatsapp,
         },
         metadata: {
-          serviceId: item?.id || 'service',
-          category: item?.category || (isTransfer ? 'transfer' : 'tour'),
+          serviceId: internalItem?.id || 'service',
+          category: internalItem?.category || (isTransfer ? 'transfer' : 'tour'),
           tripType: form.tripType,
           optionType: form.optionType,
           vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
@@ -353,7 +363,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
+  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
 
   // Geração Direta de Pix (Envio do valor fracionado chargePixTotal)
   const handlePixPayment = useCallback(async () => {
@@ -374,8 +384,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
           phone: form.whatsapp,
         },
         metadata: {
-          serviceId: item?.id || 'service',
-          category: item?.category || (isTransfer ? 'transfer' : 'tour'),
+          serviceId: internalItem?.id || 'service',
+          category: internalItem?.category || (isTransfer ? 'transfer' : 'tour'),
           tripType: form.tripType,
           optionType: form.optionType,
           vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
@@ -410,7 +420,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, item, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
+  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
 
   // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
@@ -493,6 +503,35 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
         {step === 'form' && (
           <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
+            
+            {/* Seletor do Serviço para identificar e permitir troca no Modal */}
+            <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+              <Label className="text-xs font-semibold text-gray-700">Serviço Selecionado *</Label>
+              <Select
+                value={internalItem?.id || ''}
+                onValueChange={(val) => {
+                  const newTransfer = transfersData.find((t) => t.id === val);
+                  if (newTransfer) setInternalItem(newTransfer);
+                  const newTour = toursData.find((t) => t.id === val);
+                  if (newTour) setInternalItem(newTour);
+                }}
+              >
+                <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
+                  <SelectValue placeholder="Escolha o serviço..." />
+                </SelectTrigger>
+                <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg max-h-60">
+                  <div className="px-2 py-1.5 text-xs font-bold text-gray-500 bg-gray-50">Transfers</div>
+                  {transfersData.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-bold text-gray-500 bg-gray-50 mt-2">Passeios e Roteiros</div>
+                  {toursData.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Campos adicionais para Transfer */}
             {isTransfer && transferItem && (
               <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">

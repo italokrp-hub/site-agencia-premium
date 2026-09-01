@@ -41,7 +41,9 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md' : 'bg-white/95 backdrop-blur-sm'
+        isScrolled 
+          ? 'bg-black/40 backdrop-blur-md md:bg-white md:shadow-md' 
+          : 'bg-black/20 backdrop-blur-md md:bg-white/95 md:backdrop-blur-sm border-b border-white/10 md:border-none'
       }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +58,7 @@ const Header = () => {
             <img 
               src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/494a72a51bf12600f9dbf641b2fc783a.png"
               alt="Jericoacoara Premium - Agência de Viagens Premium"
-              className="h-16 w-auto"
+              className="h-16 w-16 object-cover rounded-full shadow-sm"
             />
           </motion.div>
 
@@ -101,9 +103,9 @@ const Header = () => {
           <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-md text-gray-700 hover:text-[#2C7A7B] hover:bg-gray-100 transition-colors duration-200"
+              className="p-2 rounded-md text-white md:text-gray-700 hover:text-white/80 md:hover:text-[#2C7A7B] transition-colors duration-200"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <X className="w-6 h-6 drop-shadow-md" /> : <Menu className="w-6 h-6 drop-shadow-md" />}
             </button>
           </div>
         </div>

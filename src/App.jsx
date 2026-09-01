@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import Header from '@/components/Header';
-import Hero from '@/components/Hero';
+import HeroFlowCarousel from '@/components/HeroFlowCarousel';
 import About from '@/components/About';
 import Services from '@/components/Services';
 import Differentials from '@/components/Differentials';
@@ -18,21 +18,24 @@ function LandingPage() {
   return (
     <>
       <Helmet>
-        <title>Jericoacoara Premium - Transfer, Passeios e Experiências Exclusivas</title>
+        <title>Jericoacoara Premium | Transfer VIP 4x4, Passeios e Experiências Exclusivas</title>
         <meta
           name="description"
-          content="Experiências excepcionais em Jericoacoara com transfer premium, passeios exclusivos e atendimento personalizado. Reserve agora seu transfer Fortaleza ↔ Jeri com conforto e segurança."
+          content="Viva as melhores experiências em Jericoacoara com conforto e exclusividade. Oferecemos Transfer VIP 4x4 (Fortaleza, Cruz), Passeios de Buggy, UTV, Helicóptero e Beach Clubs."
         />
+        <meta name="keywords" content="Jericoacoara, Transfer VIP Jericoacoara, Passeios de Buggy, Helicóptero Jeri, Agência de Turismo Jericoacoara, Transfer Fortaleza Jeri, Ceará, UTV Jericoacoara" />
       </Helmet>
       <div className="min-h-screen bg-white">
         <Header />
-        <Hero />
-        <About />
-        <Services />
-        <Differentials />
-        <Testimonials />
-        <Pricing />
-        <Gallery />
+        <main>
+          <HeroFlowCarousel />
+          <About />
+          <Services />
+          <Differentials />
+          <Testimonials />
+          <Pricing />
+          <Gallery />
+        </main>
         <Footer />
         <WhatsAppFloat />
         <Toaster />
