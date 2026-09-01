@@ -64,7 +64,7 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
+        <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}

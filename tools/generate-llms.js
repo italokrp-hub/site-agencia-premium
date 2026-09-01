@@ -82,15 +82,22 @@ function extractRoutes(appJsxPath) {
 }
 
 function findReactFiles(dir) {
-  return fs.readdirSync(dir)
-    .map(item => path.join(dir, item))
-    .filter(itemPath => {
-      try {
-        return fs.statSync(itemPath).isFile();
-      } catch (e) {
-        return false;
+  let results = [];
+  try {
+    const list = fs.readdirSync(dir);
+    list.forEach(item => {
+      const itemPath = path.join(dir, item);
+      const stat = fs.statSync(itemPath);
+      if (stat && stat.isDirectory()) {
+        results = results.concat(findReactFiles(itemPath));
+      } else if (stat && stat.isFile() && itemPath.endsWith('.jsx')) {
+        results.push(itemPath);
       }
     });
+  } catch (e) {
+    // Ignore errors reading directories
+  }
+  return results;
 }
 
 function extractHelmetData(content, filePath, routes) {
@@ -157,18 +164,24 @@ function main() {
   const appJsxPath = path.join(process.cwd(), 'src', 'App.jsx');
 
   let pages = [];
+  const routes = extractRoutes(appJsxPath);
   
-  if (!fs.existsSync(pagesDir)) {
-    pages.push(processPageFile(appJsxPath, []))
-    pages = pages.filter(Boolean);
-  } else {
-    const routes = extractRoutes(appJsxPath);
-    const reactFiles = findReactFiles(pagesDir);
-
-    pages = reactFiles
-      .map(filePath => processPageFile(filePath, routes))
-      .filter(Boolean);
+  // Always check App.jsx
+  if (fs.existsSync(appJsxPath)) {
+    const appPage = processPageFile(appJsxPath, routes);
+    if (appPage) pages.push(appPage);
   }
+  
+  if (fs.existsSync(pagesDir)) {
+    const reactFiles = findReactFiles(pagesDir);
+    reactFiles.forEach(filePath => {
+      const page = processPageFile(filePath, routes);
+      if (page) pages.push(page);
+    });
+  }
+
+  // Remove duplicates based on URL
+  pages = Array.from(new Map(pages.map(p => [p.url, p])).values());
 
   if (pages.length === 0) {
     console.error('❌ No pages with Helmet components found!');
