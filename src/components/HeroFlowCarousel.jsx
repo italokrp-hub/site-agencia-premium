@@ -123,7 +123,6 @@ const openWhatsApp = (serviceName) => {
 const HeroFlowCarousel = () => {
   const [currentScene, setCurrentScene] = useState(0);
   const [bookingItem, setBookingItem] = useState(null);
-  const [loadedMedia, setLoadedMedia] = useState({});
   
   // Keep track of video elements for play/pause control
   const videoRefs = useRef([]);
@@ -133,6 +132,7 @@ const HeroFlowCarousel = () => {
     videoRefs.current.forEach((video, index) => {
       if (video) {
         if (index === currentScene) {
+          video.currentTime = 0; // Restart for a fresh transition
           video.play().catch(e => console.log('Autoplay prevented:', e));
         } else {
           video.pause();
@@ -193,9 +193,6 @@ const HeroFlowCarousel = () => {
       <div className="absolute inset-0 z-0 bg-neutral-950">
         {SCENES.map((s, index) => {
           const isActive = index === currentScene;
-          const isNext = index === (currentScene + 1) % SCENES.length;
-          const preloadState = isActive ? "auto" : (isNext ? "metadata" : "none");
-          const isLoaded = loadedMedia[index];
           
           // Generate poster assuming .jpg exists with same name, or fallback
           const posterSrc = s.poster || (s.src ? s.src.replace('.mp4', '.jpg') : s.fallbackSrc);
@@ -203,16 +200,9 @@ const HeroFlowCarousel = () => {
           return (
             <div
               key={s.id}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out bg-cover bg-center ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              style={{ backgroundImage: `url(${posterSrc})` }}
             >
-              {/* Fallback image shown while video is loading to eliminate black screen */}
-              {!isLoaded && s.type === 'video' && (
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-opacity duration-700 opacity-100" 
-                  style={{ backgroundImage: `url(${posterSrc})` }}
-                />
-              )}
-              
               {s.type === 'video' ? (
                 <video
                   ref={el => videoRefs.current[index] = el}
@@ -220,12 +210,9 @@ const HeroFlowCarousel = () => {
                   muted
                   playsInline
                   webkit-playsinline="true"
-                  autoPlay={isActive}
-                  preload={preloadState}
+                  preload="auto"
                   poster={posterSrc}
-                  onLoadedData={() => setLoadedMedia(prev => ({...prev, [index]: true}))}
-                  onCanPlay={() => setLoadedMedia(prev => ({...prev, [index]: true}))}
-                  className={`relative w-full h-full object-cover object-center transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className="relative w-full h-full object-cover object-center"
                   src={s.src}
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -238,7 +225,6 @@ const HeroFlowCarousel = () => {
                   transition={{ duration: 7, ease: "linear" }}
                   className="w-full h-full object-cover object-center"
                   src={s.src}
-                  onLoad={() => setLoadedMedia(prev => ({...prev, [index]: true}))}
                   onError={(e) => {
                     e.target.onerror = null; 
                     e.target.src = s.fallbackSrc;
