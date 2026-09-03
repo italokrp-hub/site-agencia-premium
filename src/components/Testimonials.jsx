@@ -64,14 +64,14 @@ const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar px-4 pb-4 md:pb-0 md:mx-auto md:px-0">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center shrink-0 md:shrink bg-gradient-to-br from-white to-[#F7F3E9] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 relative"
+              className="w-[82vw] sm:w-[320px] md:w-auto snap-center flex-shrink-0 md:shrink bg-gradient-to-br from-white to-[#F7F3E9] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 relative"
             >
               {/* Quote Icon */}
               <div className="absolute top-4 right-4 opacity-10">

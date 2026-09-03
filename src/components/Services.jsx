@@ -67,7 +67,7 @@ const Services = () => {
           </p>
         </motion.div>
 
-        <div className="flex flex-nowrap md:grid md:grid-cols-2 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
+        <div className="flex md:grid md:grid-cols-2 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar px-4 pb-4 md:pb-0 md:mx-auto md:px-0">
           {allServices.map((service, index) => {
             const Icon = iconMap[service.title] || Map;
             return (
@@ -76,10 +76,10 @@ const Services = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
-                className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center shrink-0 md:shrink group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+                className="w-[82vw] sm:w-[360px] md:w-auto snap-center flex-shrink-0 md:shrink group bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
               >
-                {/* Proporção de Imagem 16:10 */}
-                <div className="relative aspect-[16/10] overflow-hidden shrink-0">
+                {/* Imagem Flexível Mobile */}
+                <div className="relative h-[180px] sm:h-[220px] md:h-[260px] w-full shrink-0 rounded-t-2xl overflow-hidden">
                   <img
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     alt={service.title}
@@ -101,7 +101,7 @@ const Services = () => {
                   </div>
                 </div>
 
-                <div className="p-6 sm:p-7 flex flex-col flex-grow justify-between space-y-4">
+                <div className="p-4 sm:p-5 flex flex-col flex-grow justify-between space-y-4">
                   <div className="space-y-2">
                     <h3 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
                       {service.title}

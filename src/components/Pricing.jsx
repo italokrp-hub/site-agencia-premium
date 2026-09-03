@@ -226,7 +226,7 @@ const Pricing = () => {
             transition={{ duration: 0.4 }}
             className="max-w-6xl mx-auto w-full"
           >
-            <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
+            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar px-4 pb-4 md:pb-0 md:mx-auto md:px-0">
               {toursData.map((tour) => {
                 const isPremium = tour.requireWhatsApp;
                 const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
@@ -239,7 +239,7 @@ const Pricing = () => {
                 return (
                   <div
                     key={tour.id}
-                    className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-center shrink-0 md:shrink bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden flex flex-col border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
+                    className="w-[82vw] sm:w-[320px] md:w-auto snap-center flex-shrink-0 md:shrink bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-xl flex flex-col border border-zinc-200/80 dark:border-zinc-800 transition-all duration-300"
                   >
                     <div className="p-5 md:p-6 flex-1 flex flex-col justify-between">
                       <div>

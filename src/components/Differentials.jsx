@@ -64,14 +64,14 @@ const Differentials = () => {
           </div>
         </motion.div>
 
-        <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 md:pb-0 -mx-4 px-4 md:mx-auto md:px-0">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar px-4 pb-4 md:pb-0 md:mx-auto md:px-0">
           {differentials.map((item, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center shrink-0 md:shrink bg-white rounded-xl p-5 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 border border-gray-100"
+              className="w-[82vw] sm:w-[300px] md:w-auto snap-center flex-shrink-0 md:shrink bg-white rounded-xl p-5 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 border border-gray-100"
             >
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
