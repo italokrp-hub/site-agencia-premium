@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { Check, Filter } from 'lucide-react';
+import { Check, Filter, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toursData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
+import ExperienceDetailsDrawer from '@/components/experience/ExperienceDetailsDrawer';
 
 const FILTERS = [
   { id: 'todos', label: 'Todos' },
@@ -18,6 +19,7 @@ const ToursExplorer = () => {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const [activeFilter, setActiveFilter] = useState('todos');
   const [bookingItem, setBookingItem] = useState(null);
+  const [drawerItem, setDrawerItem] = useState(null);
 
   const filteredTours = useMemo(() => {
     if (activeFilter === 'todos') return toursData;
@@ -35,12 +37,14 @@ const ToursExplorer = () => {
       );
       return;
     }
-    const isShared = tour.options?.shared?.available && !tour.options?.private?.available;
+    const raw = tour?.raw || tour;
+    const isShared = raw.options?.shared?.available && !raw.options?.private?.available;
     setBookingItem({
-      ...tour,
+      ...raw,
       selectedType: isShared ? 'Compartilhado' : 'Privativo',
-      selectedVehicleType: tour.options?.private?.vehicles?.[0]?.type || 'Buggy',
+      selectedVehicleType: raw.options?.private?.vehicles?.[0]?.type || 'Buggy',
     });
+    setDrawerItem(null);
   };
 
   function getTourStartingPrice(tour) {
@@ -120,8 +124,15 @@ const ToursExplorer = () => {
                 transition={{ duration: 0.4, delay: index * 0.07 }}
                 className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl overflow-hidden flex flex-col transition-all duration-300"
               >
-                {/* Image */}
-                <div className="relative h-52 overflow-hidden">
+                {/* Image — click opens drawer */}
+                <div
+                  className="relative h-52 overflow-hidden cursor-pointer"
+                  onClick={() => setDrawerItem(tour)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ver detalhes de ${tour.title}`}
+                  onKeyDown={(e) => e.key === 'Enter' && setDrawerItem(tour)}
+                >
                   <img
                     src={tour.image}
                     alt={tour.title}
@@ -129,6 +140,14 @@ const ToursExplorer = () => {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                  {/* "Ver detalhes" hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5" />
+                      Ver detalhes
+                    </span>
+                  </div>
 
                   {/* Badges */}
                   <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
@@ -152,7 +171,12 @@ const ToursExplorer = () => {
 
                 {/* Content */}
                 <div className="flex flex-col flex-1 p-5">
-                  <h3 className="font-bold text-gray-900 text-lg mb-3 leading-snug">{tour.title}</h3>
+                  <h3
+                    className="font-bold text-gray-900 text-lg mb-3 leading-snug cursor-pointer hover:text-[#2C7A7B] transition-colors"
+                    onClick={() => setDrawerItem(tour)}
+                  >
+                    {tour.title}
+                  </h3>
 
                   {/* Locations */}
                   {tour.locations && (
@@ -188,7 +212,7 @@ const ToursExplorer = () => {
                     <p className="text-xs text-gray-500 mb-4 leading-relaxed">{tour.description}</p>
                   )}
 
-                  {/* Price + CTA */}
+                  {/* Price + CTAs */}
                   <div className="mt-auto pt-4 border-t border-gray-100">
                     {isPremium ? (
                       <p className="text-[#D4AF37] font-bold text-base mb-3">Sob consulta</p>
@@ -202,16 +226,26 @@ const ToursExplorer = () => {
                       </div>
                     ) : null}
 
-                    <Button
-                      onClick={() => handleBook(tour)}
-                      className={`w-full h-11 text-sm font-bold rounded-xl transition-all duration-300 ${
-                        isPremium
-                          ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900'
-                          : 'bg-[#2C7A7B] hover:bg-[#235f60] text-white'
-                      }`}
-                    >
-                      {isPremium ? 'Consultar no WhatsApp' : 'Reservar agora'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setDrawerItem(tour)}
+                        variant="outline"
+                        className="flex-1 h-10 text-xs font-bold rounded-xl border-gray-200 text-gray-600 hover:border-[#2C7A7B] hover:text-[#2C7A7B] transition-all"
+                      >
+                        <Eye className="w-3.5 h-3.5 mr-1" />
+                        Detalhes
+                      </Button>
+                      <Button
+                        onClick={() => handleBook(tour)}
+                        className={`flex-1 h-10 text-sm font-bold rounded-xl transition-all duration-300 ${
+                          isPremium
+                            ? 'bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900'
+                            : 'bg-[#2C7A7B] hover:bg-[#235f60] text-white'
+                        }`}
+                      >
+                        {isPremium ? 'WhatsApp' : 'Reservar'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -219,6 +253,14 @@ const ToursExplorer = () => {
           })}
         </div>
       </div>
+
+      {/* Experience Details Drawer */}
+      <ExperienceDetailsDrawer
+        item={drawerItem}
+        open={!!drawerItem}
+        onClose={() => setDrawerItem(null)}
+        onBook={handleBook}
+      />
 
       {bookingItem && (
         <BookingModal

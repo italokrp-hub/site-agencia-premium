@@ -14,6 +14,7 @@ import ExperienceSelector from '@/components/sections/ExperienceSelector';
 import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
 import ToursExplorer from '@/components/sections/ToursExplorer';
 import TransfersSection from '@/components/sections/TransfersSection';
+import ExploreJericoMap from '@/components/sections/ExploreJericoMap';
 import PremiumExperiences from '@/components/sections/PremiumExperiences';
 import TrustSection from '@/components/sections/TrustSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
@@ -58,7 +59,10 @@ function LandingPage() {
           {/* 5. Transfers Section */}
           <TransfersSection />
 
-          {/* 6. Premium Experiences */}
+          {/* 6. Explore Jericoacoara Map */}
+          <ExploreJericoMap />
+
+          {/* 7. Premium Experiences */}
           <PremiumExperiences />
 
           {/* 7. Trust Section */}

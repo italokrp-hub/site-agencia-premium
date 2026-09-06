@@ -20,9 +20,9 @@ const Header = () => {
     { label: 'Experiências', href: '#experiencias' },
     { label: 'Passeios', href: '#tours' },
     { label: 'Transfers', href: '#transfers' },
-    { label: 'Premium', href: '#premium' },
+    { label: 'Destinos', href: '#mapa' },
     { label: 'Depoimentos', href: '#depoimentos' },
-    { label: 'Contato', href: '#contato' },
+    { label: 'Contato', href: '#reservar' },
   ];
 
   const handleWhatsApp = () => {
