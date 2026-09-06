@@ -131,32 +131,44 @@ export const trustItems = [
   },
   {
     icon: '🛡️',
-    title: 'Motoristas Certificados',
-    description: 'Equipe de guias e motoristas experientes e selecionados.',
+    title: 'Motoristas Credenciados',
+    description: 'Equipe de guias e motoristas credenciados, experientes e selecionados.',
   },
   {
     icon: '💎',
     title: 'Experiências Personalizadas',
-    description: 'Cada roteiro é pensado para você e suas necessidades.',
+    description: 'Cada roteiro é pensado para você com segurança e conforto total.',
   },
   {
     icon: '💳',
-    title: 'Pagamento Seguro',
-    description: 'Parcele em até 10x no cartão ou ganhe 5% OFF no PIX.',
+    title: 'Pagamento Seguro & Flexível',
+    description: 'Parcele em até 10x no cartão ou ganhe 5% OFF no PIX com reserva 100% garantida.',
   },
   {
     icon: '📍',
     title: 'Suporte na Viagem',
-    description: 'Estamos com você do transfer à última experiência.',
+    description: 'Agência segura acompanhando você do transfer até o último passeio.',
   },
   {
     icon: '✅',
     title: 'Cadastur Regularizado',
-    description: 'Agência regularizada: CNPJ 51.790.615/0001-08.',
+    description: 'Agência confiável e regularizada: CNPJ 51.790.615/0001-08.',
   },
 ];
 
 export const faqItems = [
+  {
+    question: 'Qual o transfer mais barato para Jericoacoara?',
+    answer: 'O transfer mais barato para Jericoacoara é a opção compartilhada de ônibus/van regular (a partir de R$ 175,00 por pessoa de Fortaleza) ou a jardineira compartilhada saindo de Jijoca (a partir de R$ 50,00 por pessoa). É a alternativa mais econômica com total segurança, ar-condicionado e suporte 24h.',
+  },
+  {
+    question: 'Como funciona o transfer compartilhado mais econômico?',
+    answer: 'No transfer compartilhado mais econômico, você viaja em veículos modernos (vans, ônibus ou 4x4 de apoio) dividindo o trajeto com outros viajantes. Garantimos a opção de melhor custo-benefício com motoristas credenciados, pontualidade e desembarque seguro na vila de Jeri.',
+  },
+  {
+    question: 'É seguro e confiável reservar passeios e transfer com antecedência?',
+    answer: 'Sim, é 100% seguro e muito recomendado! Nossa agência é cadastrada no Cadastur (CNPJ 51.790.615/0001-08), com mais de milhares de clientes atendidos. Sua reserva é 100% garantida, com motoristas credenciados, suporte via WhatsApp antes e durante a viagem, além de pagamentos protegidos.',
+  },
   {
     question: 'Como funciona a reserva?',
     answer: 'É simples! Escolha o serviço, preencha o formulário com seus dados, data e horário, e escolha a forma de pagamento. Você pode pagar um sinal de 50% online e o restante no embarque, ou pagar 100% com 5% de desconto no PIX.',
@@ -171,7 +183,7 @@ export const faqItems = [
   },
   {
     question: 'Os passeios são compartilhados ou privativos?',
-    answer: 'Oferecemos as duas modalidades! Os passeios compartilhados (Jardineira) têm ótimo custo-benefício. Os privativos garantem exclusividade, com opções de Buggy, Quadriciclo, SW4 e Jardineira.',
+    answer: 'Oferecemos as duas modalidades! Os passeios compartilhados (Jardineira) são a opção mais econômica e com excelente custo-benefício. Os privativos garantem exclusividade, com opções de Buggy, Quadriciclo, SW4 e Jardineira.',
   },
   {
     question: 'O transfer busca no aeroporto?',
@@ -179,14 +191,14 @@ export const faqItems = [
   },
   {
     question: 'Posso personalizar meu roteiro?',
-    answer: 'Com certeza! Além dos passeios pré-definidos, oferecemos roteiros personalizados. Entre em contato pelo WhatsApp e nossos especialistas montarão a experiência ideal para você.',
+    answer: 'Com certeza! Além dos passeios pré-definidos, oferecemos roteiros personalizados. Entre em contato pelo WhatsApp e nossos especialistas montarão a experiência ideal para você com a melhor relação custo-benefício.',
   },
   {
     question: 'Como funciona o pagamento do sinal?',
-    answer: 'Você pode optar por pagar 50% do valor como sinal online (via PIX ou cartão de crédito em até 10x) e o restante de 50% diretamente ao motorista no dia do embarque.',
+    answer: 'Você pode optar por pagar 50% do valor como sinal online (via PIX ou cartão de crédito em até 10x) e o restante de 50% diretamente ao motorista credenciado no dia do embarque.',
   },
   {
     question: 'O passeio de Helicóptero pode ser reservado online?',
-    answer: 'O passeio de Helicóptero e o de UTV são experiências premium que devem ser consultadas diretamente via WhatsApp para verificar disponibilidade e condições especiais.',
+    answer: 'O passeio de Helicóptero e o de UTV são experiências premium que devem ser consultadas diretamente via WhatsApp para verificar disponibilidade e condições especiais com o melhor preço.',
   },
 ];

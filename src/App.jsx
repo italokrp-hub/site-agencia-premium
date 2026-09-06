@@ -30,17 +30,17 @@ function LandingPage() {
   return (
     <>
       <Helmet>
-        <title>Jericoacoara Premium | Transfer VIP, Passeios e Experiências Exclusivas em Jeri</title>
+        <title>Jericoacoara Premium | Transfer Mais Barato, Passeios & Agência Segura</title>
         <meta
           name="description"
-          content="Jericoacoara Premium — experiências únicas em Jericoacoara. Transfer VIP 4x4 de Fortaleza e Cruz, Passeios de Buggy, UTV, Helicóptero e roteiros personalizados. Atendimento 24h."
+          content="Encontre o transfer mais barato para Jericoacoara com a agência mais confiável e segura. Reserve transfer compartilhado econômico, VIP 4x4 e passeios com melhor preço, motoristas credenciados e reserva 100% garantida!"
         />
-        <meta name="keywords" content="Jericoacoara, Transfer VIP Jericoacoara, Passeios de Buggy, Helicóptero Jeri, Agência de Turismo Jericoacoara, Transfer Fortaleza Jeri, Ceará, UTV Jericoacoara, Lagoa do Paraíso" />
+        <meta name="keywords" content="transfer mais barato jericoacoara, transfer economico jeri, melhor preco transfer jeri, agencia segura jericoacoara, motoristas credenciados, reserva garantida, Transfer VIP Jericoacoara, Passeios de Buggy, Ceará" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <link rel="canonical" href="https://jericoacoarapremium.com/" />
         <meta property="og:url" content="https://jericoacoarapremium.com/" />
-        <meta property="og:title" content="Jericoacoara Premium | Experiências Exclusivas" />
-        <meta property="og:description" content="Viva Jericoacoara do seu jeito. Transfers, passeios e experiências personalizadas com atendimento 24h." />
+        <meta property="og:title" content="Jericoacoara Premium | Transfer Mais Barato & Agência Confiável" />
+        <meta property="og:description" content="Reserve o transfer mais barato e econômico para Jericoacoara com segurança total, motoristas credenciados e reserva 100% garantida." />
         <meta property="og:image" content="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1200&q=80" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

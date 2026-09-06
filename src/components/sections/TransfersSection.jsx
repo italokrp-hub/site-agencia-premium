@@ -38,14 +38,14 @@ const TransfersSection = () => {
           className="text-center mb-14"
         >
           <p className="text-[#D4AF37] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            Transfers
+            Transfers Seguros & Econômicos
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
-            Sua viagem começa{' '}
-            <span className="text-[#D4AF37]">antes de chegar</span>
+            Transfer mais barato para Jeri{' '}
+            <span className="text-[#D4AF37]">com segurança & conforto</span>
           </h2>
           <p className="mt-4 text-white/60 text-base max-w-xl mx-auto">
-            Transfers confortáveis de qualquer ponto de saída para Jericoacoara. Escolha privativo ou compartilhado.
+            Agência segura com motoristas credenciados e reserva 100% garantida. Escolha a opção mais econômica ou o conforto privativo VIP com o melhor preço.
           </p>
         </motion.div>
 
@@ -133,12 +133,15 @@ const TransfersSection = () => {
                     ))}
 
                     {currentType === 'compartilhado' && sharedOpt?.available && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/60 text-xs">Por pessoa</span>
-                        <div className="text-right">
-                          <span className="text-[#D4AF37] font-bold text-lg">{formatPrice(sharedOpt.roundTrip)}</span>
-                          <span className="text-white/40 text-[10px] ml-1">ida/volta</span>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-white/60 text-xs">Por pessoa (econômico)</span>
+                          <div className="text-right">
+                            <span className="text-[#D4AF37] font-bold text-lg">{formatPrice(sharedOpt.roundTrip)}</span>
+                            <span className="text-white/40 text-[10px] ml-1">ida/volta</span>
+                          </div>
                         </div>
+                        <p className="text-[#D4AF37]/80 text-[11px] font-medium mt-1">Opção mais econômica com motoristas credenciados</p>
                       </div>
                     )}
 

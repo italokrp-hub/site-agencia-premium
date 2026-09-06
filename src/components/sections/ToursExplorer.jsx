@@ -74,13 +74,13 @@ const ToursExplorer = () => {
           className="text-center mb-12"
         >
           <p className="text-[#2C7A7B] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            Roteiros
+            Roteiros Seguros & Confiáveis
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
             Explore nossos <span className="text-[#2C7A7B]">passeios</span>
           </h2>
           <p className="mt-4 text-gray-500 text-base max-w-xl mx-auto">
-            Do compartilhado econômico ao privativo exclusivo — escolha como você quer explorar Jericoacoara.
+            Do passeio compartilhado mais econômico com o melhor custo-benefício aos roteiros privativos exclusivos. Agência 100% segura com motoristas credenciados e reserva garantida.
           </p>
         </motion.div>
 

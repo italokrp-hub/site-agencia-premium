@@ -72,12 +72,12 @@ export const transfersData = [
   },
   {
     id: 'onibus-regular',
-    title: 'Transfer de Ônibus/Van Regular',
+    title: 'Transfer de Ônibus/Van Regular (Opção Mais Econômica)',
     icon: Car,
     category: 'transfer',
     image: '/images/transfer-4x4-dunas.webp',
     options: {
-      shared: { available: true, oneWay: 175, roundTrip: 350, perPerson: true, vehicle: 'Ônibus/Van' },
+      shared: { available: true, oneWay: 175, roundTrip: 350, perPerson: true, vehicle: 'Ônibus/Van Regular', note: 'Transfer mais barato para Jeri com segurança e conforto' },
       private: { available: false }
     }
   }
@@ -92,8 +92,8 @@ export const transfers = transfersData.map((item) => ({
   privatePrice: item.options.private?.tiers?.[0]?.roundTrip || 0,
   privateNote: item.options.private?.tiers?.[0] ? `até ${item.options.private.tiers[0].maxCapacity} pessoas (${item.options.private.tiers[0].vehicle})` : '',
   sharedPrice: item.options.shared?.available ? item.options.shared.roundTrip : 0,
-  sharedNote: item.options.shared?.available ? 'por pessoa' : 'Indisponível',
-  description: `Transfer ${item.title}`,
+  sharedNote: item.options.shared?.available ? 'por pessoa (opção mais econômica)' : 'Indisponível',
+  description: `Transfer ${item.title} — a opção mais confiável com motoristas credenciados.`,
   image: item.image,
   raw: item,
 }));
@@ -106,7 +106,7 @@ export const toursData = [
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
     locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
     options: {
-      shared: { available: true, price: 75, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
+      shared: { available: true, price: 75, vehicle: 'Jardineira', benefits: ['Motorista credenciado', 'Opção mais econômica', 'Melhor custo-benefício', 'Reserva 100% garantida'] },
       private: { available: false }
     }
   },
@@ -136,7 +136,7 @@ export const toursData = [
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
     locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
     options: {
-      shared: { available: true, price: 80, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
+      shared: { available: true, price: 80, vehicle: 'Jardineira', benefits: ['Motorista credenciado', 'Opção mais econômica', 'Melhor custo-benefício', 'Reserva 100% garantida'] },
       private: { available: false }
     }
   },
