@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jericoacoarapremium.com.br/sitemap.xml
+Sitemap: https://jericoacoarapremium.com/sitemap.xml

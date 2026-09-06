@@ -36,11 +36,15 @@ function LandingPage() {
           content="Jericoacoara Premium — experiências únicas em Jericoacoara. Transfer VIP 4x4 de Fortaleza e Cruz, Passeios de Buggy, UTV, Helicóptero e roteiros personalizados. Atendimento 24h."
         />
         <meta name="keywords" content="Jericoacoara, Transfer VIP Jericoacoara, Passeios de Buggy, Helicóptero Jeri, Agência de Turismo Jericoacoara, Transfer Fortaleza Jeri, Ceará, UTV Jericoacoara, Lagoa do Paraíso" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <link rel="canonical" href="https://jericoacoarapremium.com/" />
+        <meta property="og:url" content="https://jericoacoarapremium.com/" />
         <meta property="og:title" content="Jericoacoara Premium | Experiências Exclusivas" />
         <meta property="og:description" content="Viva Jericoacoara do seu jeito. Transfers, passeios e experiências personalizadas com atendimento 24h." />
         <meta property="og:image" content="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1200&q=80" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://jericoacoarapremium.com/" />
       </Helmet>
 
       <div className="min-h-screen bg-white">
