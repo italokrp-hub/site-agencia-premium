@@ -8,7 +8,7 @@ export const transfersData = [
     title: 'Fortaleza (Hotel/Aeroporto) ↔ Jericoacoara',
     icon: Car,
     category: 'transfer',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/transfer-4x4-dunas.webp',
     options: {
       shared: { available: true, oneWay: 280, roundTrip: 560, perPerson: true },
       private: {
@@ -25,7 +25,7 @@ export const transfersData = [
     title: 'Aeroporto Regional de Cruz ↔ Jericoacoara',
     icon: Plane,
     category: 'transfer',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    image: '/images/transfer-hilux.webp',
     options: {
       shared: { available: true, oneWay: 100, roundTrip: 200, perPerson: true },
       private: {
@@ -42,7 +42,7 @@ export const transfersData = [
     title: 'Jijoca ↔ Jericoacoara',
     icon: Map,
     category: 'transfer',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/0376391c7db96ffaf93689b92c2eeb11.webp',
+    image: '/images/transfer-4x4-dunas.webp',
     nightFee: 20, // Acréscimo se horário >= 18:00
     options: {
       shared: { available: true, oneWay: 50, roundTrip: 100, perPerson: true },
@@ -59,7 +59,7 @@ export const transfersData = [
     title: 'Preá ↔ Jericoacoara',
     icon: Sun,
     category: 'transfer',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/c41e7ba1c6dcdd06e4d8c07e14a1e531.jpg',
+    image: '/images/transfer-hilux.webp',
     options: {
       shared: { available: false }, // Somente privativo
       private: {
@@ -75,7 +75,7 @@ export const transfersData = [
     title: 'Transfer de Ônibus/Van Regular',
     icon: Car,
     category: 'transfer',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/transfer-4x4-dunas.webp',
     options: {
       shared: { available: true, oneWay: 175, roundTrip: 350, perPerson: true, vehicle: 'Ônibus/Van' },
       private: { available: false }
@@ -103,7 +103,7 @@ export const toursData = [
     id: 'tour-leste-shared',
     title: 'Passeio Lado Leste (Compartilhado)',
     category: 'tour',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/voo-helicoptero-jeri.webp',
     locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
     options: {
       shared: { available: true, price: 75, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
@@ -114,7 +114,7 @@ export const toursData = [
     id: 'tour-leste-private',
     title: 'Passeio Lado Leste (Privativo)',
     category: 'tour',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/voo-helicoptero-jeri.webp',
     locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
     options: {
       shared: { available: false },
@@ -133,7 +133,7 @@ export const toursData = [
     id: 'tour-oeste-shared',
     title: 'Passeio Lado Oeste (Compartilhado)',
     category: 'tour',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    image: '/images/transfer-4x4-dunas.webp',
     locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
     options: {
       shared: { available: true, price: 80, vehicle: 'Jardineira', benefits: ['Guia credenciado', 'Ótimo custo-benefício', 'Socialização'] },
@@ -144,7 +144,7 @@ export const toursData = [
     id: 'tour-oeste-private',
     title: 'Passeio Lado Oeste (Privativo)',
     category: 'tour',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    image: '/images/transfer-4x4-dunas.webp',
     locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
     options: {
       shared: { available: false },
@@ -163,17 +163,17 @@ export const toursData = [
     id: 'tour-utv',
     title: 'Passeio de UTV',
     category: 'tour',
-    image: 'https://images.unsplash.com/photo-1676954054657-223a1bdb8f0c',
+    image: '/images/passeio-utv-maverick.webp',
     requireWhatsApp: true,
-    description: 'Aventura Premium off-road. Consulte opções de roteiro e disponibilidade.'
+    description: 'Aventura Premium off-road em UTV Can-Am Maverick X3. Consulte opções de roteiro e disponibilidade.'
   },
   {
     id: 'tour-helicoptero',
     title: 'Passeio de Helicóptero',
     category: 'tour',
-    image: 'https://images.unsplash.com/photo-1700644860189-b244bdb52a4d',
+    image: '/images/voo-helicoptero-jeri.webp',
     requireWhatsApp: true,
-    description: 'Experiência Premium com vistas panorâmicas inesquecíveis.'
+    description: 'Experiência Premium com vistas panorâmicas inesquecíveis das dunas e lagoas vistas de cima.'
   }
 ];
 
@@ -219,35 +219,35 @@ export const allServices = [
     id: 'servico-lado-leste',
     title: 'Passeios Lado Leste',
     description: 'Explore a famosa Lagoa do Paraíso, Lagoa Azul, Árvore da Preguiça e o incrível Buraco Azul. Opções em Buggy ou Quadriciclo.',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/voo-helicoptero-jeri.webp',
     tourIds: ['tour-leste-private'],
   },
   {
     id: 'servico-lado-oeste',
     title: 'Passeios Lado Oeste',
     description: 'Aventura garantida com Lagoa de Tatajuba, Mangue Seco, travessia de balsa e os cavalos marinhos. Natureza exuberante.',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    image: '/images/transfer-4x4-dunas.webp',
     tourIds: ['tour-oeste-private'],
   },
   {
     id: 'servico-roteiros',
     title: 'Roteiros Personalizados',
     description: 'Monte seu pacote ideal. Combine transfers e passeios privativos ou compartilhados de acordo com sua necessidade.',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/0376391c7db96ffaf93689b92c2eeb11.webp',
+    image: '/images/transfer-hilux.webp',
     tourIds: [],
   },
   {
     id: 'servico-helicoptero',
     title: 'Passeio de Helicóptero',
     description: 'Viva a experiência única de sobrevoar Jericoacoara de helicóptero, contemplando do alto as dunas, lagoas e o litoral paradisíaco da região.',
-    image: 'https://images.unsplash.com/photo-1700644860189-b244bdb52a4d',
+    image: '/images/voo-helicoptero-jeri.webp',
     tourIds: ['tour-helicoptero'],
   },
   {
     id: 'servico-utv',
     title: 'Passeio de UTV',
-    description: 'Aventure-se em um emocionante passeio de UTV pelas dunas e trilhas de Jericoacoara, com muita adrenalina, segurança e contato direto com a natureza.',
-    image: 'https://images.unsplash.com/photo-1676954054657-223a1bdb8f0c',
+    description: 'Aventure-se em um emocionante passeio de UTV Can-Am Maverick pelas dunas e trilhas de Jericoacoara, com muita adrenalina, segurança e contato direto com a natureza.',
+    image: '/images/passeio-utv-maverick.webp',
     tourIds: ['tour-utv'],
   },
 ];
@@ -258,198 +258,27 @@ export function formatPrice(value) {
 
 export function calculateTotal(item, passengers) {
   if (item.priceType === 'per_person') {
-    return item.unitPrice * passengers;
+    return (item.unitPrice || 0) * passengers;
   }
-  return item.unitPrice;
+  return item.unitPrice || 0;
 }
 
-export function isNightTime(timeStr) {
-  if (!timeStr) return false;
-  const [hours] = timeStr.split(':').map(Number);
-  return !isNaN(hours) && hours >= 18;
-}
-
-export function calculateTransferPrice({ transfer, optionType = 'private', tripType = 'roundTrip', passengers = 1, selectedTierIndex, time = '' }) {
-  if (!transfer || !transfer.options) {
-    return {
-      optionType,
-      tripType,
-      baseUnitPrice: 0,
-      subtotal: 0,
-      isPerPerson: false,
-      isPrivate: false,
-      vehicle: null,
-      vehicleCount: 1,
-      selectedTier: null,
-      nightFeeAmount: 0,
-      nightFeeApplied: false,
-      total: 0,
-      pixDiscountAmount: 0,
-      pixTotal: 0,
-    };
+export function calculateTourPrice(tour, vehicleType = 'Buggy', modality = 'private') {
+  if (modality === 'shared' && tour.options?.shared?.available) {
+    return tour.options.shared.price;
   }
-
-  const isShared = optionType === 'shared';
-  const priceKey = tripType === 'roundTrip' ? 'roundTrip' : 'oneWay';
-
-  let baseUnitPrice = 0;
-  let subtotal = 0;
-  let vehicle = null;
-  let vehicleCount = 1;
-  let selectedTier = null;
-  let isPerPerson = false;
-  let isPrivate = false;
-
-  if (isShared && transfer.options.shared?.available) {
-    baseUnitPrice = transfer.options.shared[priceKey] || 0;
-    subtotal = baseUnitPrice * passengers;
-    isPerPerson = true;
-    isPrivate = false;
-  } else if (transfer.options.private?.available) {
-    isPrivate = true;
-    const tiers = transfer.options.private.tiers || [];
-    
-    if (tiers.length > 0) {
-      const largestTier = tiers[tiers.length - 1];
-      
-      if (passengers > largestTier.maxCapacity) {
-        vehicleCount = Math.ceil(passengers / largestTier.maxCapacity);
-        selectedTier = {
-          ...largestTier,
-          vehicle: `${vehicleCount}x ${largestTier.vehicle}`,
-        };
-        baseUnitPrice = largestTier[priceKey] || 0;
-        subtotal = baseUnitPrice * vehicleCount;
-        vehicle = selectedTier.vehicle;
-      } else {
-        if (selectedTierIndex !== undefined && selectedTierIndex !== null && tiers[selectedTierIndex] && passengers <= tiers[selectedTierIndex].maxCapacity) {
-          selectedTier = tiers[selectedTierIndex];
-        } else {
-          selectedTier = tiers.find(t => t.maxCapacity >= passengers) || largestTier;
-        }
-        baseUnitPrice = selectedTier[priceKey] || 0;
-        subtotal = baseUnitPrice;
-        vehicle = selectedTier.vehicle;
-        vehicleCount = 1;
-      }
-    }
-  }
-
-  const nightFeeApplied = Boolean((transfer.nightFee || transfer.id === 'jijoca') && isNightTime(time));
-  const nightFeeAmount = nightFeeApplied ? (transfer.nightFee || 20) : 0;
-  const total = subtotal + nightFeeAmount;
-  const pixTotal = total * 0.95;
-  const pixDiscountAmount = total - pixTotal;
-
-  return {
-    optionType,
-    tripType,
-    baseUnitPrice,
-    subtotal,
-    isPerPerson,
-    isPrivate,
-    vehicle,
-    vehicleCount,
-    selectedTier,
-    nightFeeAmount,
-    nightFeeApplied,
-    total,
-    pixDiscountAmount,
-    pixTotal,
-  };
-}
-
-export function calculateTourPrice({ tour, optionType = 'private', selectedVehicleType = '', passengers = 1 }) {
-  if (!tour) {
-    return {
-      isWhatsAppOnly: false,
-      optionType,
-      selectedVehicle: null,
-      vehicleCount: 1,
-      subtotal: 0,
-      total: 0,
-      pixTotal: 0,
-      isPerPerson: false,
-    };
-  }
-
-  if (tour.requireWhatsApp) {
-    return {
-      isWhatsAppOnly: true,
-      optionType: 'private',
-      selectedVehicle: null,
-      vehicleCount: 1,
-      subtotal: 0,
-      total: 0,
-      pixTotal: 0,
-      isPerPerson: false,
-    };
-  }
-
-  const isShared = optionType === 'shared';
-
-  if (isShared && tour.options?.shared?.available) {
-    const unitPrice = tour.options.shared.price || 0;
-    const total = unitPrice * passengers;
-    const pixTotal = total * (1 - PIX_DISCOUNT_PERCENT);
-    return {
-      isWhatsAppOnly: false,
-      optionType: 'shared',
-      selectedVehicle: { type: tour.options.shared.vehicle || 'Jardineira', price: unitPrice },
-      vehicleCount: 1,
-      unitPrice,
-      subtotal: total,
-      total,
-      pixTotal,
-      isPerPerson: true,
-    };
-  }
-
   const vehicles = tour.options?.private?.vehicles || [];
-  const selectedVehicleObj = vehicles.find((v) => v.type === selectedVehicleType) || vehicles[0];
-
-  if (!selectedVehicleObj) {
-    return {
-      isWhatsAppOnly: false,
-      optionType: 'private',
-      selectedVehicle: null,
-      vehicleCount: 1,
-      subtotal: 0,
-      total: 0,
-      pixTotal: 0,
-      isPerPerson: false,
-    };
-  }
-
-  if (selectedVehicleObj.requireWhatsApp) {
-    return {
-      isWhatsAppOnly: true,
-      optionType: 'private',
-      selectedVehicle: selectedVehicleObj,
-      vehicleCount: 1,
-      subtotal: 0,
-      total: 0,
-      pixTotal: 0,
-      isPerPerson: false,
-    };
-  }
-
-  const maxCap = selectedVehicleObj.maxCapacity || 1;
-  const vehicleCount = Math.ceil(passengers / maxCap);
-  const total = vehicleCount * (selectedVehicleObj.price || 0);
-  const pixTotal = total * (1 - PIX_DISCOUNT_PERCENT);
-
-  return {
-    isWhatsAppOnly: false,
-    optionType: 'private',
-    selectedVehicle: selectedVehicleObj,
-    vehicleCount,
-    maxCapacity: maxCap,
-    unitPrice: selectedVehicleObj.price,
-    subtotal: total,
-    total,
-    pixTotal,
-    isPerPerson: false,
-  };
+  const selected = vehicles.find((v) => v.type === vehicleType) || vehicles[0];
+  return selected ? selected.price : 0;
 }
 
+export function calculateTransferPrice(transfer, serviceType = 'private', vehicleType = 'Hilux', tripType = 'roundTrip') {
+  if (serviceType === 'shared' && transfer.options?.shared?.available) {
+    const unitPrice = tripType === 'roundTrip' ? transfer.options.shared.roundTrip : transfer.options.shared.oneWay;
+    return unitPrice;
+  }
+  const tiers = transfer.options?.private?.tiers || [];
+  const selected = tiers.find((t) => t.vehicle === vehicleType) || tiers[0];
+  if (!selected) return 0;
+  return tripType === 'roundTrip' ? selected.roundTrip : selected.oneWay;
+}
