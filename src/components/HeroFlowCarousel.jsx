@@ -210,10 +210,10 @@ const HeroFlowCarousel = () => {
                   muted
                   playsInline
                   webkit-playsinline="true"
-                  preload="auto"
+                  preload={isActive ? "metadata" : "none"}
                   poster={posterSrc}
                   className="relative w-full h-full object-cover object-center"
-                  src={s.src}
+                  src={isActive || index === (currentScene + 1) % SCENES.length ? s.src : undefined}
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}

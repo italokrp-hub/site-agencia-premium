@@ -18,32 +18,31 @@ const WhatsAppFloat = () => {
   };
 
   return (
-    <motion.button
-      onClick={handleClick}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ duration: 0.3, delay: 1 }}
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-[#25D366] hover:bg-[#20BA5A] rounded-full shadow-2xl flex items-center justify-center text-white transition-all duration-300 group"
-      aria-label="Falar no WhatsApp"
-    >
-      <WhatsAppIcon className="w-9 h-9" />
-      
-      {/* Pulse Animation */}
-      <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-75" />
-      
-      {/* Tooltip */}
-      <div className="absolute right-full mr-3 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        Fale conosco no WhatsApp!
-        <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45" />
-      </div>
-      
-      {/* Flaticon Attribution */}
-      <span className="sr-only">
-        <a href="https://www.flaticon.com/br/icones-gratis/whatsapp" title="whatsapp ícones">Whatsapp ícones criados por Magnific - Flaticon</a>
-      </span>
-    </motion.button>
+    <div className="fixed bottom-6 right-6 z-50 pointer-events-auto">
+      <motion.button
+        onClick={handleClick}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.92 }}
+        className="relative group w-16 h-16 bg-[#25D366] hover:bg-[#20BA5A] rounded-full shadow-[0_4px_25px_rgba(37,211,102,0.6)] flex items-center justify-center text-white opacity-100 transition-all duration-300 border-2 border-white/20 cursor-pointer"
+        aria-label="Falar no WhatsApp"
+      >
+        {/* Pulsing Animated Glow Ring Behind Button */}
+        <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-75 animate-ping -z-10 pointer-events-none" />
+        <span className="absolute -inset-2 rounded-full bg-[#25D366]/30 animate-pulse -z-20 pointer-events-none" />
+
+        {/* WhatsApp Icon */}
+        <WhatsAppIcon className="w-9 h-9 text-white drop-shadow-md z-10" />
+
+        {/* Tooltip */}
+        <div className="absolute right-full mr-3 bg-gray-900/95 text-white px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-xl border border-white/10">
+          Fale conosco no WhatsApp!
+          <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 w-2 h-2 bg-gray-900/95 rotate-45 border-r border-t border-white/10" />
+        </div>
+      </motion.button>
+    </div>
   );
 };
 

@@ -31,10 +31,14 @@ const Header = () => {
 
   const handleNavClick = (href) => {
     setIsOpen(false);
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    setTimeout(() => {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.location.hash = href;
+      }
+    }, 50);
   };
 
   return (

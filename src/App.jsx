@@ -21,6 +21,7 @@ import TrustSection from '@/components/sections/TrustSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
 import FAQSection from '@/components/sections/FAQSection';
 import FinalCTA from '@/components/sections/FinalCTA';
+import JeriDuneTrail from '@/components/effects/JeriDuneTrail';
 
 // Admin route
 import Reservas from '@/pages/agencia/Reservas';
@@ -82,6 +83,7 @@ function LandingPage() {
           <FinalCTA />
         </main>
         <Footer />
+        <JeriDuneTrail />
         <WhatsAppFloat />
         <Toaster />
       </div>
