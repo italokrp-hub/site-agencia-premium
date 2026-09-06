@@ -138,17 +138,9 @@ function PriceSection({ item, category, isWhatsAppOnly }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main Drawer
+// Main Drawer Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * ExperienceDetailsDrawer
- *
- * @param {Object} item        - Catalog item (tour or transfer raw data)
- * @param {boolean} open       - Whether the drawer is open
- * @param {function} onClose   - Close handler
- * @param {function} onBook    - Called with the item when user wants to book
- */
 const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
   const scrollRef = useRef(null);
   const firstFocusRef = useRef(null);
@@ -203,16 +195,16 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
 
   const waMessage = `Olá! Gostaria de saber mais sobre: ${title}`;
 
-  // ── Inner drawer panel (shared between mobile and desktop) ────────────────
+  // ── Inner drawer panel ────────────────────────────────────────────────────
   const DrawerPanel = (
     <div
-      className="flex flex-col h-full bg-white"
+      className="flex flex-col h-full min-h-0 bg-white"
       role="dialog"
       aria-modal="true"
       aria-label={`Detalhes: ${title}`}
     >
       {/* ── Hero image ──────────────────────────────────────────────────── */}
-      <div className="relative shrink-0 h-52 md:h-64 overflow-hidden bg-gray-100">
+      <div className="relative shrink-0 h-48 md:h-64 overflow-hidden bg-gray-100">
         {!imageLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
         )}
@@ -223,7 +215,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
           onLoad={() => setImageLoaded(true)}
           loading="eager"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
         {/* Close button */}
         <button
@@ -243,16 +235,20 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
         </div>
 
         {/* Title on image */}
-        <div className="absolute bottom-4 left-4 right-14">
-          <h2 className="text-white font-bold text-xl md:text-2xl leading-tight">
+        <div className="absolute bottom-3 left-4 right-12">
+          <h2 className="text-white font-bold text-lg md:text-2xl leading-tight drop-shadow-md">
             {title}
           </h2>
         </div>
       </div>
 
-      {/* ── Scrollable content ───────────────────────────────────────────── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="p-5 md:p-6 space-y-5">
+      {/* ── Scrollable content area ──────────────────────────────────────── */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto min-h-0 touch-pan-y"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="p-5 md:p-6 space-y-5 pb-24 md:pb-6">
 
           {/* Modality / availability chips */}
           <div className="flex flex-wrap gap-2">
@@ -388,8 +384,8 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
         </div>
       </div>
 
-      {/* ── Sticky CTA footer ────────────────────────────────────────────── */}
-      <div className="shrink-0 px-5 pb-5 pt-4 md:px-6 border-t border-gray-100 bg-white space-y-2.5">
+      {/* ── Sticky CTA footer (Pinned at bottom of drawer) ───────────────── */}
+      <div className="shrink-0 px-5 pb-6 pt-3 md:px-6 border-t border-gray-100 bg-white space-y-2.5 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         {isWhatsAppOnly ? (
           <a
             href={buildWhatsAppLink(waMessage)}
@@ -411,7 +407,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
         )}
         <button
           onClick={onClose}
-          className="w-full h-10 rounded-xl text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+          className="w-full h-9 rounded-xl text-gray-500 hover:text-gray-700 text-xs font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
         >
           Fechar
         </button>
@@ -442,14 +438,14 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 350, damping: 40 }}
-            className="md:hidden fixed bottom-0 left-0 right-0 z-[60] rounded-t-3xl overflow-hidden shadow-2xl"
-            style={{ maxHeight: '92dvh' }}
+            className="md:hidden fixed bottom-0 left-0 right-0 z-[60] rounded-t-3xl overflow-hidden shadow-2xl flex flex-col bg-white"
+            style={{ height: '90vh', maxHeight: '90vh' }}
           >
             {/* Handle bar */}
-            <div className="absolute top-2.5 left-0 right-0 flex justify-center pointer-events-none z-10">
+            <div className="absolute top-2.5 left-0 right-0 flex justify-center pointer-events-none z-20">
               <div className="w-10 h-1 rounded-full bg-gray-300" />
             </div>
-            <div className="pt-5 h-full">
+            <div className="pt-4 flex-1 min-h-0 flex flex-col">
               {DrawerPanel}
             </div>
           </motion.div>
