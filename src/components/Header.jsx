@@ -17,12 +17,11 @@ const Header = () => {
 
   const menuItems = [
     { label: 'Home', href: '#home' },
-    { label: 'Sobre', href: '#sobre' },
-    { label: 'Serviços', href: '#servicos' },
-    { label: 'Diferenciais', href: '#diferenciais' },
+    { label: 'Experiências', href: '#experiencias' },
+    { label: 'Passeios', href: '#tours' },
+    { label: 'Transfers', href: '#transfers' },
+    { label: 'Premium', href: '#premium' },
     { label: 'Depoimentos', href: '#depoimentos' },
-    { label: 'Valores', href: '#valores' },
-    { label: 'Galeria', href: '#galeria' },
     { label: 'Contato', href: '#contato' },
   ];
 
