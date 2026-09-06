@@ -55,31 +55,31 @@ export default function BookingBar({ onBook }) {
             <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-sm">
               <Compass className="w-5 h-5" />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-0.5 leading-none">
+            <div className="flex-1 min-w-0 flex flex-col justify-center items-start text-left">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1 leading-none text-left w-full truncate">
                 Serviço ou Passeio
-              </label>
+              </span>
               <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
-                <SelectTrigger className="h-6 border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white shadow-none focus:ring-0 bg-transparent cursor-pointer truncate flex items-center">
+                <SelectTrigger className="h-5 border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white shadow-none focus:ring-0 bg-transparent cursor-pointer truncate flex items-center justify-start text-left w-full">
                   <SelectValue placeholder="Selecione o serviço" />
                 </SelectTrigger>
                 <SelectContent className="z-[150] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-xl max-h-64">
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-left">
                     Transfers Premium
                   </div>
                   {transfers.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs py-2 cursor-pointer">
+                    <SelectItem key={t.id} value={t.id} className="text-xs py-2 cursor-pointer text-left">
                       <div className="flex items-center gap-2">
                         <Car className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         <span className="truncate">{t.title}</span>
                       </div>
                     </SelectItem>
                   ))}
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-2">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-2 text-left">
                     Passeios Exclusivos
                   </div>
                   {tours.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs py-2 cursor-pointer">
+                    <SelectItem key={t.id} value={t.id} className="text-xs py-2 cursor-pointer text-left">
                       <div className="flex items-center gap-2">
                         <Compass className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span className="truncate">{t.title}</span>
@@ -96,8 +96,8 @@ export default function BookingBar({ onBook }) {
             <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-sm">
               <CalendarIcon className="w-5 h-5" />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <label htmlFor="booking-bar-date" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-0.5 leading-none">
+            <div className="flex-1 min-w-0 flex flex-col justify-center items-start text-left">
+              <label htmlFor="booking-bar-date" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1 leading-none text-left w-full truncate cursor-pointer">
                 Data Prevista
               </label>
               <input
@@ -106,7 +106,7 @@ export default function BookingBar({ onBook }) {
                 value={date}
                 min={format(new Date(), 'yyyy-MM-dd')}
                 onChange={(e) => setDate(e.target.value)}
-                className="h-6 w-full border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white bg-transparent focus:outline-none cursor-pointer leading-none"
+                className="h-5 w-full border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white bg-transparent focus:outline-none cursor-pointer leading-none text-left"
               />
             </div>
           </div>
@@ -116,16 +116,16 @@ export default function BookingBar({ onBook }) {
             <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 shadow-sm">
               <Users className="w-5 h-5" />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-0.5 leading-none">
+            <div className="flex-1 min-w-0 flex flex-col justify-center items-start text-left">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1 leading-none text-left w-full truncate">
                 Passageiros
-              </label>
-              <div className="flex items-center gap-2 h-6">
+              </span>
+              <div className="flex items-center gap-2 h-5 text-left">
                 <button
                   type="button"
                   onClick={() => setPassengers((prev) => Math.max(1, prev - 1))}
                   disabled={passengers <= 1}
-                  className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-xs font-bold transition-all disabled:opacity-30 cursor-pointer"
+                  className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-xs font-bold transition-all disabled:opacity-30 cursor-pointer shrink-0"
                   aria-label="Diminuir passageiros"
                 >
                   <Minus className="w-3 h-3" />
@@ -136,7 +136,7 @@ export default function BookingBar({ onBook }) {
                 <button
                   type="button"
                   onClick={() => setPassengers((prev) => prev + 1)}
-                  className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-xs font-bold transition-all cursor-pointer"
+                  className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-xs font-bold transition-all cursor-pointer shrink-0"
                   aria-label="Aumentar passageiros"
                 >
                   <Plus className="w-3 h-3" />
