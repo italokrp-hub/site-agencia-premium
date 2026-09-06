@@ -27,5 +27,5 @@ export const WA_MESSAGES = {
   custom: (experience) =>
     `Olá! Gostaria de saber mais sobre a experiência de ${experience} em Jericoacoara.`,
   planner: ({ travelers, days, style, interests }) =>
-    `Olá! Montei meu perfil de viagem pelo site:\nViajantes: ${travelers}\nDuração: ${days} dias\nEstilo: ${style}\nInteresses: ${interests}\nGostaria de receber um roteiro personalizado.`,
+    `Olá! Montei meu perfil de viagem pelo site da Jericoacoara Premium:\n\nViajantes: ${travelers}\nDuração: ${days}\nEstilo: ${style}\nInteresses: ${Array.isArray(interests) ? interests.join(', ') : interests}\n\nGostaria de receber um roteiro personalizado.`,
 };

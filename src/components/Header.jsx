@@ -21,8 +21,8 @@ const Header = () => {
     { label: 'Passeios', href: '#tours' },
     { label: 'Transfers', href: '#transfers' },
     { label: 'Destinos', href: '#mapa' },
+    { label: 'Monte seu Roteiro', href: '#planner' },
     { label: 'Depoimentos', href: '#depoimentos' },
-    { label: 'Contato', href: '#reservar' },
   ];
 
   const handleWhatsApp = () => {

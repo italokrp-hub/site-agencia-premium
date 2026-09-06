@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, Calendar, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BookingBar from '@/components/BookingBar';
@@ -7,6 +7,7 @@ import BookingModal from '@/components/BookingModal';
 
 const ImmersiveHero = () => {
   const [bookingItem, setBookingItem] = useState(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const handleBookingBarSubmit = (rawItem, { date, passengers }) => {
     setBookingItem({
@@ -97,29 +98,33 @@ const ImmersiveHero = () => {
 
         {/* CTAs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          transition={{ duration: shouldReduceMotion ? 0.3 : 0.8, delay: 0.6 }}
           className="mt-10 flex flex-col sm:flex-row gap-3 items-center"
         >
-          <Button
-            onClick={scrollToPricing}
-            size="lg"
-            className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-base rounded-full shadow-2xl hover:shadow-[#D4AF37]/30 transition-all duration-300 hover:scale-105 w-full sm:w-auto"
-          >
-            <Calendar className="w-5 h-5 mr-2" />
-            Explorar experiências
-          </Button>
+          <motion.div whileHover={shouldReduceMotion ? {} : { scale: 1.04 }} whileTap={shouldReduceMotion ? {} : { scale: 0.97 }} className="w-full sm:w-auto">
+            <Button
+              onClick={scrollToPricing}
+              size="lg"
+              className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-base rounded-full shadow-2xl hover:shadow-[#D4AF37]/30 transition-all duration-300 w-full sm:w-auto"
+            >
+              <Calendar className="w-5 h-5 mr-2" />
+              Explorar experiências
+            </Button>
+          </motion.div>
 
-          <Button
-            onClick={openWhatsApp}
-            size="lg"
-            variant="outline"
-            className="border-2 border-white/60 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-bold px-8 py-6 text-base rounded-full shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Planejar minha viagem
-          </Button>
+          <motion.div whileHover={shouldReduceMotion ? {} : { scale: 1.04 }} whileTap={shouldReduceMotion ? {} : { scale: 0.97 }} className="w-full sm:w-auto">
+            <Button
+              onClick={openWhatsApp}
+              size="lg"
+              variant="outline"
+              className="border-2 border-white/60 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-bold px-8 py-6 text-base rounded-full shadow-lg transition-all duration-300 w-full sm:w-auto"
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Planejar minha viagem
+            </Button>
+          </motion.div>
         </motion.div>
 
         {/* Trust micro-badges */}

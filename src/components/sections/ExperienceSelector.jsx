@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { experienceStyles } from '@/data/experiences';
 
@@ -7,6 +7,17 @@ const ExperienceSelector = ({ onStyleSelect }) => {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const [hovered, setHovered] = useState(null);
+  const shouldReduceMotion = useReducedMotion();
+
+  const handleSelect = (style) => {
+    if (onStyleSelect) {
+      onStyleSelect(style);
+    }
+    const toursSection = document.querySelector('#tours');
+    if (toursSection) {
+      toursSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <section id="como-viver" className="py-20 md:py-28 bg-[#0F1A1C] overflow-hidden">
@@ -37,10 +48,12 @@ const ExperienceSelector = ({ onStyleSelect }) => {
           {experienceStyles.map((style, index) => (
             <motion.button
               key={style.id}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: index * 0.08 }}
-              onClick={() => onStyleSelect && onStyleSelect(style)}
+              transition={{ duration: shouldReduceMotion ? 0.2 : 0.5, delay: index * 0.06 }}
+              whileHover={shouldReduceMotion ? {} : { scale: 1.03 }}
+              whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+              onClick={() => handleSelect(style)}
               onMouseEnter={() => setHovered(style.id)}
               onMouseLeave={() => setHovered(null)}
               className="relative group rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1A1C]"

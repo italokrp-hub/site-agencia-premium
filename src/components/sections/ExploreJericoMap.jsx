@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { MapPin, ArrowRight, Compass, Sparkles, Check, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -149,6 +149,7 @@ function getRelatedTours(catalogIds) {
 const ExploreJericoMap = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' });
+  const shouldReduceMotion = useReducedMotion();
 
   const [activeRegion, setActiveRegion] = useState('todos');
   const [selectedDestId, setSelectedDestId] = useState('lagoa-paraiso');
@@ -270,8 +271,8 @@ const ExploreJericoMap = () => {
                   <motion.button
                     key={dest.id}
                     onClick={() => setSelectedDestId(dest.id)}
-                    whileHover={{ scale: 1.06 }}
-                    whileTap={{ scale: 0.96 }}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.06 }}
+                    whileTap={shouldReduceMotion ? {} : { scale: 0.96 }}
                     className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-md transition-all duration-300 z-20 ${
                       isSelected
                         ? 'bg-[#2C7A7B] text-white ring-4 ring-[#2C7A7B]/20 scale-105 shadow-xl'

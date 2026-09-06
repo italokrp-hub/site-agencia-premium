@@ -15,6 +15,7 @@ import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
 import ToursExplorer from '@/components/sections/ToursExplorer';
 import TransfersSection from '@/components/sections/TransfersSection';
 import ExploreJericoMap from '@/components/sections/ExploreJericoMap';
+import TravelPlanner from '@/components/sections/TravelPlanner';
 import PremiumExperiences from '@/components/sections/PremiumExperiences';
 import TrustSection from '@/components/sections/TrustSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
@@ -62,7 +63,10 @@ function LandingPage() {
           {/* 6. Explore Jericoacoara Map */}
           <ExploreJericoMap />
 
-          {/* 7. Premium Experiences */}
+          {/* 7. Jeri Travel Planner */}
+          <TravelPlanner />
+
+          {/* 8. Premium Experiences */}
           <PremiumExperiences />
 
           {/* 7. Trust Section */}
