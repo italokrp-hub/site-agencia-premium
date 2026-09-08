@@ -4,6 +4,24 @@ export const PIX_DISCOUNT_PERCENT = 0.05;
 
 export const transfersData = [
   {
+    id: 'onibus-regular',
+    title: 'Transfer de Ônibus/Van Regular (Opção Mais Econômica)',
+    icon: Car,
+    category: 'transfer',
+    image: '/images/transfer-4x4-dunas.webp',
+    options: {
+      shared: {
+        available: true,
+        oneWay: 175,
+        roundTrip: 340,
+        perPerson: true,
+        vehicle: 'Ônibus/Van Regular',
+        note: 'Horários fixos e específicos — consulte e alinhe os horários disponíveis após a confirmação da reserva.'
+      },
+      private: { available: false }
+    }
+  },
+  {
     id: 'fortaleza',
     title: 'Fortaleza (Hotel/Aeroporto) ↔ Jericoacoara',
     icon: Car,
@@ -69,24 +87,6 @@ export const transfersData = [
         ]
       }
     }
-  },
-  {
-    id: 'onibus-regular',
-    title: 'Transfer de Ônibus/Van Regular (Opção Mais Econômica)',
-    icon: Car,
-    category: 'transfer',
-    image: '/images/transfer-4x4-dunas.webp',
-    options: {
-      shared: {
-        available: true,
-        oneWay: 175,
-        roundTrip: 240,
-        perPerson: true,
-        vehicle: 'Ônibus/Van Regular',
-        note: 'Horários fixos e específicos — consulte e alinhe os horários disponíveis após a confirmação da reserva.'
-      },
-      private: { available: false }
-    }
   }
 ];
 
@@ -108,7 +108,7 @@ export const transfers = transfersData.map((item) => ({
 export const toursData = [
   {
     id: 'tour-leste-shared',
-    title: 'Passeio Lado Leste (Compartilhado)',
+    title: 'Passeio Lado LESTE (Compartilhado)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
     locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
@@ -119,7 +119,7 @@ export const toursData = [
   },
   {
     id: 'tour-leste-private',
-    title: 'Passeio Lado Leste (Privativo)',
+    title: 'Passeio Lado LESTE (Privativo)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
     locations: ['Árvore da Preguiça', 'Praia do Preá', 'Trilhas do Parque Nacional', 'Buraco Azul ou Lagun Beach', 'Alchymist (Opcional)', 'Lagoa do Amâncio', 'Lagoa do Paraíso'],
@@ -138,7 +138,7 @@ export const toursData = [
   },
   {
     id: 'tour-oeste-shared',
-    title: 'Passeio Lado Oeste (Compartilhado)',
+    title: 'Passeio Lado OESTE (Compartilhado)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
     locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
@@ -149,7 +149,7 @@ export const toursData = [
   },
   {
     id: 'tour-oeste-private',
-    title: 'Passeio Lado Oeste (Privativo)',
+    title: 'Passeio Lado OESTE (Privativo)',
     category: 'tour',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
     locations: ['Visual Beira da Praia', 'Lagoa da Tatajuba (Tirolesa, Toboágua, Esquibunda)', 'Laguna Beach Club (Solicitar)', 'Área de Cavalos Marinhos (Opcional - Ingresso no local)'],
@@ -224,14 +224,14 @@ export const tours = toursData.map((tour) => {
 export const allServices = [
   {
     id: 'servico-lado-leste',
-    title: 'Passeios Lado Leste',
+    title: 'Passeios Lado LESTE',
     description: 'Explore a famosa Lagoa do Paraíso, Lagoa Azul, Árvore da Preguiça e o incrível Buraco Azul. Opções em Buggy ou Quadriciclo.',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
     tourIds: ['tour-leste-private'],
   },
   {
     id: 'servico-lado-oeste',
-    title: 'Passeios Lado Oeste',
+    title: 'Passeios Lado OESTE',
     description: 'Aventura garantida com Lagoa de Tatajuba, Mangue Seco, travessia de balsa e os cavalos marinhos. Natureza exuberante.',
     image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
     tourIds: ['tour-oeste-private'],

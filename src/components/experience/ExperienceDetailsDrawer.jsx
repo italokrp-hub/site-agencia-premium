@@ -17,6 +17,7 @@ import {
   formatPrice,
   PIX_DISCOUNT_PERCENT,
 } from '@/data/catalog';
+import { renderTourTitle } from '@/utils/titleHelper';
 import { buildWhatsAppLink } from '@/utils/whatsapp';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -237,7 +238,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
         {/* Title on image */}
         <div className="absolute bottom-3 left-4 right-12">
           <h2 className="text-white font-bold text-lg md:text-2xl leading-tight drop-shadow-md">
-            {title}
+            {renderTourTitle(title)}
           </h2>
         </div>
       </div>

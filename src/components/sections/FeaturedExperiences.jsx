@@ -4,6 +4,7 @@ import { useInView } from 'framer-motion';
 import { ArrowRight, Check, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toursData, transfersData, formatPrice } from '@/data/catalog';
+import { renderTourTitle } from '@/utils/titleHelper';
 import BookingModal from '@/components/BookingModal';
 import ExperienceDetailsDrawer from '@/components/experience/ExperienceDetailsDrawer';
 
@@ -168,7 +169,7 @@ const FeaturedExperiences = () => {
                     className="font-bold text-gray-900 text-base leading-snug mb-2 cursor-pointer hover:text-[#2C7A7B] transition-colors"
                     onClick={() => handleViewDetails(item)}
                   >
-                    {item.title}
+                    {renderTourTitle(item.title)}
                   </h3>
 
                   {/* Locations */}

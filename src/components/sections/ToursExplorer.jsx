@@ -4,6 +4,7 @@ import { useInView } from 'framer-motion';
 import { Check, Filter, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toursData, formatPrice } from '@/data/catalog';
+import { renderTourTitle } from '@/utils/titleHelper';
 import BookingModal from '@/components/BookingModal';
 import ExperienceDetailsDrawer from '@/components/experience/ExperienceDetailsDrawer';
 
@@ -175,7 +176,7 @@ const ToursExplorer = () => {
                     className="font-bold text-gray-900 text-lg mb-3 leading-snug cursor-pointer hover:text-[#2C7A7B] transition-colors"
                     onClick={() => setDrawerItem(tour)}
                   >
-                    {tour.title}
+                    {renderTourTitle(tour.title)}
                   </h3>
 
                   {/* Locations */}
