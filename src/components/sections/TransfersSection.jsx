@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { ArrowRight, Car, Plane, MapPin, Moon } from 'lucide-react';
+import { ArrowRight, Car, Plane, MapPin, Moon, Info, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { transfersData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
@@ -55,7 +55,8 @@ const TransfersSection = () => {
             const Icon = getIcon(transfer.id);
             const sharedOpt = transfer.options.shared;
             const privateOpt = transfer.options.private;
-            const currentType = selectedType[transfer.id] || 'privativo';
+            const defaultType = privateOpt?.available === false ? 'compartilhado' : 'privativo';
+            const currentType = selectedType[transfer.id] || defaultType;
 
             return (
               <motion.div
@@ -63,98 +64,139 @@ const TransfersSection = () => {
                 initial={{ opacity: 0, y: 24 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: index * 0.09 }}
-                className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-[#D4AF37]/40 hover:bg-white/8 transition-all duration-300 group"
+                className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-[#D4AF37]/40 hover:bg-white/8 transition-all duration-300 group flex flex-col justify-between"
               >
-                {/* Image */}
-                <div className="relative h-44 overflow-hidden">
-                  <img
-                    src={transfer.image}
-                    alt={transfer.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-75"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div>
+                  {/* Image */}
+                  <div className="relative h-44 overflow-hidden">
+                    <img
+                      src={transfer.image}
+                      alt={transfer.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-75"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                  {/* Route label */}
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-[#D4AF37]/20 border border-[#D4AF37]/40 rounded-full flex items-center justify-center shrink-0">
-                        <Icon className="w-4 h-4 text-[#D4AF37]" />
+                    {/* Route label */}
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-[#D4AF37]/20 border border-[#D4AF37]/40 rounded-full flex items-center justify-center shrink-0">
+                          <Icon className="w-4 h-4 text-[#D4AF37]" />
+                        </div>
+                        <h3 className="text-white font-bold text-sm leading-snug">{transfer.title}</h3>
                       </div>
-                      <h3 className="text-white font-bold text-sm leading-snug">{transfer.title}</h3>
                     </div>
+
+                    {/* Night fee badge */}
+                    {transfer.nightFee && (
+                      <span className="absolute top-3 right-3 flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <Moon className="w-3 h-3" />
+                        Taxa noturna
+                      </span>
+                    )}
                   </div>
 
-                  {/* Night fee badge */}
-                  {transfer.nightFee && (
-                    <span className="absolute top-3 right-3 flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      <Moon className="w-3 h-3" />
-                      Taxa noturna
-                    </span>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  {/* Type toggle */}
-                  {sharedOpt?.available && privateOpt?.available !== false && (
-                    <div className="flex rounded-lg overflow-hidden border border-white/10 mb-4">
-                      {[
-                        { id: 'privativo', label: 'Privativo' },
-                        { id: 'compartilhado', label: 'Compartilhado' },
-                      ].map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => setSelectedType((prev) => ({ ...prev, [transfer.id]: t.id }))}
-                          className={`flex-1 py-1.5 text-xs font-semibold transition-all duration-200 ${
-                            currentType === t.id
-                              ? 'bg-[#D4AF37] text-gray-900'
-                              : 'text-white/60 hover:text-white'
-                          }`}
-                        >
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Prices */}
-                  <div className="space-y-2 mb-5">
-                    {currentType === 'privativo' && privateOpt?.tiers?.map((tier) => (
-                      <div key={tier.vehicle} className="flex justify-between items-center text-sm">
-                        <span className="text-white/60 text-xs">
-                          {tier.vehicle} <span className="text-white/40">(até {tier.maxCapacity}p)</span>
-                        </span>
-                        <div className="text-right">
-                          <span className="text-white font-bold">{formatPrice(tier.roundTrip)}</span>
-                          <span className="text-white/40 text-[10px] ml-1">ida/volta</span>
-                        </div>
+                  {/* Content */}
+                  <div className="p-5">
+                    {/* Type toggle */}
+                    {sharedOpt?.available && privateOpt?.available !== false && (
+                      <div className="flex rounded-lg overflow-hidden border border-white/10 mb-4">
+                        {[
+                          { id: 'privativo', label: 'Privativo' },
+                          { id: 'compartilhado', label: 'Compartilhado' },
+                        ].map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => setSelectedType((prev) => ({ ...prev, [transfer.id]: t.id }))}
+                            className={`flex-1 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                              currentType === t.id
+                                ? 'bg-[#D4AF37] text-gray-900'
+                                : 'text-white/60 hover:text-white'
+                            }`}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
                       </div>
-                    ))}
+                    )}
 
-                    {currentType === 'compartilhado' && sharedOpt?.available && (
-                      <div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-white/60 text-xs">Por pessoa (econômico)</span>
+                    {/* Prices */}
+                    <div className="space-y-3 mb-4">
+                      {currentType === 'privativo' && privateOpt?.tiers?.map((tier) => (
+                        <div key={tier.vehicle} className="flex justify-between items-center text-sm">
+                          <span className="text-white/60 text-xs">
+                            {tier.vehicle} <span className="text-white/40">(até {tier.maxCapacity}p)</span>
+                          </span>
                           <div className="text-right">
-                            <span className="text-[#D4AF37] font-bold text-lg">{formatPrice(sharedOpt.roundTrip)}</span>
+                            <span className="text-white font-bold">{formatPrice(tier.roundTrip)}</span>
                             <span className="text-white/40 text-[10px] ml-1">ida/volta</span>
                           </div>
                         </div>
-                        <p className="text-[#D4AF37]/80 text-[11px] font-medium mt-1">Opção mais econômica com motoristas credenciados</p>
-                      </div>
-                    )}
+                      ))}
 
-                    {!sharedOpt?.available && currentType === 'compartilhado' && (
-                      <p className="text-white/40 text-xs text-center py-2">Somente privativo disponível</p>
-                    )}
+                      {currentType === 'compartilhado' && sharedOpt?.available && (
+                        <div className="space-y-2.5">
+                          {/* Price structure: Trecho & Combo */}
+                          <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="text-white/90 text-xs font-medium block">Trecho (Só Ida ou Volta)</span>
+                                <span className="text-emerald-400 text-[11px] font-semibold">
+                                  {formatPrice(sharedOpt.oneWay * 0.95)} no PIX
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-white font-bold text-sm">{formatPrice(sharedOpt.oneWay)}</span>
+                                <span className="text-white/40 text-[10px] block">/pessoa</span>
+                              </div>
+                            </div>
+
+                            <div className="h-px bg-white/10" />
+
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="text-white/90 text-xs font-bold block flex items-center gap-1">
+                                  Ida e Volta <span className="text-[#D4AF37] text-[10px] bg-[#D4AF37]/20 px-1.5 py-0.2 rounded">Combo</span>
+                                </span>
+                                <span className="text-emerald-400 text-[11px] font-semibold">
+                                  {formatPrice(sharedOpt.roundTrip * 0.95)} no PIX
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[#D4AF37] font-bold text-base">{formatPrice(sharedOpt.roundTrip)}</span>
+                                <span className="text-white/40 text-[10px] block">/pessoa</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Scheduling / Conditions Note */}
+                          {sharedOpt.note && (
+                            <p className="text-white/70 text-[11px] leading-relaxed p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-200/90 flex items-start gap-1.5">
+                              <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                              <span>{sharedOpt.note}</span>
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {!sharedOpt?.available && currentType === 'compartilhado' && (
+                        <p className="text-white/40 text-xs text-center py-2">Somente privativo disponível</p>
+                      )}
+                    </div>
+
+                    {/* PIX discount badge */}
+                    <div className="flex items-center justify-between mb-4 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <span className="text-[11px] font-bold flex items-center gap-1">
+                        <Tag className="w-3 h-3" /> 5% OFF em pagamentos via PIX
+                      </span>
+                      <span className="text-[10px] font-semibold bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                        Desconto no checkout
+                      </span>
+                    </div>
                   </div>
+                </div>
 
-                  {/* PIX discount reminder */}
-                  <div className="flex items-center gap-1.5 mb-4 text-emerald-400">
-                    <span className="text-xs font-semibold">5% OFF no PIX</span>
-                  </div>
-
+                <div className="p-5 pt-0">
                   <Button
                     onClick={() => handleBook(transfer, currentType === 'compartilhado' ? 'Compartilhado' : 'Privativo')}
                     disabled={currentType === 'compartilhado' && !sharedOpt?.available}

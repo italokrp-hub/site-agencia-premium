@@ -77,7 +77,14 @@ export const transfersData = [
     category: 'transfer',
     image: '/images/transfer-4x4-dunas.webp',
     options: {
-      shared: { available: true, oneWay: 175, roundTrip: 350, perPerson: true, vehicle: 'Ônibus/Van Regular', note: 'Transfer mais barato para Jeri com segurança e conforto' },
+      shared: {
+        available: true,
+        oneWay: 175,
+        roundTrip: 240,
+        perPerson: true,
+        vehicle: 'Ônibus/Van Regular',
+        note: 'Horários fixos e específicos — consulte e alinhe os horários disponíveis após a confirmação da reserva.'
+      },
       private: { available: false }
     }
   }
