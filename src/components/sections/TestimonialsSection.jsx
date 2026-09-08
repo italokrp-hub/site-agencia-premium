@@ -9,7 +9,7 @@ const testimonials = [
     location: 'São Paulo, SP',
     rating: 5,
     text: 'Experiência impecável do início ao fim! O transfer foi pontual, confortável e o motorista super atencioso. Os passeios foram organizados com perfeição. Recomendo de olhos fechados!',
-    image: '/user1.jpg',
+    image: '/user1.webp',
     tag: 'Transfer + Passeios',
   },
   {
@@ -17,7 +17,7 @@ const testimonials = [
     location: 'Rio de Janeiro, RJ',
     rating: 5,
     text: 'Serviço premium de verdade. Veículos novos e limpos, motoristas educados e pontuais. A equipe nos ajudou com todas as dúvidas e tornaram nossa viagem inesquecível. Vale cada centavo!',
-    image: '/user2.jpg',
+    image: '/user2.webp',
     tag: 'Transfer VIP',
   },
   {
@@ -25,7 +25,7 @@ const testimonials = [
     location: 'Brasília, DF',
     rating: 5,
     text: 'Fizemos nossa lua de mel em Jeri e escolhemos a Jericoacoara Premium. Foi a melhor decisão! Atendimento personalizado, passeios exclusivos e muita atenção aos detalhes. Perfeito!',
-    image: '/user3.jpg',
+    image: '/user3.webp',
     tag: 'Roteiro Personalizado',
   },
   {
@@ -33,7 +33,7 @@ const testimonials = [
     location: 'Belo Horizonte, MG',
     rating: 5,
     text: 'Já viajei muito pelo Brasil e esse foi o melhor serviço de transfer que já contratei. Profissionalismo, pontualidade e conforto. O passeio pela Lagoa do Paraíso foi surreal!',
-    image: '/user4.jpg',
+    image: '/user4.webp',
     tag: 'Lagoa do Paraíso',
   },
   {
@@ -41,7 +41,7 @@ const testimonials = [
     location: 'Curitiba, PR',
     rating: 5,
     text: 'Atendimento sensacional! Desde o primeiro contato pelo WhatsApp até o fim da viagem, tudo perfeito. Os motoristas são super simpáticos e conhecem muito bem a região. Voltarei com certeza!',
-    image: '/user5.jpg',
+    image: '/user5.webp',
     tag: 'Transfer + Passeio Oeste',
   },
 ];

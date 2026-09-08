@@ -26,7 +26,7 @@ const Header = () => {
   ];
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5592981038749', '_blank');
+    window.open('https://wa.me/5592981038749', '_blank', 'noopener,noreferrer');
   };
 
   const handleNavClick = (href) => {
@@ -49,7 +49,7 @@ const Header = () => {
           : 'bg-black/20 backdrop-blur-md md:bg-white/95 md:backdrop-blur-sm border-b border-white/10 md:border-none'
       }`}
     >
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="container mx-auto px-4 sm:px-6 lg:px-8" aria-label="Navegação principal">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <motion.div
@@ -61,6 +61,8 @@ const Header = () => {
             <img 
               src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/494a72a51bf12600f9dbf641b2fc783a.png"
               alt="Jericoacoara Premium - Agência de Viagens Premium"
+              width="64"
+              height="64"
               className="h-16 w-16 object-cover rounded-full shadow-sm"
             />
           </motion.div>
@@ -106,6 +108,8 @@ const Header = () => {
           <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
+              aria-label={isOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
+              aria-expanded={isOpen}
               className="p-2 rounded-md text-white md:text-gray-700 hover:text-white/80 md:hover:text-[#2C7A7B] transition-colors duration-200"
             >
               {isOpen ? <X className="w-6 h-6 drop-shadow-md" /> : <Menu className="w-6 h-6 drop-shadow-md" />}

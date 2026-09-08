@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /reservas
+Disallow: /agencia/
 
 Sitemap: https://jericoacoarapremium.com/sitemap.xml
+

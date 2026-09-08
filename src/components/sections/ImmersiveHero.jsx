@@ -28,7 +28,7 @@ const ImmersiveHero = () => {
   };
 
   const openWhatsApp = () => {
-    window.open('https://wa.me/5592981038749?text=' + encodeURIComponent('Olá! Gostaria de saber mais sobre os serviços da Jericoacoara Premium.'), '_blank');
+    window.open('https://wa.me/5592981038749?text=' + encodeURIComponent('Olá! Gostaria de saber mais sobre os serviços da Jericoacoara Premium.'), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -40,6 +40,10 @@ const ImmersiveHero = () => {
           alt="Jericoacoara — dunas ao pôr do sol"
           className="w-full h-full object-cover object-center"
           loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          width="1920"
+          height="1080"
         />
         {/* Multi-layer overlay for editorial depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80" />
@@ -72,9 +76,9 @@ const ImmersiveHero = () => {
           transition={{ duration: 0.9, delay: 0.2 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight max-w-5xl"
         >
-          Jericoacoara não é apenas{' '}
+          Transfer e Passeios em{' '}
           <br className="hidden sm:block" />
-          <span className="text-[#D4AF37]">um destino.</span>
+          <span className="text-[#D4AF37]">Jericoacoara</span> com Garantia & Conforto
         </motion.h1>
 
         {/* Subheadline */}

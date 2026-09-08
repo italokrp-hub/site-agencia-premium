@@ -3,14 +3,14 @@ import { MapPin, Phone, Mail, Instagram, Facebook, Clock, CheckCircle } from 'lu
 
 const Footer = () => {
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5592981038749', '_blank');
+    window.open('https://wa.me/5592981038749', '_blank', 'noopener,noreferrer');
   };
 
   const handleSocialClick = (platform) => {
     if (platform === 'instagram') {
-      window.open('https://instagram.com/jericoacoarapremium', '_blank');
+      window.open('https://instagram.com/jericoacoarapremium', '_blank', 'noopener,noreferrer');
     } else {
-      window.open(`https://${platform}.com/jericoacoara.premium`, '_blank');
+      window.open(`https://${platform}.com/jericoacoara.premium`, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -23,6 +23,8 @@ const Footer = () => {
             <img 
               src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/494a72a51bf12600f9dbf641b2fc783a.png"
               alt="Jericoacoara Premium"
+              width="180"
+              height="64"
               className="h-16 w-auto mb-4"
             />
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
@@ -30,7 +32,7 @@ const Footer = () => {
             </p>
             <div className="bg-white/5 rounded-lg p-3 border border-white/10">
               <div className="flex items-center gap-2 text-[#D4AF37] mb-1">
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4" aria-hidden="true" />
                 <span className="text-xs font-bold uppercase tracking-wider">Cadastur</span>
               </div>
               <p className="text-sm font-mono text-gray-300">51.790.615/0001-08</p>
@@ -42,19 +44,20 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Contato</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="text-sm text-gray-400">WhatsApp</p>
                   <button 
                     onClick={handleWhatsApp}
-                    className="text-white hover:text-[#D4AF37] transition-colors"
+                    className="text-white hover:text-[#D4AF37] transition-colors text-left"
+                    aria-label="Falar conosco via WhatsApp"
                   >
                     (92) 98103-8749
                   </button>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                <Mail className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
                   <a 
@@ -66,7 +69,7 @@ const Footer = () => {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="text-sm text-gray-400">Localização</p>
                   <p className="text-white">Jericoacoara, Ceará</p>
@@ -79,7 +82,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Horário de Atendimento</h3>
             <div className="flex items-start gap-3 mb-3">
-              <Clock className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+              <Clock className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-white mb-1">Atendimento 24 horas</p>
                 <p className="text-sm text-gray-400">Todos os dias da semana</p>
@@ -99,15 +102,17 @@ const Footer = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => handleSocialClick('instagram')}
-                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                aria-label="Siga a Jericoacoara Premium no Instagram"
+                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] hover:text-black rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
-                <Instagram className="w-5 h-5" />
+                <Instagram className="w-5 h-5" aria-hidden="true" />
               </button>
               <button
                 onClick={() => handleSocialClick('facebook')}
-                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                aria-label="Siga a Jericoacoara Premium no Facebook"
+                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] hover:text-black rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             <div className="mt-6 text-sm text-gray-500">
@@ -123,12 +128,12 @@ const Footer = () => {
               © {new Date().getFullYear()} Jericoacoara Premium. Todos os direitos reservados.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <span className="hover:text-[#D4AF37] cursor-pointer transition-colors">
+              <a href="#privacidade" className="hover:text-[#D4AF37] transition-colors focus:outline-none focus:underline">
                 Política de Privacidade
-              </span>
-              <span className="hover:text-[#D4AF37] cursor-pointer transition-colors">
+              </a>
+              <a href="#termos" className="hover:text-[#D4AF37] transition-colors focus:outline-none focus:underline">
                 Termos de Uso
-              </span>
+              </a>
             </div>
           </div>
         </div>
