@@ -270,22 +270,158 @@ export function calculateTotal(item, passengers) {
   return item.unitPrice || 0;
 }
 
-export function calculateTourPrice(tour, vehicleType = 'Buggy', modality = 'private') {
-  if (modality === 'shared' && tour.options?.shared?.available) {
-    return tour.options.shared.price;
+export function calculateTourPrice(tourOrParams, vehicleTypeArg, modalityArg) {
+  let tour, optionType, selectedVehicleType, passengers;
+
+  if (tourOrParams && typeof tourOrParams === 'object' && tourOrParams.tour) {
+    tour = tourOrParams.tour;
+    optionType = tourOrParams.optionType || 'private';
+    selectedVehicleType = tourOrParams.selectedVehicleType || 'Buggy';
+    passengers = tourOrParams.passengers || 1;
+  } else {
+    tour = tourOrParams;
+    selectedVehicleType = vehicleTypeArg || 'Buggy';
+    optionType = modalityArg || 'private';
+    passengers = 1;
   }
+
+  if (!tour) {
+    return {
+      total: 0,
+      pixTotal: 0,
+      selectedVehicle: null,
+      vehicleCount: 1,
+      maxCapacity: 4,
+      optionType: 'private',
+      isWhatsAppOnly: false,
+    };
+  }
+
+  if (tour.requireWhatsApp) {
+    return {
+      total: 0,
+      pixTotal: 0,
+      selectedVehicle: null,
+      vehicleCount: 1,
+      maxCapacity: 1,
+      optionType,
+      isWhatsAppOnly: true,
+    };
+  }
+
+  if (optionType === 'shared' && tour.options?.shared?.available) {
+    const unitPrice = tour.options.shared.price || 0;
+    const total = unitPrice * passengers;
+    return {
+      total,
+      pixTotal: Math.round(total * (1 - PIX_DISCOUNT_PERCENT) * 100) / 100,
+      selectedVehicle: { type: tour.options.shared.vehicle || 'Jardineira', price: unitPrice },
+      vehicleCount: 1,
+      maxCapacity: 1,
+      optionType: 'shared',
+      isWhatsAppOnly: false,
+    };
+  }
+
   const vehicles = tour.options?.private?.vehicles || [];
-  const selected = vehicles.find((v) => v.type === vehicleType) || vehicles[0];
-  return selected ? selected.price : 0;
+  const selectedVehicle =
+    vehicles.find((v) => v.type === selectedVehicleType) ||
+    vehicles[0] ||
+    { type: 'Buggy', maxCapacity: 4, price: 450 };
+
+  const maxCapacity = selectedVehicle.maxCapacity || 4;
+  const vehicleCount = Math.max(1, Math.ceil(passengers / maxCapacity));
+  const total = (selectedVehicle.price || 0) * vehicleCount;
+  const pixTotal = Math.round(total * (1 - PIX_DISCOUNT_PERCENT) * 100) / 100;
+
+  return {
+    total,
+    pixTotal,
+    selectedVehicle,
+    vehicleCount,
+    maxCapacity,
+    optionType: 'private',
+    isWhatsAppOnly: Boolean(selectedVehicle.requireWhatsApp),
+  };
 }
 
-export function calculateTransferPrice(transfer, serviceType = 'private', vehicleType = 'Hilux', tripType = 'roundTrip') {
-  if (serviceType === 'shared' && transfer.options?.shared?.available) {
-    const unitPrice = tripType === 'roundTrip' ? transfer.options.shared.roundTrip : transfer.options.shared.oneWay;
-    return unitPrice;
+export function calculateTransferPrice(transferOrParams, serviceTypeArg, vehicleTypeArg, tripTypeArg) {
+  let transfer, optionType, tripType, passengers, selectedTierIndex, time;
+
+  if (transferOrParams && typeof transferOrParams === 'object' && transferOrParams.transfer) {
+    transfer = transferOrParams.transfer;
+    optionType = transferOrParams.optionType || 'private';
+    tripType = transferOrParams.tripType || 'roundTrip';
+    passengers = transferOrParams.passengers || 1;
+    selectedTierIndex = transferOrParams.selectedTierIndex;
+    time = transferOrParams.time;
+  } else {
+    transfer = transferOrParams;
+    optionType = serviceTypeArg || 'private';
+    tripType = tripTypeArg || 'roundTrip';
+    passengers = 1;
   }
+
+  if (!transfer) {
+    return {
+      total: 0,
+      pixTotal: 0,
+      selectedTier: null,
+      nightFeeApplied: false,
+      isPrivate: false,
+    };
+  }
+
+  let nightFeeApplied = false;
+  let nightFee = 0;
+  if (transfer.nightFee && time) {
+    const hour = parseInt(time.split(':')[0], 10);
+    if (!isNaN(hour) && (hour >= 18 || hour < 6)) {
+      nightFeeApplied = true;
+      nightFee = transfer.nightFee;
+    }
+  }
+
+  if (optionType === 'shared' && transfer.options?.shared?.available) {
+    const unitPrice = tripType === 'roundTrip' ? transfer.options.shared.roundTrip : transfer.options.shared.oneWay;
+    const baseTotal = (unitPrice || 0) * passengers;
+    const total = baseTotal + nightFee;
+    return {
+      total,
+      pixTotal: Math.round(total * (1 - PIX_DISCOUNT_PERCENT) * 100) / 100,
+      selectedTier: null,
+      nightFeeApplied,
+      isPrivate: false,
+    };
+  }
+
   const tiers = transfer.options?.private?.tiers || [];
-  const selected = tiers.find((t) => t.vehicle === vehicleType) || tiers[0];
-  if (!selected) return 0;
-  return tripType === 'roundTrip' ? selected.roundTrip : selected.oneWay;
+  let selectedTier = null;
+  if (selectedTierIndex !== undefined && tiers[selectedTierIndex]) {
+    selectedTier = tiers[selectedTierIndex];
+  } else {
+    selectedTier = tiers.find((t) => passengers <= t.maxCapacity) || tiers[0];
+  }
+
+  if (!selectedTier) {
+    return {
+      total: 0,
+      pixTotal: 0,
+      selectedTier: null,
+      nightFeeApplied,
+      isPrivate: true,
+    };
+  }
+
+  const basePrice = tripType === 'roundTrip' ? selectedTier.roundTrip : selectedTier.oneWay;
+  const total = (basePrice || 0) + nightFee;
+  const pixTotal = Math.round(total * (1 - PIX_DISCOUNT_PERCENT) * 100) / 100;
+
+  return {
+    total,
+    pixTotal,
+    selectedTier,
+    nightFeeApplied,
+    isPrivate: true,
+  };
 }

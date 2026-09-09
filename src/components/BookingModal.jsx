@@ -189,16 +189,24 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   // Cálculo dos totais integrais (Cartão e Pix 5% OFF)
   const fullTotal = useMemo(() => {
-    if (transferPriceInfo) return transferPriceInfo.total;
-    if (tourPriceInfo) return tourPriceInfo.total;
-    if (internalItem?.priceType === 'per_person') return internalItem.unitPrice * form.passengers;
+    if (transferPriceInfo && typeof transferPriceInfo.total === 'number' && transferPriceInfo.total > 0) {
+      return transferPriceInfo.total;
+    }
+    if (tourPriceInfo && typeof tourPriceInfo.total === 'number' && tourPriceInfo.total > 0) {
+      return tourPriceInfo.total;
+    }
+    if (internalItem?.priceType === 'per_person') return (internalItem.unitPrice || 0) * form.passengers;
     return internalItem?.unitPrice || 0;
   }, [transferPriceInfo, tourPriceInfo, internalItem, form.passengers]);
 
   const fullPixTotal = useMemo(() => {
-    if (transferPriceInfo) return transferPriceInfo.pixTotal;
-    if (tourPriceInfo) return tourPriceInfo.pixTotal;
-    return fullTotal * 0.95;
+    if (transferPriceInfo && typeof transferPriceInfo.pixTotal === 'number' && transferPriceInfo.pixTotal > 0) {
+      return transferPriceInfo.pixTotal;
+    }
+    if (tourPriceInfo && typeof tourPriceInfo.pixTotal === 'number' && tourPriceInfo.pixTotal > 0) {
+      return tourPriceInfo.pixTotal;
+    }
+    return Math.round(fullTotal * 0.95 * 100) / 100;
   }, [transferPriceInfo, tourPriceInfo, fullTotal]);
 
   // Cálculos considerando o pagamento de sinal de 50% vs 100% integral
@@ -319,13 +327,18 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoading(true);
     setError(null);
     try {
+      const finalUnitPrice = Math.round(chargeTotal * 100) / 100;
+      if (!finalUnitPrice || finalUnitPrice <= 0) {
+        throw new Error('Valor inválido para o checkout. Verifique a opção e o veículo selecionados.');
+      }
+
       // Dispara sincronização única com status pendente para o CRM HotelOps
       triggerHotelOpsSync('Cartão de Crédito');
 
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
         title: `${serviceTitle}${titleSuffix}`,
-        unitPrice: chargeTotal,
+        unitPrice: finalUnitPrice,
         quantity: 1,
         payer: {
           name: form.name,
@@ -347,7 +360,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           flightDetails: form.flightDetails.trim() || undefined,
           paymentMode,
           fullTotal,
-          chargeTotal,
+          chargeTotal: finalUnitPrice,
           remainingBalance,
         },
       });
@@ -370,13 +383,18 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoadingPix(true);
     setError(null);
     try {
+      const finalPixUnitPrice = Math.round(chargePixTotal * 100) / 100;
+      if (!finalPixUnitPrice || finalPixUnitPrice <= 0) {
+        throw new Error('Valor inválido para a chave Pix. Verifique a opção e o veículo selecionados.');
+      }
+
       // Dispara sincronização única com status pendente para o CRM HotelOps
       triggerHotelOpsSync('Pix');
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
         title: `${serviceTitle}${titleSuffix}`,
-        unitPrice: chargePixTotal,
+        unitPrice: finalPixUnitPrice,
         quantity: 1,
         payer: {
           name: form.name,
@@ -398,7 +416,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           flightDetails: form.flightDetails.trim() || undefined,
           paymentMode,
           fullTotal,
-          chargePixTotal,
+          chargePixTotal: finalPixUnitPrice,
           remainingBalance,
           isPixDiscount: true,
         },
