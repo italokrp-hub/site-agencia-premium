@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-const HOTEL_OPS_ENDPOINT = 'https://hotelops-rh.vercel.app/api/booking-public';
+const PRIMARY_ENDPOINT = process.env.VITE_HOTEL_OPS_ENDPOINT || '/api/booking-public';
 
 /**
  * Normaliza o tipo de veículo para um dos valores aceitos pelo CRM HotelOps:
@@ -155,9 +155,9 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
       ],
     };
 
-    console.log('[HotelOps Integration] Disparando reserva para CRM HotelOps:', payload);
+    console.log('[HotelOps Integration] Disparando reserva para CRM HotelOps:', PRIMARY_ENDPOINT, payload);
 
-    const response = await fetch(HOTEL_OPS_ENDPOINT, {
+    const response = await fetch(PRIMARY_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -168,15 +168,15 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      console.error('[HotelOps Integration] Resposta de erro do CRM:', response.status, data);
-      return { success: false, error: data };
+      console.error('[HotelOps Integration] Resposta de erro HTTP do CRM:', response.status, data);
+      return { success: false, status: response.status, error: data };
     }
 
-    console.log('[HotelOps Integration] Reserva sincronizada com sucesso:', data);
-    return { success: true, data };
+    console.log('[HotelOps Integration] Reserva sincronizada com sucesso! Status HTTP:', response.status, data);
+    return { success: true, status: response.status, data };
   } catch (err) {
     // Tratamento de Erro Silencioso: NUNCA trava o fluxo do cliente
-    console.error('[HotelOps Integration] Falha silenciosa no envio para o CRM HotelOps:', err);
+    console.error('[HotelOps Integration] Falha no envio para o CRM HotelOps:', err);
     return { success: false, error: err?.message || err };
   }
 }

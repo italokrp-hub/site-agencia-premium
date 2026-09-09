@@ -20,18 +20,33 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {};
-    const {
-      client_name,
-      client_phone,
-      client_email,
-      payment_method,
-      amount_paid = 0,
-      discount = 0,
-      notes = 'Origem: Site Institucional',
-      items = [],
-    } = body;
+    
+    // Suporte amplo a alias de nomes de chaves do payload
+    const clientName = (body.client_name || body.customer_name || body.name || 'Cliente Site').trim();
+    const clientPhone = (body.client_phone || body.phone || body.whatsapp || '').trim();
+    const clientEmail = (body.client_email || body.email || '').trim();
+    const paymentMethod = (body.payment_method || body.paymentMethod || 'pix').toLowerCase();
+    const amountPaid = Number(body.amount_paid ?? body.total_amount ?? body.price_final ?? body.chargePixTotal ?? body.chargeTotal ?? 0);
+    const discount = Number(body.discount || 0);
+    const notes = (body.notes || body.pickup_location || 'Origem: Site Institucional').trim();
+    
+    let rawItems = body.items;
+    if (!Array.isArray(rawItems) || rawItems.length === 0) {
+      rawItems = [
+        {
+          service_type: body.service_type || body.category || 'passeio',
+          title: body.title || body.service_name || 'Serviço Jericoacoara',
+          vehicle: body.vehicle || body.vehicle_type || 'buggy',
+          modality: body.modality || body.trecho || 'privativo',
+          date: body.date || body.date_start || new Date().toISOString().split('T')[0],
+          time: body.time || '12:00',
+          pax: Number(body.pax || body.pax_adults || 1),
+          unit_price: Number(body.unit_price || body.price_total || amountPaid || 0),
+        },
+      ];
+    }
 
-    if (!client_name && !client_phone) {
+    if (!clientName && !clientPhone) {
       return res.status(400).json({ error: 'Dados do cliente (nome/telefone) são obrigatórios.' });
     }
 
@@ -44,8 +59,7 @@ export default async function handler(req, res) {
       rawPaymentStatus === 'pending' ||
       rawReservationStatus === 'pendente' ||
       rawReservationStatus === 'pending' ||
-      !body.amount_paid ||
-      Number(body.amount_paid) === 0;
+      amountPaid === 0;
 
     const reservationStatus = isPending ? 'pendente' : 'confirmada';
     const paymentStatus = isPending ? 'pendente' : (body.payment_status || 'sinal_pago');
@@ -53,12 +67,12 @@ export default async function handler(req, res) {
     // 1. Tabela agency_customers
     let customerId = null;
     try {
-      if (client_phone || client_email) {
+      if (clientPhone || clientEmail) {
         let query = supabase.from('agency_customers').select('id');
-        if (client_phone) {
-          query = query.eq('whatsapp', client_phone);
-        } else if (client_email) {
-          query = query.eq('email', client_email);
+        if (clientPhone) {
+          query = query.eq('whatsapp', clientPhone);
+        } else if (clientEmail) {
+          query = query.eq('email', clientEmail);
         }
         const { data: existing } = await query;
         if (existing && existing.length > 0) {
@@ -71,9 +85,9 @@ export default async function handler(req, res) {
           .from('agency_customers')
           .insert([
             {
-              name: (client_name || 'Cliente Site').trim(),
-              whatsapp: client_phone ? client_phone.trim() : null,
-              email: client_email ? client_email.trim() : null,
+              name: clientName,
+              whatsapp: clientPhone || null,
+              email: clientEmail || null,
             },
           ])
           .select('id')
@@ -91,8 +105,8 @@ export default async function handler(req, res) {
     const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     const reservationCode = `JRI-${randomCode}`;
 
-    const mainItem = items[0] || {};
-    const fullPrice = mainItem.unit_price || amount_paid || 0;
+    const mainItem = rawItems[0] || {};
+    const fullPrice = mainItem.unit_price || amountPaid || 0;
 
     // 3. Tabela agency_reservations
     let reservationId = null;
@@ -104,8 +118,8 @@ export default async function handler(req, res) {
         pax_adults: Number(mainItem.pax || 1),
         pickup_location: notes || null,
         price_gross: fullPrice,
-        price_final: amount_paid || fullPrice,
-        payment_method: payment_method || 'pix',
+        price_final: amountPaid || fullPrice,
+        payment_method: paymentMethod,
         payment_status: paymentStatus,
         reservation_status: reservationStatus,
         sale_source: notes.includes('Site') ? 'Site Institucional' : 'WhatsApp',
@@ -125,9 +139,9 @@ export default async function handler(req, res) {
     }
 
     // 4. Tabela agency_reservation_items
-    if (reservationId && items.length > 0) {
+    if (reservationId && rawItems.length > 0) {
       try {
-        const itemRows = items.map((it) => ({
+        const itemRows = rawItems.map((it) => ({
           reservation_id: reservationId,
           category: it.service_type || 'passeio',
           service_name: it.title || 'Serviço',
@@ -151,10 +165,10 @@ export default async function handler(req, res) {
       reservation_id: reservationId || `bk_${Date.now()}`,
       reservation_code: reservationCode,
       reservation_status: reservationStatus,
-      price_final: amount_paid || fullPrice,
+      price_final: amountPaid || fullPrice,
       client: {
-        name: client_name,
-        phone: client_phone,
+        name: clientName,
+        phone: clientPhone,
       },
     });
   } catch (err) {
