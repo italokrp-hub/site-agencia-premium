@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-const PRIMARY_ENDPOINT = process.env.VITE_HOTEL_OPS_ENDPOINT || '/api/booking-public';
+const HOTEL_OPS_ENDPOINT = process.env.VITE_HOTEL_OPS_ENDPOINT || 'https://hotelops-rh.vercel.app/api/booking-public';
 
 /**
  * Normaliza o tipo de veículo para um dos valores aceitos pelo CRM HotelOps:
@@ -135,11 +135,18 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
       client_name: formData.name ? formData.name.trim() : 'Cliente Site',
       client_phone: formData.whatsapp ? formData.whatsapp.trim() : '',
       client_email: formData.email ? formData.email.trim() : '',
+      service_type: serviceType,
+      vehicle,
+      modality,
+      date: formattedDate,
+      time: formData.time || '12:00',
+      pax: Number(formData.passengers || 1),
+      price_final: unitPrice,
+      amount_paid: Number(Number(amountPaid).toFixed(2)),
+      discount: Number(Number(discount).toFixed(2)),
       payment_method: paymentMethod,
       payment_status: paymentStatus,
       reservation_status: reservationStatus,
-      amount_paid: Number(Number(amountPaid).toFixed(2)),
-      discount: Number(Number(discount).toFixed(2)),
       notes: notesParts.join(' | '),
       items: [
         {
@@ -155,9 +162,9 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
       ],
     };
 
-    console.log('[HotelOps Integration] Disparando reserva para CRM HotelOps:', PRIMARY_ENDPOINT, payload);
+    console.log('[HotelOps Integration] Disparando reserva para CRM HotelOps:', HOTEL_OPS_ENDPOINT, payload);
 
-    const response = await fetch(PRIMARY_ENDPOINT, {
+    const response = await fetch(HOTEL_OPS_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
