@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import BookingBar from '@/components/BookingBar';
 import BookingModal from '@/components/BookingModal';
 
+import { openWhatsApp } from '@/utils/whatsapp';
+
 const Hero = () => {
   const [bookingItem, setBookingItem] = useState(null);
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5592981038749', '_blank');
+    openWhatsApp();
   };
 
   const handleReserve = () => {

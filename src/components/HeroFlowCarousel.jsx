@@ -113,12 +113,14 @@ const SCENES = [
 ];
 
 import { transfersData, toursData } from '@/data/catalog';
+import { openWhatsApp as triggerWhatsApp } from '@/utils/whatsapp';
 
 // Helper for whatsapp redirect
 const openWhatsApp = (serviceName) => {
   const msgText = `Olá! Gostaria de informações sobre o passeio exclusivo de ${serviceName}.`;
-  window.open(`https://wa.me/5592981038749?text=${encodeURIComponent(msgText)}`, '_blank');
+  triggerWhatsApp(msgText);
 };
+
 
 const HeroFlowCarousel = () => {
   const [currentScene, setCurrentScene] = useState(0);

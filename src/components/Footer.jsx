@@ -6,7 +6,7 @@ const Footer = () => {
   const { t } = useLanguage();
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5592981038749', '_blank', 'noopener,noreferrer');
+    window.open('https://wa.me/5588988463182', '_blank', 'noopener,noreferrer');
   };
 
   const handleSocialClick = (platform) => {
@@ -55,7 +55,7 @@ const Footer = () => {
                     className="text-white hover:text-[#D4AF37] transition-colors text-left font-semibold cursor-pointer"
                     aria-label="WhatsApp Jericoacoara Premium"
                   >
-                    (92) 98103-8749
+                    {t('nav.whatsappBtn')}
                   </button>
                 </div>
               </div>

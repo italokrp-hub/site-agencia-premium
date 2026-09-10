@@ -1,6 +1,6 @@
 // Utilitário centralizado para links WhatsApp
-// Número oficial: +55 92 98103-8749
-export const WHATSAPP_NUMBER = '5592981038749';
+// Número oficial: +55 88 98846-3182
+export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '5588988463182';
 
 /**
  * Gera um link para abrir o WhatsApp com uma mensagem pré-preenchida.

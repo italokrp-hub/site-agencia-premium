@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import BookingBar from '@/components/BookingBar';
 import BookingModal from '@/components/BookingModal';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp as triggerWhatsApp } from '@/utils/whatsapp';
 
 const ImmersiveHero = () => {
   const [bookingItem, setBookingItem] = useState(null);
@@ -30,7 +31,7 @@ const ImmersiveHero = () => {
   };
 
   const openWhatsApp = () => {
-    window.open('https://wa.me/5592981038749?text=' + encodeURIComponent('Olá! Gostaria de informações sobre passeios e transfers em Jericoacoara.'), '_blank', 'noopener,noreferrer');
+    triggerWhatsApp('Olá! Gostaria de informações sobre passeios e transfers em Jericoacoara.');
   };
 
   return (

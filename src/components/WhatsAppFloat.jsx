@@ -12,9 +12,11 @@ const WhatsAppIcon = ({ className }) => (
   </svg>
 );
 
+import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
+
 const WhatsAppFloat = () => {
   const handleClick = () => {
-    window.open('https://wa.me/5592981038749?text=' + encodeURIComponent('Olá! Gostaria de saber mais sobre os serviços da Jericoacoara Premium'), '_blank');
+    openWhatsApp(WA_MESSAGES.generic);
   };
 
   return (

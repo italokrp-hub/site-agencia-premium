@@ -37,7 +37,7 @@ const Header = () => {
   const currentLangObj = languages.find((l) => l.code === language) || languages[0];
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5592981038749', '_blank', 'noopener,noreferrer');
+    window.open('https://wa.me/5588988463182', '_blank', 'noopener,noreferrer');
   };
 
   const handleNavClick = (href) => {

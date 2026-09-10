@@ -8,6 +8,7 @@ import { renderTourTitle } from '@/utils/titleHelper';
 import BookingModal from '@/components/BookingModal';
 import ExperienceDetailsDrawer from '@/components/experience/ExperienceDetailsDrawer';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp } from '@/utils/whatsapp';
 
 const ToursExplorer = () => {
   const ref = React.useRef(null);
@@ -34,12 +35,10 @@ const ToursExplorer = () => {
 
   const handleBook = (tour) => {
     if (tour.requireWhatsApp) {
-      window.open(
-        `https://wa.me/5592981038749?text=${encodeURIComponent(`Olá! Gostaria de saber mais sobre: ${tour.title}`)}`,
-        '_blank'
-      );
+      openWhatsApp(`Olá! Gostaria de saber mais sobre: ${tour.title}`);
       return;
     }
+
     const raw = tour?.raw || tour;
     const isShared = raw.options?.shared?.available && !raw.options?.private?.available;
     setBookingItem({

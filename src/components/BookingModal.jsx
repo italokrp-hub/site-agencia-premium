@@ -51,6 +51,7 @@ import { createCheckout, createPixPayment } from '@/services/payment';
 import { createStripeCheckout } from '@/services/stripePayment';
 import { sendBookingToHotelOps } from '@/services/hotelopsIntegration';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { buildWhatsAppLink } from '@/utils/whatsapp';
 
 function formatPhone(value) {
   return value;
@@ -547,7 +548,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
       if (form.email) msgText += `\nE-mail: ${form.email}`;
     }
 
-    window.open(`https://wa.me/5592981038749?text=${encodeURIComponent(msgText)}`, '_blank');
+    window.open(buildWhatsAppLink(msgText), '_blank');
   }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isPortuguese, language, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied, triggerHotelOpsSync]);
 
   const handleCopyPix = useCallback(() => {

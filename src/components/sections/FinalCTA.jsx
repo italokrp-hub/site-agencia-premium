@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { transfersData } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp } from '@/utils/whatsapp';
 
 const FinalCTA = () => {
   const ref = React.useRef(null);
@@ -21,10 +22,7 @@ const FinalCTA = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(
-      'https://wa.me/5592981038749?text=' + encodeURIComponent('Olá! Gostaria de atendimento personalizado para minha viagem a Jericoacoara.'),
-      '_blank'
-    );
+    openWhatsApp('Olá! Gostaria de atendimento personalizado para minha viagem a Jericoacoara.');
   };
 
   return (

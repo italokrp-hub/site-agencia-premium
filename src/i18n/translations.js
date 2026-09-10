@@ -8,7 +8,7 @@ export const translations = {
       destinations: 'Destinos',
       planner: 'Monte seu Roteiro',
       testimonials: 'Depoimentos',
-      whatsappBtn: '(92) 98103-8749',
+      whatsappBtn: '(88) 98846-3182',
     },
     hero: {
       badge: '🏆 Agência #1 de Jericoacoara',
@@ -167,7 +167,7 @@ export const translations = {
       destinations: 'Destinations',
       planner: 'Plan Your Trip',
       testimonials: 'Testimonials',
-      whatsappBtn: '+55 (92) 98103-8749',
+      whatsappBtn: '+55 (88) 98846-3182',
     },
     hero: {
       badge: '🏆 #1 Travel Agency in Jericoacoara',
@@ -326,7 +326,7 @@ export const translations = {
       destinations: 'Destinos',
       planner: 'Arma tu Itinerario',
       testimonials: 'Testimonios',
-      whatsappBtn: '+55 (92) 98103-8749',
+      whatsappBtn: '+55 (88) 98846-3182',
     },
     hero: {
       badge: '🏆 Agencia #1 en Jericoacoara',

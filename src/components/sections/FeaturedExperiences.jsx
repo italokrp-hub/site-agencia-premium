@@ -16,6 +16,8 @@ const FEATURED_IDS = [
   { catalogId: 'tour-leste-shared', category: 'tour', badge: 'Melhor Custo' },
 ];
 
+import { openWhatsApp } from '@/utils/whatsapp';
+
 function resolveItem(catalogId, category) {
   if (category === 'tour') return toursData.find((t) => t.id === catalogId);
   return transfersData.find((t) => t.id === catalogId);
@@ -221,10 +223,7 @@ const FeaturedExperiences = () => {
                       <Button
                         onClick={() =>
                           isWhatsAppOnly
-                            ? window.open(
-                                `https://wa.me/5592981038749?text=${encodeURIComponent(`Olá! Gostaria de saber mais sobre: ${item.title}`)}`,
-                                '_blank'
-                              )
+                            ? openWhatsApp(`Olá! Gostaria de saber mais sobre: ${item.title}`)
                             : handleBook(item)
                         }
                         className={`flex-1 h-9 text-xs font-bold rounded-xl transition-all duration-300 ${
