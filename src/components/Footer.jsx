@@ -1,7 +1,10 @@
 import React from 'react';
 import { MapPin, Phone, Mail, Instagram, Facebook, Clock, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const Footer = () => {
+  const { t } = useLanguage();
+
   const handleWhatsApp = () => {
     window.open('https://wa.me/5592981038749', '_blank', 'noopener,noreferrer');
   };
@@ -28,7 +31,7 @@ const Footer = () => {
               className="h-16 w-auto mb-4"
             />
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              Proporcionando experiências únicas e memoráveis em Jericoacoara com excelência, conforto e segurança.
+              {t('footer.about')}
             </p>
             <div className="bg-white/5 rounded-lg p-3 border border-white/10">
               <div className="flex items-center gap-2 text-[#D4AF37] mb-1">
@@ -41,7 +44,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Contato</h3>
+            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">{t('footer.contact')}</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -49,8 +52,8 @@ const Footer = () => {
                   <p className="text-sm text-gray-400">WhatsApp</p>
                   <button 
                     onClick={handleWhatsApp}
-                    className="text-white hover:text-[#D4AF37] transition-colors text-left"
-                    aria-label="Falar conosco via WhatsApp"
+                    className="text-white hover:text-[#D4AF37] transition-colors text-left font-semibold cursor-pointer"
+                    aria-label="WhatsApp Jericoacoara Premium"
                   >
                     (92) 98103-8749
                   </button>
@@ -71,46 +74,39 @@ const Footer = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-sm text-gray-400">Localização</p>
-                  <p className="text-white">Jericoacoara, Ceará</p>
+                  <p className="text-sm text-gray-400">Jericoacoara, Ceará</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Hours */}
+          {/* Support Hours */}
           <div>
-            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Horário de Atendimento</h3>
+            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">{t('trust.support24h')}</h3>
             <div className="flex items-start gap-3 mb-3">
               <Clock className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="text-white mb-1">Atendimento 24 horas</p>
-                <p className="text-sm text-gray-400">Todos os dias da semana</p>
+                <p className="text-white mb-1 font-semibold">{t('trust.support24h')}</p>
+                <p className="text-sm text-gray-400">{t('trust.support24hDesc')}</p>
               </div>
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Suporte via WhatsApp disponível a qualquer momento para sua comodidade e segurança.
-            </p>
           </div>
 
           {/* Social */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Redes Sociais</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Siga-nos e acompanhe nossas novidades, promoções e dicas de viagem!
-            </p>
             <div className="flex gap-3">
               <button
                 onClick={() => handleSocialClick('instagram')}
-                aria-label="Siga a Jericoacoara Premium no Instagram"
-                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] hover:text-black rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                aria-label="Instagram Jericoacoara Premium"
+                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] hover:text-black rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
               >
                 <Instagram className="w-5 h-5" aria-hidden="true" />
               </button>
               <button
                 onClick={() => handleSocialClick('facebook')}
-                aria-label="Siga a Jericoacoara Premium no Facebook"
-                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] hover:text-black rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                aria-label="Facebook Jericoacoara Premium"
+                className="w-10 h-10 bg-white/10 hover:bg-[#D4AF37] hover:text-black rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
               >
                 <Facebook className="w-5 h-5" aria-hidden="true" />
               </button>
@@ -125,14 +121,14 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm text-center md:text-left">
-              © {new Date().getFullYear()} Jericoacoara Premium. Todos os direitos reservados.
+              © {new Date().getFullYear()} Jericoacoara Premium. {t('footer.rights')}
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <a href="#privacidade" className="hover:text-[#D4AF37] transition-colors focus:outline-none focus:underline">
-                Política de Privacidade
+              <a href="#privacidade" className="hover:text-[#D4AF37] transition-colors">
+                {t('footer.privacy')}
               </a>
-              <a href="#termos" className="hover:text-[#D4AF37] transition-colors focus:outline-none focus:underline">
-                Termos de Uso
+              <a href="#termos" className="hover:text-[#D4AF37] transition-colors">
+                {t('footer.terms')}
               </a>
             </div>
           </div>

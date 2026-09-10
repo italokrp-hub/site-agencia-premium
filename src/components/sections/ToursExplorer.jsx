@@ -7,13 +7,7 @@ import { toursData, formatPrice } from '@/data/catalog';
 import { renderTourTitle } from '@/utils/titleHelper';
 import BookingModal from '@/components/BookingModal';
 import ExperienceDetailsDrawer from '@/components/experience/ExperienceDetailsDrawer';
-
-const FILTERS = [
-  { id: 'todos', label: 'Todos' },
-  { id: 'compartilhado', label: 'Compartilhados' },
-  { id: 'privativo', label: 'Privativos' },
-  { id: 'premium', label: 'Premium' },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const ToursExplorer = () => {
   const ref = React.useRef(null);
@@ -21,6 +15,14 @@ const ToursExplorer = () => {
   const [activeFilter, setActiveFilter] = useState('todos');
   const [bookingItem, setBookingItem] = useState(null);
   const [drawerItem, setDrawerItem] = useState(null);
+  const { t } = useLanguage();
+
+  const FILTERS = [
+    { id: 'todos', label: t('categories.all') },
+    { id: 'compartilhado', label: t('tours.shared') },
+    { id: 'privativo', label: t('tours.private') },
+    { id: 'premium', label: t('categories.premium') },
+  ];
 
   const filteredTours = useMemo(() => {
     if (activeFilter === 'todos') return toursData;
@@ -59,8 +61,8 @@ const ToursExplorer = () => {
   }
 
   function getTourPriceLabel(tour) {
-    if (!tour.options?.private?.available && tour.options?.shared?.available) return 'por pessoa';
-    return 'por veículo';
+    if (!tour.options?.private?.available && tour.options?.shared?.available) return t('tours.perPerson');
+    return t('tours.perVehicle');
   }
 
   return (
@@ -75,13 +77,13 @@ const ToursExplorer = () => {
           className="text-center mb-12"
         >
           <p className="text-[#2C7A7B] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            Roteiros Seguros & Confiáveis
+            Jericoacoara Premium
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-            Explore nossos <span className="text-[#2C7A7B]">passeios</span>
+            {t('tours.sectionTitle')}
           </h2>
           <p className="mt-4 text-gray-500 text-base max-w-xl mx-auto">
-            Do passeio compartilhado mais econômico com o melhor custo-benefício aos roteiros privativos exclusivos. Agência 100% segura com motoristas credenciados e reserva garantida.
+            {t('tours.sectionSubtitle')}
           </p>
         </motion.div>
 
@@ -97,7 +99,7 @@ const ToursExplorer = () => {
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeFilter === f.id
                   ? 'bg-[#2C7A7B] text-white shadow-md'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-[#2C7A7B] hover:text-[#2C7A7B]'
@@ -125,7 +127,7 @@ const ToursExplorer = () => {
                 transition={{ duration: 0.4, delay: index * 0.07 }}
                 className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl overflow-hidden flex flex-col transition-all duration-300"
               >
-                {/* Image — click opens drawer */}
+                {/* Image */}
                 <div
                   className="relative h-52 overflow-hidden cursor-pointer"
                   onClick={() => setDrawerItem(tour)}
@@ -142,11 +144,10 @@ const ToursExplorer = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-                  {/* "Ver detalhes" hover overlay */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5" />
-                      Ver detalhes
+                      {t('tours.viewDetails')}
                     </span>
                   </div>
 
@@ -159,12 +160,12 @@ const ToursExplorer = () => {
                     )}
                     {isSharedOnly && (
                       <span className="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        Compartilhado
+                        {t('tours.shared')}
                       </span>
                     )}
                     {!isPremium && !isSharedOnly && (
                       <span className="bg-[#2C7A7B] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        Privativo
+                        {t('tours.private')}
                       </span>
                     )}
                   </div>
@@ -179,7 +180,6 @@ const ToursExplorer = () => {
                     {renderTourTitle(tour.title)}
                   </h3>
 
-                  {/* Locations */}
                   {tour.locations && (
                     <ul className="space-y-1.5 mb-4">
                       {tour.locations.slice(0, 4).map((loc) => (
@@ -188,13 +188,9 @@ const ToursExplorer = () => {
                           {loc}
                         </li>
                       ))}
-                      {tour.locations.length > 4 && (
-                        <li className="text-xs text-gray-400 pl-4">+{tour.locations.length - 4} paradas</li>
-                      )}
                     </ul>
                   )}
 
-                  {/* Vehicle pills */}
                   {vehicles.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {vehicles.map((v) => (
@@ -208,18 +204,17 @@ const ToursExplorer = () => {
                     </div>
                   )}
 
-                  {/* Description for premium */}
                   {tour.description && (
                     <p className="text-xs text-gray-500 mb-4 leading-relaxed">{tour.description}</p>
                   )}
 
-                  {/* Price + CTAs */}
+                  {/* Price & Actions */}
                   <div className="mt-auto pt-4 border-t border-gray-100">
                     {isPremium ? (
                       <p className="text-[#D4AF37] font-bold text-base mb-3">Sob consulta</p>
                     ) : startPrice ? (
                       <div className="mb-3">
-                        <span className="text-xs text-gray-400 block">A partir de</span>
+                        <span className="text-xs text-gray-400 block">{t('tours.from')}</span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-xl font-extrabold text-[#2C7A7B]">{formatPrice(startPrice)}</span>
                           <span className="text-xs text-gray-400">{priceLabel}</span>
@@ -234,7 +229,7 @@ const ToursExplorer = () => {
                         className="flex-1 h-10 text-xs font-bold rounded-xl border-gray-200 text-gray-600 hover:border-[#2C7A7B] hover:text-[#2C7A7B] transition-all"
                       >
                         <Eye className="w-3.5 h-3.5 mr-1" />
-                        Detalhes
+                        {t('tours.viewDetails')}
                       </Button>
                       <Button
                         onClick={() => handleBook(tour)}
@@ -244,7 +239,7 @@ const ToursExplorer = () => {
                             : 'bg-[#2C7A7B] hover:bg-[#235f60] text-white'
                         }`}
                       >
-                        {isPremium ? 'WhatsApp' : 'Reservar'}
+                        {isPremium ? 'WhatsApp' : t('tours.bookTour')}
                       </Button>
                     </div>
                   </div>
@@ -255,7 +250,6 @@ const ToursExplorer = () => {
         </div>
       </div>
 
-      {/* Experience Details Drawer */}
       <ExperienceDetailsDrawer
         item={drawerItem}
         open={!!drawerItem}

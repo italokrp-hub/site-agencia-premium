@@ -1,11 +1,45 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { trustItems } from '@/data/experiences';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const TrustSection = () => {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const { t } = useLanguage();
+
+  const trustItemsList = [
+    {
+      icon: '⏰',
+      title: t('trust.support24h'),
+      description: t('trust.support24hDesc'),
+    },
+    {
+      icon: '🛡️',
+      title: t('trust.drivers'),
+      description: t('trust.driversDesc'),
+    },
+    {
+      icon: '💎',
+      title: t('trust.tailored'),
+      description: t('trust.tailoredDesc'),
+    },
+    {
+      icon: '💳',
+      title: t('trust.securePayment'),
+      description: t('trust.securePaymentDesc'),
+    },
+    {
+      icon: '📍',
+      title: t('trust.tripSupport'),
+      description: t('trust.tripSupportDesc'),
+    },
+    {
+      icon: '✅',
+      title: t('trust.cadastur'),
+      description: t('trust.cadasturDesc'),
+    },
+  ];
 
   return (
     <section id="confianca" className="py-20 md:py-28 bg-[#F7F3E9] overflow-hidden">
@@ -19,20 +53,16 @@ const TrustSection = () => {
           className="text-center mb-14"
         >
           <p className="text-[#2C7A7B] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            Por que nos escolher
+            Jericoacoara Premium
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-            Sua experiência começa{' '}
-            <span className="text-[#2C7A7B]">com confiança.</span>
+            {t('trust.sectionTitle')}
           </h2>
-          <p className="mt-4 text-gray-500 text-base max-w-xl mx-auto">
-            Cada detalhe foi pensado para que você viaje com tranquilidade, conforto e segurança.
-          </p>
         </motion.div>
 
         {/* Trust items grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {trustItems.map((item, index) => (
+          {trustItemsList.map((item, index) => (
             <motion.div
               key={item.title}
               initial={{ opacity: 0, y: 24 }}
@@ -68,23 +98,8 @@ const TrustSection = () => {
             />
             <div>
               <p className="text-white font-bold text-lg">Jericoacoara Premium</p>
-              <p className="text-white/50 text-sm">Jericoacoara, Ceará · Atendimento 24h</p>
-              <p className="text-white/40 text-xs mt-0.5 font-mono">Cadastur: 51.790.615/0001-08</p>
+              <p className="text-white/50 text-sm">Jericoacoara, Ceará · Cadastur CNPJ 51.790.615/0001-08</p>
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-3 justify-center md:justify-end">
-            {[
-              { label: '+5 anos', sub: 'no turismo' },
-              { label: '24h', sub: 'de suporte' },
-              { label: '5% OFF', sub: 'no PIX' },
-              { label: '10x', sub: 'no cartão' },
-            ].map((badge) => (
-              <div key={badge.label} className="text-center px-4 py-2 bg-white/5 border border-white/10 rounded-xl">
-                <p className="text-[#D4AF37] font-bold text-base">{badge.label}</p>
-                <p className="text-white/40 text-xs">{badge.sub}</p>
-              </div>
-            ))}
           </div>
         </motion.div>
       </div>

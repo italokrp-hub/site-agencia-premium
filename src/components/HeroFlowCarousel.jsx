@@ -209,7 +209,6 @@ const HeroFlowCarousel = () => {
                   loop
                   muted
                   playsInline
-                  webkit-playsinline="true"
                   preload={isActive ? "metadata" : "none"}
                   poster={posterSrc}
                   className="relative w-full h-full object-cover object-center"

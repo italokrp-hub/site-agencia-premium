@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { LanguageProvider } from '@/i18n/LanguageContext';
 
 // Layout
 import Header from '@/components/Header';
@@ -97,13 +98,15 @@ function LandingPage() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/agencia/reservas" element={<Reservas />} />
-        <Route path="/reservas" element={<Reservas />} />
-      </Routes>
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/agencia/reservas" element={<Reservas />} />
+          <Route path="/reservas" element={<Reservas />} />
+        </Routes>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

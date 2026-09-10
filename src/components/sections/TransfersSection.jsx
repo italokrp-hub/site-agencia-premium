@@ -5,12 +5,14 @@ import { ArrowRight, Car, Plane, MapPin, Moon, Info, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { transfersData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const TransfersSection = () => {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const [bookingItem, setBookingItem] = useState(null);
   const [selectedType, setSelectedType] = useState({});
+  const { t } = useLanguage();
 
   const handleBook = (transfer, type = 'Privativo') => {
     setBookingItem({
@@ -38,14 +40,13 @@ const TransfersSection = () => {
           className="text-center mb-14"
         >
           <p className="text-[#D4AF37] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            Transfers Seguros & Econômicos
+            Jericoacoara Premium
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
-            Transfer mais barato para Jeri{' '}
-            <span className="text-[#D4AF37]">com segurança & conforto</span>
+            {t('transfers.sectionTitle')}
           </h2>
           <p className="mt-4 text-white/60 text-base max-w-xl mx-auto">
-            Agência segura com motoristas credenciados e reserva 100% garantida. Escolha a opção mais econômica ou o conforto privativo VIP com o melhor preço.
+            {t('transfers.sectionSubtitle')}
           </p>
         </motion.div>
 
@@ -77,7 +78,6 @@ const TransfersSection = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                    {/* Route label */}
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-[#D4AF37]/20 border border-[#D4AF37]/40 rounded-full flex items-center justify-center shrink-0">
@@ -87,34 +87,32 @@ const TransfersSection = () => {
                       </div>
                     </div>
 
-                    {/* Night fee badge */}
                     {transfer.nightFee && (
                       <span className="absolute top-3 right-3 flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
                         <Moon className="w-3 h-3" />
-                        Taxa noturna
+                        Night Fee
                       </span>
                     )}
                   </div>
 
                   {/* Content */}
                   <div className="p-5">
-                    {/* Type toggle */}
                     {sharedOpt?.available && privateOpt?.available !== false && (
                       <div className="flex rounded-lg overflow-hidden border border-white/10 mb-4">
                         {[
-                          { id: 'privativo', label: 'Privativo' },
-                          { id: 'compartilhado', label: 'Compartilhado' },
-                        ].map((t) => (
+                          { id: 'privativo', label: t('tours.private') },
+                          { id: 'compartilhado', label: t('tours.shared') },
+                        ].map((tItem) => (
                           <button
-                            key={t.id}
-                            onClick={() => setSelectedType((prev) => ({ ...prev, [transfer.id]: t.id }))}
-                            className={`flex-1 py-1.5 text-xs font-semibold transition-all duration-200 ${
-                              currentType === t.id
+                            key={tItem.id}
+                            onClick={() => setSelectedType((prev) => ({ ...prev, [transfer.id]: tItem.id }))}
+                            className={`flex-1 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                              currentType === tItem.id
                                 ? 'bg-[#D4AF37] text-gray-900'
                                 : 'text-white/60 hover:text-white'
                             }`}
                           >
-                            {t.label}
+                            {tItem.label}
                           </button>
                         ))}
                       </div>
@@ -125,29 +123,25 @@ const TransfersSection = () => {
                       {currentType === 'privativo' && privateOpt?.tiers?.map((tier) => (
                         <div key={tier.vehicle} className="flex justify-between items-center text-sm">
                           <span className="text-white/60 text-xs">
-                            {tier.vehicle} <span className="text-white/40">(até {tier.maxCapacity}p)</span>
+                            {tier.vehicle} <span className="text-white/40">(ate {tier.maxCapacity} pax)</span>
                           </span>
                           <div className="text-right">
                             <span className="text-white font-bold">{formatPrice(tier.roundTrip)}</span>
-                            <span className="text-white/40 text-[10px] ml-1">ida/volta</span>
+                            <span className="text-white/40 text-[10px] ml-1">{t('transfers.roundTrip')}</span>
                           </div>
                         </div>
                       ))}
 
                       {currentType === 'compartilhado' && sharedOpt?.available && (
                         <div className="space-y-2.5">
-                          {/* Price structure: Trecho & Combo */}
                           <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-2">
                             <div className="flex justify-between items-center">
                               <div>
-                                <span className="text-white/90 text-xs font-medium block">Trecho (Só Ida ou Volta)</span>
-                                <span className="text-emerald-400 text-[11px] font-semibold">
-                                  {formatPrice(sharedOpt.oneWay * 0.95)} no PIX
-                                </span>
+                                <span className="text-white/90 text-xs font-medium block">{t('transfers.oneWay')}</span>
                               </div>
                               <div className="text-right">
                                 <span className="text-white font-bold text-sm">{formatPrice(sharedOpt.oneWay)}</span>
-                                <span className="text-white/40 text-[10px] block">/pessoa</span>
+                                <span className="text-white/40 text-[10px] block">/{t('tours.perPerson')}</span>
                               </div>
                             </div>
 
@@ -156,42 +150,17 @@ const TransfersSection = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <span className="text-white/90 text-xs font-bold block flex items-center gap-1">
-                                  Ida e Volta <span className="text-[#D4AF37] text-[10px] bg-[#D4AF37]/20 px-1.5 py-0.2 rounded">Combo</span>
-                                </span>
-                                <span className="text-emerald-400 text-[11px] font-semibold">
-                                  {formatPrice(sharedOpt.roundTrip * 0.95)} no PIX
+                                  {t('transfers.roundTrip')}
                                 </span>
                               </div>
                               <div className="text-right">
                                 <span className="text-[#D4AF37] font-bold text-base">{formatPrice(sharedOpt.roundTrip)}</span>
-                                <span className="text-white/40 text-[10px] block">/pessoa</span>
+                                <span className="text-white/40 text-[10px] block">/{t('tours.perPerson')}</span>
                               </div>
                             </div>
                           </div>
-
-                          {/* Scheduling / Conditions Note */}
-                          {sharedOpt.note && (
-                            <p className="text-white/70 text-[11px] leading-relaxed p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-200/90 flex items-start gap-1.5">
-                              <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                              <span>{sharedOpt.note}</span>
-                            </p>
-                          )}
                         </div>
                       )}
-
-                      {!sharedOpt?.available && currentType === 'compartilhado' && (
-                        <p className="text-white/40 text-xs text-center py-2">Somente privativo disponível</p>
-                      )}
-                    </div>
-
-                    {/* PIX discount badge */}
-                    <div className="flex items-center justify-between mb-4 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                      <span className="text-[11px] font-bold flex items-center gap-1">
-                        <Tag className="w-3 h-3" /> 5% OFF em pagamentos via PIX
-                      </span>
-                      <span className="text-[10px] font-semibold bg-emerald-500/20 px-1.5 py-0.5 rounded">
-                        Desconto no checkout
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -200,9 +169,9 @@ const TransfersSection = () => {
                   <Button
                     onClick={() => handleBook(transfer, currentType === 'compartilhado' ? 'Compartilhado' : 'Privativo')}
                     disabled={currentType === 'compartilhado' && !sharedOpt?.available}
-                    className="w-full h-10 text-sm font-bold rounded-xl bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 transition-all duration-300 disabled:opacity-40"
+                    className="w-full h-10 text-sm font-bold rounded-xl bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 transition-all duration-300 disabled:opacity-40 cursor-pointer"
                   >
-                    Reservar transfer
+                    {t('transfers.bookTransfer')}
                     <ArrowRight className="w-4 h-4 ml-1.5" />
                   </Button>
                 </div>

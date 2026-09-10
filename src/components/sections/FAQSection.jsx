@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { faqItems } from '@/data/experiences';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const FAQItem = ({ item, index }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +18,7 @@ const FAQItem = ({ item, index }) => {
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white hover:bg-gray-50 transition-colors duration-200 group"
+        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white hover:bg-gray-50 transition-colors duration-200 group cursor-pointer"
         aria-expanded={isOpen}
       >
         <span className="font-semibold text-gray-900 text-sm sm:text-base leading-snug">
@@ -56,6 +57,7 @@ const FAQItem = ({ item, index }) => {
 const FAQSection = () => {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const { t } = useLanguage();
 
   return (
     <section id="faq" className="py-20 md:py-28 bg-[#F7F3E9] overflow-hidden">
@@ -69,21 +71,13 @@ const FAQSection = () => {
           className="text-center mb-12"
         >
           <p className="text-[#2C7A7B] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-            Dúvidas Frequentes
+            Jericoacoara Premium
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
-            Perguntas <span className="text-[#2C7A7B]">frequentes</span>
+            {t('faq.sectionTitle')}
           </h2>
           <p className="mt-4 text-gray-500 text-base max-w-lg mx-auto">
-            Tire suas dúvidas antes de reservar. Não encontrou o que procura?{' '}
-            <a
-              href="https://wa.me/5592981038749"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#2C7A7B] font-semibold hover:underline"
-            >
-              Fale pelo WhatsApp.
-            </a>
+            {t('faq.sectionSubtitle')}
           </p>
         </motion.div>
 

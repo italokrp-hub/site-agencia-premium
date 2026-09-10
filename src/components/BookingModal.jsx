@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import {
   CalendarDays,
   Loader2,
@@ -18,6 +18,8 @@ import {
   Compass,
   Minus,
   Plus,
+  Globe,
+  Lock,
 } from 'lucide-react';
 import {
   Dialog,
@@ -46,20 +48,19 @@ import {
   toursData,
 } from '@/data/catalog';
 import { createCheckout, createPixPayment } from '@/services/payment';
-import { registerBookingToERP } from '@/services/bookingIntegration';
+import { createStripeCheckout } from '@/services/stripePayment';
 import { sendBookingToHotelOps } from '@/services/hotelopsIntegration';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 function formatPhone(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  return value;
 }
 
 const initialForm = {
   name: '',
   whatsapp: '',
   email: '',
+  cpf: '',
   date: undefined,
   returnDate: undefined,
   time: '12:00',
@@ -67,15 +68,16 @@ const initialForm = {
   pickup: '',
   passengers: 1,
   flightDetails: '',
-  // Campos de Transfer
   tripType: 'roundTrip', // 'oneWay' | 'returnWay' | 'roundTrip'
   optionType: 'private', // 'shared' | 'private'
   selectedTierIndex: undefined,
-  // Campos de Passeio (Tour)
   selectedVehicleType: 'Buggy',
 };
 
 export default function BookingModal({ item, open, onOpenChange }) {
+  const { language, t } = useLanguage();
+  const isPortuguese = language === 'pt';
+
   const [internalItem, setInternalItem] = useState(null);
   
   useEffect(() => {
@@ -95,7 +97,14 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isReturnCalendarOpen, setIsReturnCalendarOpen] = useState(false);
 
-  // Identifica se o item é um Transfer (estrutura aninhada)
+  // Seleção de Locale para date-fns conforme idioma
+  const dateFnsLocale = useMemo(() => {
+    if (language === 'en') return enUS;
+    if (language === 'es') return es;
+    return ptBR;
+  }, [language]);
+
+  // Identifica se o item é um Transfer
   const transferItem = useMemo(() => {
     if (!internalItem) return null;
     if (internalItem.category === 'transfer' && internalItem.options) return internalItem;
@@ -119,7 +128,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const isTour = Boolean(tourItem || internalItem?.category === 'tour');
   const isRoundTrip = isTransfer && form.tripType === 'roundTrip';
 
-  // Define os valores iniciais adequados quando o modal é aberto
   useEffect(() => {
     if (transferItem) {
       const sharedAvailable = transferItem.options?.shared?.available;
@@ -143,7 +151,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
   }, [transferItem, tourItem, internalItem]);
 
-  // Cálculo de preço de Transfer
   const transferPriceInfo = useMemo(() => {
     if (transferItem) {
       return calculateTransferPrice({
@@ -158,7 +165,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return null;
   }, [transferItem, form.optionType, form.tripType, form.passengers, form.selectedTierIndex, form.time]);
 
-  // Cálculo de preço de Passeio (Tour)
   const tourPriceInfo = useMemo(() => {
     if (tourItem) {
       return calculateTourPrice({
@@ -171,7 +177,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return null;
   }, [tourItem, form.optionType, form.selectedVehicleType, form.passengers]);
 
-  // Verifica se o item/veículo exige atendimento via WhatsApp
   const isWhatsAppOnly = useMemo(() => {
     if (tourPriceInfo) return tourPriceInfo.isWhatsAppOnly;
     if (internalItem?.requireWhatsApp) return true;
@@ -187,7 +192,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const selectedTier = transferPriceInfo?.selectedTier;
   const nightFeeApplied = transferPriceInfo ? transferPriceInfo.nightFeeApplied : false;
 
-  // Cálculo dos totais integrais (Cartão e Pix 5% OFF)
   const fullTotal = useMemo(() => {
     if (transferPriceInfo && typeof transferPriceInfo.total === 'number' && transferPriceInfo.total > 0) {
       return transferPriceInfo.total;
@@ -209,17 +213,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return Math.round(fullTotal * 0.95 * 100) / 100;
   }, [transferPriceInfo, tourPriceInfo, fullTotal]);
 
-  // Cálculos considerando o pagamento de sinal de 50% vs 100% integral
-  const isDeposit = paymentMode === '50';
+  // Se não for português, força cobrança à vista (100%)
+  const isDeposit = isPortuguese && paymentMode === '50';
   const chargeTotal = useMemo(() => (isDeposit ? fullTotal / 2 : fullTotal), [fullTotal, isDeposit]);
   const chargePixTotal = useMemo(() => (isDeposit ? fullPixTotal / 2 : fullPixTotal), [fullPixTotal, isDeposit]);
   const remainingBalance = useMemo(() => (isDeposit ? fullTotal / 2 : 0), [fullTotal, isDeposit]);
 
   const handleChange = useCallback((field) => (e) => {
-    if (field === 'whatsapp') {
-      setForm((prev) => ({ ...prev, whatsapp: formatPhone(e.target.value) }));
-      return;
-    }
     if (field === 'passengers') {
       const val = parseInt(e.target.value, 10);
       setForm((prev) => ({ ...prev, passengers: isNaN(val) || val < 1 ? 1 : val }));
@@ -240,7 +240,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   const isFormValid = Boolean(
     form.name.trim() &&
-    form.whatsapp.replace(/\D/g, '').length >= 10 &&
+    form.whatsapp.trim().length >= 7 &&
     form.date &&
     form.pickup.trim() !== '' &&
     (!isRoundTrip || form.returnDate)
@@ -277,7 +277,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return 'Serviço';
   }, [transferItem, tourItem, internalItem]);
 
-  // Helper centralizado com controle de envio único (prevenindo registros duplicados no CRM)
   const triggerHotelOpsSync = useCallback(
     (paymentMethodName) => {
       if (hasSentToHotelOpsRef.current) {
@@ -292,8 +291,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
         fullPixTotal,
         chargeTotal: paymentMethodName === 'Pix' ? chargePixTotal : chargeTotal,
         chargePixTotal,
-        remainingBalance,
-        paymentMode,
+        remainingBalance: isPortuguese ? remainingBalance : 0,
+        paymentMode: isPortuguese ? paymentMode : '100',
         paymentMethod: paymentMethodName,
         vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
         isWhatsAppOnly,
@@ -316,13 +315,69 @@ export default function BookingModal({ item, open, onOpenChange }) {
       chargePixTotal,
       remainingBalance,
       paymentMode,
+      isPortuguese,
       selectedTier,
       tourPriceInfo,
       isWhatsAppOnly,
     ]
   );
 
-  // Mercado Pago Checkout Pro (Envio do valor fracionado chargeTotal)
+  // Stripe Payment Handler (para EN e ES)
+  const handleStripeCheckout = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const finalUnitPrice = Math.round(fullTotal * 100) / 100;
+      if (!finalUnitPrice || finalUnitPrice <= 0) {
+        throw new Error('Invalid checkout value.');
+      }
+
+      triggerHotelOpsSync('Stripe (Cartão Internacional)');
+
+      const result = await createStripeCheckout({
+        title: `${serviceTitle}`,
+        unitPrice: finalUnitPrice,
+        quantity: 1,
+        payer: {
+          name: form.name,
+          email: form.email || undefined,
+          phone: form.whatsapp,
+        },
+        metadata: {
+          serviceId: internalItem?.id || 'service',
+          category: internalItem?.category || (isTransfer ? 'transfer' : 'tour'),
+          tripType: form.tripType,
+          optionType: form.optionType,
+          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
+          date: format(form.date, 'yyyy-MM-dd'),
+          returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
+          time: form.time,
+          returnTime: isRoundTrip ? form.returnTime : undefined,
+          pickup: form.pickup,
+          passengers: form.passengers,
+          flightDetails: form.flightDetails.trim() || undefined,
+          paymentMode: '100',
+          fullTotal,
+          chargeTotal: finalUnitPrice,
+          remainingBalance: 0,
+          language,
+        },
+      });
+
+      if (result.url) {
+        window.location.href = result.url;
+        return;
+      }
+
+      setError('Unexpected response from Stripe checkout server.');
+    } catch (err) {
+      setError(err.message || 'Error creating Stripe payment session. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [form, fullTotal, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, language, triggerHotelOpsSync]);
+
+  // Mercado Pago Checkout Handler (para PT)
   const handleMercadoPago = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -332,8 +387,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
         throw new Error('Valor inválido para o checkout. Verifique a opção e o veículo selecionados.');
       }
 
-      // Dispara sincronização única com status pendente para o CRM HotelOps
-      triggerHotelOpsSync('Cartão de Crédito');
+      triggerHotelOpsSync('Cartão de Crédito (Mercado Pago)');
 
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
@@ -362,6 +416,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           fullTotal,
           chargeTotal: finalUnitPrice,
           remainingBalance,
+          cpf: form.cpf || undefined,
         },
       });
 
@@ -378,7 +433,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
   }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
 
-  // Geração Direta de Pix (Envio do valor fracionado chargePixTotal)
+  // Pix Handler (para PT)
   const handlePixPayment = useCallback(async () => {
     setLoadingPix(true);
     setError(null);
@@ -388,7 +443,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
         throw new Error('Valor inválido para a chave Pix. Verifique a opção e o veículo selecionados.');
       }
 
-      // Dispara sincronização única com status pendente para o CRM HotelOps
       triggerHotelOpsSync('Pix');
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
@@ -419,6 +473,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           chargePixTotal: finalPixUnitPrice,
           remainingBalance,
           isPixDiscount: true,
+          cpf: form.cpf || undefined,
         },
       });
 
@@ -440,26 +495,24 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
   }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
 
-  // Envio Formatado para o WhatsApp
   const handleWhatsApp = useCallback(() => {
-    // Dispara sincronização única com status pendente para o CRM HotelOps
     triggerHotelOpsSync('WhatsApp');
 
     let msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
 
     if (isTransfer) {
       const tripLabelMap = {
-        oneWay: 'Somente Ida',
-        returnWay: 'Somente Volta',
-        roundTrip: 'Ida e Volta',
+        oneWay: 'Somente Ida / One Way',
+        returnWay: 'Somente Volta / Return Only',
+        roundTrip: 'Ida e Volta / Round Trip',
       };
       msgText += `Trajeto: ${tripLabelMap[form.tripType] || 'Ida e Volta'}\n`;
-      msgText += `Serviço: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
+      msgText += `Serviço: ${form.optionType === 'shared' ? 'Compartilhado / Shared' : `Privativo / Private (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
       if (form.flightDetails.trim()) {
         msgText += `Dados do Voo: ${form.flightDetails.trim()}\n`;
       }
     } else if (isTour) {
-      msgText += `Modalidade: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
+      msgText += `Modalidade: ${form.optionType === 'shared' ? 'Compartilhado / Shared' : `Privativo / Private (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
       if (tourPriceInfo?.vehicleCount > 1) {
         msgText += `Veículos: ${tourPriceInfo.vehicleCount}x ${tourPriceInfo.selectedVehicle?.type}\n`;
       }
@@ -471,30 +524,32 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } else {
       msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
     }
-    if (form.pickup) msgText += `Ponto de Partida: ${form.pickup}\n`;
+    if (form.pickup) msgText += `Local de Embarque: ${form.pickup}\n`;
     msgText += `Passageiros: ${form.passengers}\n`;
 
     if (!isWhatsAppOnly) {
-      msgText += `Modalidade de Pagamento: *${isDeposit ? 'Sinal de 50%' : 'Pagamento Integral (100%)'}*\n`;
-      const nightText = nightFeeApplied ? ' (+ R$ 20 Tarifa Noturna)' : '';
-      if (isDeposit) {
-        msgText += `Valor Total do Serviço: ${formatPrice(fullTotal)}${nightText}\n`;
-        msgText += `Sinal no Cartão (50%): ${formatPrice(chargeTotal)}\n`;
-        msgText += `Sinal no PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
-        msgText += `Saldo Restante (no embarque): *${formatPrice(remainingBalance)}*\n`;
+      if (isPortuguese) {
+        msgText += `Modalidade de Pagamento: *${isDeposit ? 'Sinal de 50%' : 'Pagamento Integral (100%)'}*\n`;
+        const nightText = nightFeeApplied ? ' (+ R$ 20 Tarifa Noturna)' : '';
+        if (isDeposit) {
+          msgText += `Valor Total do Serviço: ${formatPrice(fullTotal)}${nightText}\n`;
+          msgText += `Sinal no Cartão (50%): ${formatPrice(chargeTotal)}\n`;
+          msgText += `Sinal no PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+          msgText += `Saldo Restante: *${formatPrice(remainingBalance)}*\n`;
+        } else {
+          msgText += `Cartão (100%): ${formatPrice(chargeTotal)}${nightText}\n`;
+          msgText += `PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+        }
       } else {
-        msgText += `Cartão (100%): ${formatPrice(chargeTotal)}${nightText}\n`;
-        msgText += `PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+        msgText += `Total Price: *${formatPrice(fullTotal)}*\n`;
       }
-    } else {
-      msgText += `Solicito informações de horários e reserva.\n`;
     }
 
-    msgText += `\nNome: ${form.name}\nWhatsApp: ${form.whatsapp}`;
+    msgText += `\nNome: ${form.name}\nContato: ${form.whatsapp}`;
     if (form.email) msgText += `\nE-mail: ${form.email}`;
 
     window.open(`https://wa.me/5592981038749?text=${encodeURIComponent(msgText)}`, '_blank');
-  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied]);
+  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isPortuguese, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied, triggerHotelOpsSync]);
 
   const handleCopyPix = useCallback(() => {
     if (pixData?.qrCode) {
@@ -510,11 +565,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
       <DialogContent className="z-[60] w-[95vw] max-w-lg mx-auto max-h-[90dvh] overflow-hidden rounded-xl bg-white p-0 shadow-xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
         <DialogHeader className="px-5 pt-5 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-gray-100 shrink-0">
           <DialogTitle className="text-lg font-bold text-gray-900 pr-8">
-            {step === 'pix' ? 'Pagamento via Pix' : isWhatsAppOnly ? 'Consultar Atendimento Premium' : 'Reservar Serviço'}
+            {step === 'pix' ? t('bookingModal.pixTitle') : isWhatsAppOnly ? t('bookingModal.whatsappTitle') : t('bookingModal.modalTitle')}
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
             {step === 'pix'
-              ? 'Escaneie o QR Code ou copie o código abaixo para pagar.'
+              ? t('bookingModal.pixInstructions')
               : serviceTitle}
           </DialogDescription>
         </DialogHeader>
@@ -522,9 +577,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
         {step === 'form' && (
           <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
             
-            {/* Seletor do Serviço para identificar e permitir troca no Modal */}
+            {/* Seletor do Serviço */}
             <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-              <Label className="text-xs font-semibold text-gray-700">Serviço Selecionado *</Label>
+              <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.serviceSelected')} *</Label>
               <Select
                 value={internalItem?.id || ''}
                 onValueChange={(val) => {
@@ -550,55 +605,54 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </Select>
             </div>
 
-            {/* Campos adicionais para Transfer */}
+            {/* Transfer Fields */}
             {isTransfer && transferItem && (
               <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-700">Trajeto *</Label>
+                    <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.tripType')} *</Label>
                     <Select
                       value={form.tripType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, tripType: val }))}
                     >
                       <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
-                        <SelectValue placeholder="Selecione o trajeto" />
+                        <SelectValue placeholder="Trajeto" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="oneWay">Somente Ida</SelectItem>
+                        <SelectItem value="oneWay">{t('transfers.oneWay')}</SelectItem>
                         <SelectItem value="returnWay">Somente Volta</SelectItem>
-                        <SelectItem value="roundTrip">Ida e Volta</SelectItem>
+                        <SelectItem value="roundTrip">{t('transfers.roundTrip')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-700">Tipo de Serviço *</Label>
+                    <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.serviceType')} *</Label>
                     <Select
                       value={form.optionType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
                     >
                       <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
-                        <SelectValue placeholder="Selecione o tipo" />
+                        <SelectValue placeholder="Tipo" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
                         {transferItem?.options?.private?.available !== false && (
-                          <SelectItem value="private">Privativo</SelectItem>
+                          <SelectItem value="private">{t('tours.private')}</SelectItem>
                         )}
                         {transferItem?.options?.shared?.available !== false && (
-                          <SelectItem value="shared">Compartilhado</SelectItem>
+                          <SelectItem value="shared">{t('tours.shared')}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                {/* Horários e Dados do Voo (Ida e Volta vs Trajeto Simples) */}
                 {isRoundTrip ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
-                          Horário de Chegada (Ida) *
+                          {t('bookingModal.departureTime')} *
                         </Label>
                         <div className="relative flex items-center">
                           <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
@@ -607,14 +661,14 @@ export default function BookingModal({ item, open, onOpenChange }) {
                             type="time"
                             value={form.time}
                             onChange={handleChange('time')}
-                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60"
+                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
                         <Label htmlFor="booking-return-time" className="text-xs font-semibold text-gray-700">
-                          Horário de Partida (Volta) *
+                          {t('bookingModal.returnTime')} *
                         </Label>
                         <div className="relative flex items-center">
                           <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
@@ -623,7 +677,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                             type="time"
                             value={form.returnTime}
                             onChange={handleChange('returnTime')}
-                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60"
+                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium"
                           />
                         </div>
                       </div>
@@ -631,11 +685,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
                     <div className="space-y-1.5">
                       <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
-                        Dados do Voo (Opcional)
+                        {t('bookingModal.flightData')}
                       </Label>
                       <Input
                         id="booking-flight"
-                        placeholder="Ex: LA3330 ou G3 1520"
+                        placeholder={t('bookingModal.flightPlaceholder')}
                         value={form.flightDetails}
                         onChange={handleChange('flightDetails')}
                         className="h-10 bg-white text-xs px-3 w-full rounded-md border border-gray-200"
@@ -646,7 +700,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
-                        Horário de Chegada/Partida *
+                        {t('bookingModal.departureTime')} *
                       </Label>
                       <div className="relative flex items-center">
                         <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
@@ -655,18 +709,18 @@ export default function BookingModal({ item, open, onOpenChange }) {
                           type="time"
                           value={form.time}
                           onChange={handleChange('time')}
-                          className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60"
+                          className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
                       <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
-                        Dados do Voo (Opcional)
+                        {t('bookingModal.flightData')}
                       </Label>
                       <Input
                         id="booking-flight"
-                        placeholder="Ex: LA3330 ou G3 1520"
+                        placeholder={t('bookingModal.flightPlaceholder')}
                         value={form.flightDetails}
                         onChange={handleChange('flightDetails')}
                         className="h-10 bg-white text-xs px-3 w-full rounded-md border border-gray-200"
@@ -674,29 +728,26 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-slate-500 mt-1">
-                  * Caso não saiba agora, você pode nos informar posteriormente pelo WhatsApp.
-                </p>
               </div>
             )}
 
-            {/* Campos adicionais para Passeio (Tour) */}
+            {/* Tour Fields */}
             {isTour && tourItem && (
               <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
                 <div className={`grid grid-cols-1 ${form.optionType === 'private' ? 'sm:grid-cols-2' : ''} gap-3`}>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-700">Modalidade *</Label>
+                    <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.modality')} *</Label>
                     <Select
                       value={form.optionType}
                       onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
                     >
                       <SelectTrigger className="h-10 bg-white text-xs font-medium">
-                        <SelectValue placeholder="Selecione a modalidade" />
+                        <SelectValue placeholder="Modalidade" />
                       </SelectTrigger>
                       <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="private">Privativo</SelectItem>
+                        <SelectItem value="private">{t('tours.private')}</SelectItem>
                         {tourItem.options?.shared?.available && (
-                          <SelectItem value="shared">Compartilhado</SelectItem>
+                          <SelectItem value="shared">{t('tours.shared')}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -704,13 +755,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
                   {form.optionType === 'private' && tourItem.options?.private?.vehicles && (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-gray-700">Veículo *</Label>
+                      <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.vehicle')} *</Label>
                       <Select
                         value={form.selectedVehicleType}
                         onValueChange={(val) => setForm((prev) => ({ ...prev, selectedVehicleType: val }))}
                       >
                         <SelectTrigger className="h-10 bg-white text-xs font-medium">
-                          <SelectValue placeholder="Selecione o veículo" />
+                          <SelectValue placeholder="Veículo" />
                         </SelectTrigger>
                         <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
                           {tourItem.options.private.vehicles.map((v) => (
@@ -723,67 +774,73 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     </div>
                   )}
                 </div>
-
-                {/* Aviso visual de múltiplos veículos se multiplier > 1 (Apenas em Privativo) */}
-                {!isWhatsAppOnly && form.optionType === 'private' && tourPriceInfo?.vehicleCount > 1 && (
-                  <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-2.5 flex items-center gap-2 text-xs font-medium">
-                    <Info className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span>
-                      Serão necessários <strong>{tourPriceInfo.vehicleCount} {tourPriceInfo.selectedVehicle?.type}s</strong> para acomodar {form.passengers} pessoas (capacidade máxima de {tourPriceInfo.maxCapacity} pessoas por veículo).
-                    </span>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Dados do Passageiro */}
+            {/* Dados do Cliente */}
             <div className="space-y-1.5">
               <Label htmlFor="booking-name" className="text-xs font-semibold">
-                Nome Completo *
+                {t('bookingModal.fullName')} *
               </Label>
               <Input
                 id="booking-name"
-                placeholder="Seu nome completo"
+                placeholder={t('bookingModal.fullNamePlaceholder')}
                 value={form.name}
                 onChange={handleChange('name')}
                 className="h-10 bg-white text-xs"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className={`grid grid-cols-1 ${isPortuguese ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
               <div className="space-y-1.5">
                 <Label htmlFor="booking-whatsapp" className="text-xs font-semibold">
-                  WhatsApp *
+                  {t('bookingModal.whatsapp')} *
                 </Label>
                 <Input
                   id="booking-whatsapp"
-                  placeholder="(00) 00000-0000"
+                  placeholder={t('bookingModal.whatsappPlaceholder')}
                   value={form.whatsapp}
                   onChange={handleChange('whatsapp')}
-                  maxLength={16}
                   className="h-10 bg-white text-xs"
                 />
               </div>
+              
               <div className="space-y-1.5">
                 <Label htmlFor="booking-email" className="text-xs font-semibold">
-                  E-mail
+                  {t('bookingModal.email')}
                 </Label>
                 <Input
                   id="booking-email"
                   type="email"
-                  placeholder="seu@email.com"
+                  placeholder={t('bookingModal.emailPlaceholder')}
                   value={form.email}
                   onChange={handleChange('email')}
                   className="h-10 bg-white text-xs"
                 />
               </div>
+
+              {/* Campo CPF exibido APENAS para Português */}
+              {isPortuguese && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="booking-cpf" className="text-xs font-semibold">
+                    CPF
+                  </Label>
+                  <Input
+                    id="booking-cpf"
+                    placeholder="000.000.000-00"
+                    value={form.cpf}
+                    onChange={handleChange('cpf')}
+                    className="h-10 bg-white text-xs"
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Data(s), Ponto de Partida / Local de Embarque e Pessoas */}
+            {/* Datas, Local e Pessoas */}
             <div className={`grid grid-cols-1 ${isRoundTrip ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
               <div className="relative space-y-1.5 sm:col-span-1">
                 <Label className="text-xs font-semibold">
-                  {isRoundTrip ? 'Data da Ida *' : 'Data *'}
+                  {isRoundTrip ? t('bookingModal.departureDate') : `${t('bookingModal.departureDate')} *`}
                 </Label>
                 <Button
                   type="button"
@@ -797,7 +854,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   }`}
                 >
                   <CalendarIcon className="mr-1.5 h-4 w-4" />
-                  {form.date ? format(form.date, 'dd/MM/yy') : 'Data'}
+                  {form.date ? format(form.date, 'dd/MM/yy') : t('bookingModal.departureDate')}
                 </Button>
                 {isCalendarOpen && (
                   <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
@@ -806,16 +863,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
                       selected={form.date}
                       onSelect={handleDateSelect}
                       disabled={(date) => isBefore(date, startOfDay(addDays(new Date(), 1)))}
-                      locale={ptBR}
+                      locale={dateFnsLocale}
                     />
                   </div>
                 )}
               </div>
 
-              {/* Data da Volta (Apenas para Transfer Ida e Volta) */}
               {isRoundTrip && (
                 <div className="relative space-y-1.5 sm:col-span-1">
-                  <Label className="text-xs font-semibold">Data da Volta *</Label>
+                  <Label className="text-xs font-semibold">{t('bookingModal.returnDate')} *</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -828,7 +884,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     }`}
                   >
                     <CalendarIcon className="mr-1.5 h-4 w-4" />
-                    {form.returnDate ? format(form.returnDate, 'dd/MM/yy') : 'Retorno'}
+                    {form.returnDate ? format(form.returnDate, 'dd/MM/yy') : t('bookingModal.returnDate')}
                   </Button>
                   {isReturnCalendarOpen && (
                     <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
@@ -839,7 +895,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                         disabled={(date) =>
                           isBefore(date, startOfDay(form.date ? form.date : addDays(new Date(), 1)))
                         }
-                        locale={ptBR}
+                        locale={dateFnsLocale}
                       />
                     </div>
                   )}
@@ -848,11 +904,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
               <div className="space-y-1.5 sm:col-span-1">
                 <Label htmlFor="booking-pickup" className="text-xs font-semibold">
-                  {isTour ? 'Local de Embarque *' : 'Ponto de Partida *'}
+                  {t('bookingModal.pickupLocation')} *
                 </Label>
                 <Input
                   id="booking-pickup"
-                  placeholder={isTour ? 'Ex: Nome da Pousada' : 'Ex: Hotel / Voo'}
+                  placeholder={t('bookingModal.pickupPlaceholder')}
                   value={form.pickup}
                   onChange={handleChange('pickup')}
                   className="h-10 bg-white text-xs"
@@ -861,9 +917,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
               <div className="space-y-1.5 sm:col-span-1">
                 <Label htmlFor="booking-passengers" className="text-xs font-semibold">
-                  Pessoas *
+                  {t('bookingModal.passengers')} *
                 </Label>
-                <div className="flex items-center justify-between h-10 bg-white border border-gray-200 rounded-md px-2 shadow-2xs">
+                <div className="flex items-center justify-between h-10 bg-white border border-gray-200 rounded-md px-2">
                   <Button
                     type="button"
                     variant="ghost"
@@ -892,71 +948,84 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </div>
             </div>
 
-            {/* Renderização Condicional: Se isWhatsAppOnly for true, esconde os botões e resumo de checkout */}
+            {/* Seções de Pagamento Condicionais */}
             {!isWhatsAppOnly ? (
               <>
-                {/* Seleção de Fração de Pagamento (Sinal 50% vs Integral 100%) */}
-                <div className="space-y-2 mt-4">
-                  <Label className="text-xs font-bold text-gray-800 uppercase tracking-wide">
-                    Como deseja pagar? *
-                  </Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Opção 1: Sinal de 50% */}
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMode('50')}
-                      className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
-                        paymentMode === '50'
-                          ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                          Sinal de 50%
-                          {paymentMode === '50' && (
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
-                              ✓
-                            </span>
-                          )}
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                          Recomendado
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-gray-500 leading-tight">
-                        Garante a reserva agora. O resto no embarque.
-                      </p>
-                    </button>
+                {/* Seleção de Fração de Pagamento (Apenas para Português PT) */}
+                {isPortuguese && (
+                  <div className="space-y-2 mt-4">
+                    <Label className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                      {t('bookingModal.paymentMethodLabel')} *
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMode('50')}
+                        className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                          paymentMode === '50'
+                            ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            {t('bookingModal.deposit50')}
+                            {paymentMode === '50' && (
+                              <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
+                                ✓
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                            {t('bookingModal.recommended')}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-tight">
+                          {t('bookingModal.deposit50Desc')}
+                        </p>
+                      </button>
 
-                    {/* Opção 2: Integral 100% */}
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMode('100')}
-                      className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
-                        paymentMode === '100'
-                          ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                          Integral (100%)
-                          {paymentMode === '100' && (
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
-                              ✓
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-gray-500 leading-tight">
-                        Deixe tudo pago e viaje sem preocupações.
-                      </p>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMode('100')}
+                        className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                          paymentMode === '100'
+                            ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            {t('bookingModal.full100')}
+                            {paymentMode === '100' && (
+                              <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
+                                ✓
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-tight">
+                          {t('bookingModal.full100Desc')}
+                        </p>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Resumo e Desconto Pix */}
+                {/* Caixa informativa de conversão de moeda internacional (Para EN e ES) */}
+                {!isPortuguese && (
+                  <div className="bg-sky-50 border border-sky-200 rounded-xl p-3.5 text-xs text-sky-900 space-y-1.5 mt-3">
+                    <div className="flex items-center gap-2 font-bold text-sky-900">
+                      <Globe className="w-4 h-4 text-sky-600 shrink-0" />
+                      <span>{t('bookingModal.currencyNoticeTitle')}</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-sky-800">
+                      {t('bookingModal.currencyNoticeDesc')}
+                    </p>
+                  </div>
+                )}
+
+                {/* Resumo do Valor */}
                 <div className="bg-gray-50 p-4 rounded-lg mt-3 border border-gray-200 space-y-1.5">
                   {isPrivate && selectedTier && (
                     <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
@@ -964,44 +1033,49 @@ export default function BookingModal({ item, open, onOpenChange }) {
                       Veículo: <span className="font-semibold">{selectedTier.vehicle}</span>
                     </p>
                   )}
-                  {isPrivate && isTour && tourPriceInfo?.selectedVehicle && (
-                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
-                      <Compass className="w-4 h-4 text-[#2C7A7B]" />
-                      Veículo: <span className="font-semibold">{tourPriceInfo.vehicleCount > 1 ? `${tourPriceInfo.vehicleCount}x ` : ''}{tourPriceInfo.selectedVehicle.type}</span>
-                    </p>
-                  )}
                   {nightFeeApplied && (
                     <p className="text-sm text-amber-600 mb-2 font-medium flex items-center gap-1.5">
                       <Moon className="w-4 h-4 text-amber-600 shrink-0" />
-                      + R$ 20 (Tarifa Noturna após 18h)
+                      + R$ 20 (Tarifa Noturna)
                     </p>
                   )}
 
                   <div className="flex justify-between items-baseline text-xs text-gray-500 pb-1">
-                    <span>Valor Total do Serviço:</span>
+                    <span>{t('bookingModal.totalValue')}</span>
                     <span className="font-semibold text-gray-700">{formatPrice(fullTotal)}</span>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-200 space-y-1">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-semibold text-gray-700">
-                        {isDeposit ? 'Valor a pagar agora (Sinal 50%):' : 'Valor a pagar agora (100%):'}
+                  {isPortuguese ? (
+                    <div className="pt-2 border-t border-gray-200 space-y-1">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-gray-700">
+                          {isDeposit ? 'Valor a pagar agora (Sinal 50%):' : 'Valor a pagar agora (100%):'}
+                        </span>
+                        <span className="text-gray-400 line-through">
+                          Cartão: {formatPrice(chargeTotal)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-0.5">
+                        <span className="text-xs font-bold text-emerald-800">
+                          {t('bookingModal.pixDiscountLabel')}
+                        </span>
+                        <span className="text-2xl font-bold text-emerald-600">
+                          {formatPrice(chargePixTotal)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-800">
+                        {t('bookingModal.amountToPayNow')}
                       </span>
-                      <span className="text-gray-400 line-through">
-                        Cartão: {formatPrice(chargeTotal)}
+                      <span className="text-2xl font-bold text-[#2C7A7B]">
+                        {formatPrice(fullTotal)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-0.5">
-                      <span className="text-xs font-bold text-emerald-800">
-                        PIX (5% OFF no pagamento):
-                      </span>
-                      <span className="text-2xl font-bold text-emerald-600">
-                        {formatPrice(chargePixTotal)}
-                      </span>
-                    </div>
-                  </div>
+                  )}
 
-                  {isDeposit && (
+                  {isDeposit && isPortuguese && (
                     <p className="text-xs text-amber-800 font-medium bg-amber-50/90 p-2 rounded border border-amber-200 mt-2">
                       * O saldo restante de <strong>{formatPrice(remainingBalance)}</strong> deverá ser pago no dia do serviço.
                     </p>
@@ -1014,33 +1088,52 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   </div>
                 )}
 
-                {/* Botões Padrão de Pagamento */}
-                <div className="space-y-2">
-                  <Button
-                    onClick={handlePixPayment}
-                    disabled={!isFormValid || loadingPix || loading}
-                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
-                  >
-                    {loadingPix ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <QrCode className="w-5 h-5" />
-                    )}
-                    {loadingPix ? 'Gerando Pix...' : `Pagar com Pix (${formatPrice(chargePixTotal)})`}
-                  </Button>
+                {/* Botões de Ação de Pagamento */}
+                <div className="space-y-2 mt-3">
+                  {/* Fluxo Português (Mercado Pago + Pix) */}
+                  {isPortuguese ? (
+                    <>
+                      <Button
+                        onClick={handlePixPayment}
+                        disabled={!isFormValid || loadingPix || loading}
+                        className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
+                      >
+                        {loadingPix ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <QrCode className="w-5 h-5" />
+                        )}
+                        {loadingPix ? t('bookingModal.generatingPix') : t('bookingModal.payWithPix', { price: formatPrice(chargePixTotal) })}
+                      </Button>
 
-                  <Button
-                    onClick={handleMercadoPago}
-                    disabled={!isFormValid || loading || loadingPix}
-                    className="w-full h-11 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CreditCard className="w-4 h-4" />
-                    )}
-                    {loading ? 'Processando...' : `Pagar no Cartão (${formatPrice(chargeTotal)})`}
-                  </Button>
+                      <Button
+                        onClick={handleMercadoPago}
+                        disabled={!isFormValid || loading || loadingPix}
+                        className="w-full h-11 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <CreditCard className="w-4 h-4" />
+                        )}
+                        {loading ? t('bookingModal.processing') : t('bookingModal.payWithCardMP', { price: formatPrice(chargeTotal) })}
+                      </Button>
+                    </>
+                  ) : (
+                    /* Fluxo Internacional EN/ES (Stripe Exclusivo em 1x à vista) */
+                    <Button
+                      onClick={handleStripeCheckout}
+                      disabled={!isFormValid || loading}
+                      className="w-full h-13 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Lock className="w-5 h-5" />
+                      )}
+                      {loading ? t('bookingModal.processing') : t('bookingModal.payWithCardStripe', { price: formatPrice(fullTotal) })}
+                    </Button>
+                  )}
 
                   <Button
                     onClick={handleWhatsApp}
@@ -1049,7 +1142,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    Finalizar no WhatsApp
+                    {t('bookingModal.finishWhatsApp')}
                   </Button>
                 </div>
               </>
@@ -1058,10 +1151,10 @@ export default function BookingModal({ item, open, onOpenChange }) {
               <div className="pt-2 space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
                   <p className="text-sm font-semibold text-emerald-900 mb-1">
-                    Atendimento Premium Exclusivo
+                    {t('bookingModal.whatsappTitle')}
                   </p>
                   <p className="text-xs text-emerald-700 leading-relaxed">
-                    Devido à altíssima procura e requisitos personalizados deste passeio, o agendamento é feito diretamente com a nossa equipe no WhatsApp.
+                    Devido à altíssima procura deste passeio, o agendamento é feito diretamente com a nossa equipe no WhatsApp.
                   </p>
                 </div>
 
@@ -1071,15 +1164,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
                   className="w-full h-14 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
                 >
                   <MessageCircle className="w-6 h-6" />
-                  Consultar Disponibilidade no WhatsApp
+                  {t('bookingModal.finishWhatsApp')}
                 </Button>
               </div>
             )}
 
             <p className="text-[11px] text-gray-400 text-center leading-relaxed pb-1">
-              Atendimento garantido Jericoacoara Premium.
-              <br />
-              Ao continuar, você concorda com nossos Termos de Uso.
+              {t('bookingModal.guaranteeFooter')}
             </p>
           </div>
         )}
@@ -1095,7 +1186,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Pix Copia e Cola</Label>
+              <Label className="text-xs font-semibold">{t('bookingModal.copyPix')}</Label>
               <div className="flex gap-2">
                 <Input
                   readOnly
@@ -1121,7 +1212,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 <strong>Total no PIX: {formatPrice(chargePixTotal)}</strong>
               </p>
               <p className="text-xs text-gray-600">
-                Após o pagamento, confirmaremos sua reserva pelo WhatsApp em até 5 minutos.
+                {t('bookingModal.pixPaidConfirm')}
               </p>
             </div>
 
@@ -1132,7 +1223,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 rel="noopener noreferrer"
                 className="text-sm text-[#009ee3] hover:underline"
               >
-                Abrir tela de pagamento do Mercado Pago
+                {t('bookingModal.openMP')}
               </a>
             </div>
 
@@ -1142,7 +1233,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
               className="w-full h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />
-              Confirmar Dados no WhatsApp
+              {t('bookingModal.confirmWhatsApp')}
             </Button>
           </div>
         )}
