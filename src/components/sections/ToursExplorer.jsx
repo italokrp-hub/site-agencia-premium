@@ -117,6 +117,7 @@ const ToursExplorer = () => {
             const priceLabel = getTourPriceLabel(tour);
             const vehicles = tour.options?.private?.vehicles || [];
             const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
+            const displayTitle = t(`catalog.${tour.id}`, { defaultValue: tour.title });
 
             return (
               <motion.div
@@ -132,12 +133,12 @@ const ToursExplorer = () => {
                   onClick={() => setDrawerItem(tour)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Ver detalhes de ${tour.title}`}
+                  aria-label={`${t('tours.viewDetails')} - ${displayTitle}`}
                   onKeyDown={(e) => e.key === 'Enter' && setDrawerItem(tour)}
                 >
                   <img
                     src={tour.image}
-                    alt={tour.title}
+                    alt={displayTitle}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
@@ -176,7 +177,7 @@ const ToursExplorer = () => {
                     className="font-bold text-gray-900 text-lg mb-3 leading-snug cursor-pointer hover:text-[#2C7A7B] transition-colors"
                     onClick={() => setDrawerItem(tour)}
                   >
-                    {renderTourTitle(tour.title)}
+                    {renderTourTitle(displayTitle)}
                   </h3>
 
                   {tour.locations && (
@@ -210,7 +211,7 @@ const ToursExplorer = () => {
                   {/* Price & Actions */}
                   <div className="mt-auto pt-4 border-t border-gray-100">
                     {isPremium ? (
-                      <p className="text-[#D4AF37] font-bold text-base mb-3">Sob consulta</p>
+                      <p className="text-[#D4AF37] font-bold text-base mb-3">{t('featured.onConsult')}</p>
                     ) : startPrice ? (
                       <div className="mb-3">
                         <span className="text-xs text-gray-400 block">{t('tours.from')}</span>

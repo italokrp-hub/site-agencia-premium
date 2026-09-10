@@ -4,18 +4,19 @@ import { MessageCircle, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BookingBar from '@/components/BookingBar';
 import BookingModal from '@/components/BookingModal';
-
 import { openWhatsApp } from '@/utils/whatsapp';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const Hero = () => {
   const [bookingItem, setBookingItem] = useState(null);
+  const { t } = useLanguage();
 
   const handleWhatsApp = () => {
     openWhatsApp();
   };
 
   const handleReserve = () => {
-    const element = document.querySelector('#valores');
+    const element = document.querySelector('#valores') || document.querySelector('#experiencias');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -55,7 +56,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
           >
-            Experiências Excepcionais em Jericoacoara
+            {t('hero.title')}
           </motion.h1>
           
           <motion.p
@@ -64,7 +65,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl sm:text-2xl text-white/95 font-light"
           >
-            Transfer, Passeios e Serviços Exclusivos
+            {t('hero.subtitle')}
           </motion.p>
 
           <motion.p
@@ -73,7 +74,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-base sm:text-lg text-white/90 max-w-2xl mx-auto"
           >
-            Conforto, segurança e atendimento personalizado para tornar sua viagem inesquecível
+            {t('hero.description')}
           </motion.p>
 
           <motion.div
@@ -88,7 +89,7 @@ const Hero = () => {
               className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
             >
               <Calendar className="w-5 h-5 mr-2" />
-              Reservar Agora
+              {t('hero.bookNow')}
             </Button>
             
             <Button
@@ -98,7 +99,7 @@ const Hero = () => {
               className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white font-bold px-8 py-6 text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
             >
               <MessageCircle className="w-5 h-5 mr-2" />
-              Fale no WhatsApp
+              {t('hero.whatsappAction')}
             </Button>
           </motion.div>
         </motion.div>
@@ -122,15 +123,15 @@ const Hero = () => {
         >
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-[#D4AF37] rounded-full" />
-            <span className="text-xs sm:text-sm font-medium">Atendimento 24h</span>
+            <span className="text-xs sm:text-sm font-medium">{t('hero.support24h')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-[#D4AF37] rounded-full" />
-            <span className="text-xs sm:text-sm font-medium">Motoristas Experientes</span>
+            <span className="text-xs sm:text-sm font-medium">{t('hero.experiencedDrivers')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-[#D4AF37] rounded-full" />
-            <span className="text-xs sm:text-sm font-medium">Veículos Premium</span>
+            <span className="text-xs sm:text-sm font-medium">{t('hero.premiumVehicles')}</span>
           </div>
         </motion.div>
       </div>

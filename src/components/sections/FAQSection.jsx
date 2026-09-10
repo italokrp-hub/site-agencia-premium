@@ -59,6 +59,8 @@ const FAQSection = () => {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const { t } = useLanguage();
 
+  const itemsToRender = t('faq.items') || faqItems;
+
   return (
     <section id="faq" className="py-20 md:py-28 bg-[#F7F3E9] overflow-hidden">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,7 +84,7 @@ const FAQSection = () => {
         </motion.div>
 
         <div className="space-y-3">
-          {faqItems.map((item, index) => (
+          {itemsToRender.map((item, index) => (
             <FAQItem key={index} item={item} index={index} />
           ))}
         </div>
@@ -90,5 +92,6 @@ const FAQSection = () => {
     </section>
   );
 };
+
 
 export default FAQSection;

@@ -271,11 +271,26 @@ export default function BookingModal({ item, open, onOpenChange }) {
   );
 
   const serviceTitle = useMemo(() => {
-    if (transferItem) return transferItem.title;
-    if (tourItem) return tourItem.title;
-    if (internalItem?.title) return internalItem.title;
-    return 'Serviço';
-  }, [transferItem, tourItem, internalItem]);
+    const itemObj = transferItem || tourItem || internalItem;
+    const rawTitle = itemObj?.title || 'Serviço';
+    const keyMap = {
+      'fortaleza': 'fortaleza',
+      'cruz': 'cruz',
+      'jijoca': 'jijoca',
+      'prea': 'prea',
+      'onibus-regular': 'onibusRegular',
+      'tour-leste-private': 'tourLestePrivate',
+      'tour-leste-shared': 'tourLesteShared',
+      'tour-oeste-private': 'tourOestePrivate',
+      'tour-quadri': 'tourQuadri',
+      'tour-utv': 'tourUtv',
+      'tour-helicoptero': 'tourHelicoptero',
+      'tour-lagoa-paraíso': 'tourLagoaParaiso',
+    };
+    const key = keyMap[itemObj?.id];
+    return key ? t(`catalog.${key}`, { defaultValue: rawTitle }) : rawTitle;
+  }, [transferItem, tourItem, internalItem, t]);
+
 
   const triggerHotelOpsSync = useCallback(
     (paymentMethodName) => {

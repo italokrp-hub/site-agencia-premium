@@ -10,30 +10,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function BookingBar({ onBook }) {
   const [selectedServiceId, setSelectedServiceId] = useState('fortaleza');
   const [date, setDate] = useState(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'));
   const [passengers, setPassengers] = useState(2);
+  const { t } = useLanguage();
+
+  // Helper to resolve catalog item title key safely
+  const getCatalogTitle = (itemId, fallbackTitle) => {
+    const keyMap = {
+      'fortaleza': 'fortaleza',
+      'cruz': 'cruz',
+      'jijoca': 'jijoca',
+      'prea': 'prea',
+      'onibus-regular': 'onibusRegular',
+      'tour-leste-private': 'tourLestePrivate',
+      'tour-leste-shared': 'tourLesteShared',
+      'tour-oeste-private': 'tourOestePrivate',
+      'tour-quadri': 'tourQuadri',
+      'tour-utv': 'tourUtv',
+      'tour-helicoptero': 'tourHelicoptero',
+      'tour-lagoa-paraíso': 'tourLagoaParaiso',
+    };
+    const key = keyMap[itemId];
+    return key ? t(`catalog.${key}`, { defaultValue: fallbackTitle }) : fallbackTitle;
+  };
 
   // Lista unificada de opções para o dropdown do BookingBar
   const serviceOptions = useMemo(() => {
-    const transferOpts = transfers.map((t) => ({
-      id: t.id,
-      title: t.title,
+    const transferOpts = transfers.map((tItem) => ({
+      id: tItem.id,
+      title: getCatalogTitle(tItem.id, tItem.title),
       type: 'Transfer',
       category: 'transfer',
-      rawItem: t.raw || t,
+      rawItem: tItem.raw || tItem,
     }));
-    const tourOpts = tours.map((t) => ({
-      id: t.id,
-      title: t.title,
+    const tourOpts = tours.map((tItem) => ({
+      id: tItem.id,
+      title: getCatalogTitle(tItem.id, tItem.title),
       type: 'Passeio',
       category: 'tour',
-      rawItem: t.raw || t,
+      rawItem: tItem.raw || tItem,
     }));
     return [...transferOpts, ...tourOpts];
-  }, []);
+  }, [t]);
 
   const handleSearch = () => {
     const selectedObj = serviceOptions.find((s) => s.id === selectedServiceId) || serviceOptions[0];
@@ -57,32 +79,32 @@ export default function BookingBar({ onBook }) {
             </div>
             <div className="flex-1 min-w-0 flex flex-col justify-center items-start text-left">
               <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1 leading-none text-left w-full truncate">
-                Serviço ou Passeio
+                {t('bookingBar.serviceOrTour')}
               </span>
               <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
                 <SelectTrigger className="h-5 border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white shadow-none focus:ring-0 bg-transparent cursor-pointer truncate flex items-center justify-start text-left w-full">
-                  <SelectValue placeholder="Selecione o serviço" />
+                  <SelectValue placeholder={t('bookingBar.selectService')} />
                 </SelectTrigger>
                 <SelectContent className="z-[150] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-xl max-h-64">
                   <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-left">
-                    Transfers Premium
+                    {t('bookingBar.transfersHeader')}
                   </div>
-                  {transfers.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs py-2 cursor-pointer text-left">
+                  {transfers.map((tItem) => (
+                    <SelectItem key={tItem.id} value={tItem.id} className="text-xs py-2 cursor-pointer text-left">
                       <div className="flex items-center gap-2">
                         <Car className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span className="truncate">{t.title}</span>
+                        <span className="truncate">{getCatalogTitle(tItem.id, tItem.title)}</span>
                       </div>
                     </SelectItem>
                   ))}
                   <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-2 text-left">
-                    Passeios Exclusivos
+                    {t('bookingBar.toursHeader')}
                   </div>
-                  {tours.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs py-2 cursor-pointer text-left">
+                  {tours.map((tItem) => (
+                    <SelectItem key={tItem.id} value={tItem.id} className="text-xs py-2 cursor-pointer text-left">
                       <div className="flex items-center gap-2">
                         <Compass className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span className="truncate">{t.title}</span>
+                        <span className="truncate">{getCatalogTitle(tItem.id, tItem.title)}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -98,7 +120,7 @@ export default function BookingBar({ onBook }) {
             </div>
             <div className="flex-1 min-w-0 flex flex-col justify-center items-start text-left">
               <label htmlFor="booking-bar-date" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1 leading-none text-left w-full truncate cursor-pointer">
-                Data Prevista
+                {t('bookingBar.expectedDate')}
               </label>
               <input
                 id="booking-bar-date"
@@ -118,7 +140,7 @@ export default function BookingBar({ onBook }) {
             </div>
             <div className="flex-1 min-w-0 flex flex-col justify-center items-start text-left">
               <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1 leading-none text-left w-full truncate">
-                Passageiros
+                {t('bookingBar.passengers')}
               </span>
               <div className="flex items-center gap-2 h-5 text-left">
                 <button
@@ -131,7 +153,7 @@ export default function BookingBar({ onBook }) {
                   <Minus className="w-3 h-3" />
                 </button>
                 <span className="text-xs font-bold text-zinc-900 dark:text-white min-w-[1.25rem] text-center select-none leading-none">
-                  {passengers} {passengers === 1 ? 'Pessoa' : 'Pessoas'}
+                  {passengers} {passengers === 1 ? t('bookingBar.person') : t('bookingBar.persons')}
                 </span>
                 <button
                   type="button"
@@ -152,7 +174,7 @@ export default function BookingBar({ onBook }) {
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold px-5 h-11 shadow-lg shadow-emerald-600/30 transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer text-sm"
             >
               <Search className="w-4 h-4 transition-transform group-hover:scale-110" />
-              <span>Cotar</span>
+              <span>{t('bookingBar.quoteBtn')}</span>
             </Button>
           </div>
 
@@ -161,3 +183,4 @@ export default function BookingBar({ onBook }) {
     </div>
   );
 }
+

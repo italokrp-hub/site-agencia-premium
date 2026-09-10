@@ -19,6 +19,7 @@ import {
 } from '@/data/catalog';
 import { renderTourTitle } from '@/utils/titleHelper';
 import { buildWhatsAppLink } from '@/utils/whatsapp';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers to derive display data from catalog items
@@ -30,13 +31,13 @@ function resolveCategory(item) {
   return 'tour';
 }
 
-function resolveStartingPrice(item, category) {
+function resolveStartingPrice(item, category, t) {
   if (category === 'transfer') {
     const raw = item?.raw || item;
     const shared = raw?.options?.shared;
     const tiers = raw?.options?.private?.tiers;
-    if (tiers?.length) return { price: tiers[0].oneWay, label: 'por veículo · somente ida' };
-    if (shared?.available) return { price: shared.oneWay, label: 'por pessoa · somente ida' };
+    if (tiers?.length) return { price: tiers[0].oneWay, label: t('drawer.perVehicleOneWay') };
+    if (shared?.available) return { price: shared.oneWay, label: t('drawer.perPersonOneWay') };
     return null;
   }
   if (category === 'tour') {
@@ -44,8 +45,8 @@ function resolveStartingPrice(item, category) {
     if (raw?.requireWhatsApp) return null;
     const vehicles = raw?.options?.private?.vehicles;
     const sharedPrice = raw?.options?.shared?.price;
-    if (vehicles?.length) return { price: vehicles[0].price, label: 'por veículo' };
-    if (sharedPrice) return { price: sharedPrice, label: 'por pessoa' };
+    if (vehicles?.length) return { price: vehicles[0].price, label: t('drawer.perVehicle') };
+    if (sharedPrice) return { price: sharedPrice, label: t('drawer.perPerson') };
   }
   return null;
 }
@@ -100,15 +101,15 @@ function DrawerBadge({ children, color = 'teal' }) {
   );
 }
 
-function PriceSection({ item, category, isWhatsAppOnly }) {
-  const priceInfo = resolveStartingPrice(item, category);
+function PriceSection({ item, category, isWhatsAppOnly, t }) {
+  const priceInfo = resolveStartingPrice(item, category, t);
   const pix5pct = priceInfo ? priceInfo.price * (1 - PIX_DISCOUNT_PERCENT) : null;
 
   if (isWhatsAppOnly) {
     return (
       <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-2xl p-4">
-        <p className="text-[#D4AF37] font-bold text-lg">Sob consulta</p>
-        <p className="text-sm text-gray-500 mt-0.5">Disponibilidade e valores via WhatsApp</p>
+        <p className="text-[#D4AF37] font-bold text-lg">{t('featured.onConsult')}</p>
+        <p className="text-sm text-gray-500 mt-0.5">{t('drawer.whatsAppConsult')}</p>
       </div>
     );
   }
@@ -127,12 +128,12 @@ function PriceSection({ item, category, isWhatsAppOnly }) {
         <div className="flex items-center gap-1.5">
           <Tag className="w-3.5 h-3.5 text-emerald-600" />
           <span className="text-sm font-semibold text-emerald-700">
-            {formatPrice(pix5pct)} no PIX (5% OFF)
+            {t('drawer.pixDiscount', { price: formatPrice(pix5pct) })}
           </span>
         </div>
       )}
       <p className="text-xs text-gray-400">
-        Parcele em até 10x no cartão · sinal de 50% online
+        {t('drawer.installmentsNote')}
       </p>
     </div>
   );
@@ -146,6 +147,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
   const scrollRef = useRef(null);
   const firstFocusRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { t } = useLanguage();
 
   // ── Focus trap & keyboard handling ──────────────────────────────────────
   useEffect(() => {
@@ -184,7 +186,8 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
 
   // ── Derived data ─────────────────────────────────────────────────────────
   const category = resolveCategory(item);
-  const title = resolveTitle(item);
+  const rawTitle = resolveTitle(item);
+  const title = t(`catalog.${item.id}`, { defaultValue: rawTitle });
   const description = resolveDescription(item);
   const image = resolveImage(item);
   const locations = resolveLocations(item);
@@ -223,7 +226,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
           ref={firstFocusRef}
           onClick={onClose}
           className="absolute top-4 right-4 w-9 h-9 bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          aria-label="Fechar"
+          aria-label={t('drawer.close')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -231,7 +234,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
         {/* Category badge */}
         <div className="absolute top-4 left-4">
           <DrawerBadge color={isTransfer ? 'teal' : isWhatsAppOnly ? 'gold' : 'teal'}>
-            {isTransfer ? '🚗 Transfer' : isWhatsAppOnly ? '✨ Premium' : '🧭 Passeio'}
+            {isTransfer ? t('drawer.transferCategory') : isWhatsAppOnly ? t('drawer.premiumCategory') : t('drawer.tourCategory')}
           </DrawerBadge>
         </div>
 
@@ -256,19 +259,19 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             {sharedAvailable && (
               <DrawerBadge color="green">
                 <Users className="w-3 h-3 mr-1" />
-                Compartilhado disponível
+                {t('drawer.sharedAvailable')}
               </DrawerBadge>
             )}
             {(vehicles.length > 0 || tiers.length > 0) && (
               <DrawerBadge color="teal">
                 <Car className="w-3 h-3 mr-1" />
-                Privativo disponível
+                {t('drawer.privateAvailable')}
               </DrawerBadge>
             )}
             {!isWhatsAppOnly && (
               <DrawerBadge color="gray">
                 <Tag className="w-3 h-3 mr-1" />
-                5% OFF no PIX
+                {t('drawer.pixTag')}
               </DrawerBadge>
             )}
           </div>
@@ -283,7 +286,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
                 <span className="w-1 h-4 rounded-full bg-[#2C7A7B] inline-block" />
-                Roteiro / Paradas
+                {t('drawer.itineraryHeader')}
               </h3>
               <ul className="space-y-2">
                 {locations.map((loc, i) => (
@@ -303,7 +306,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
                 <span className="w-1 h-4 rounded-full bg-[#2C7A7B] inline-block" />
-                Opções de Veículo
+                {t('drawer.vehicleOptions')}
               </h3>
               <div className="space-y-2">
                 {tiers.map((tier) => (
@@ -313,11 +316,11 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
                   >
                     <div>
                       <span className="font-semibold text-gray-900">{tier.vehicle}</span>
-                      <span className="text-gray-400 ml-2 text-xs">até {tier.maxCapacity} pessoas</span>
+                      <span className="text-gray-400 ml-2 text-xs">até {tier.maxCapacity} {t('bookingBar.persons').toLowerCase()}</span>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-[#2C7A7B]">{formatPrice(tier.roundTrip)}</p>
-                      <p className="text-[10px] text-gray-400">ida e volta</p>
+                      <p className="text-[10px] text-gray-400">{t('transfers.roundTrip').toLowerCase()}</p>
                     </div>
                   </div>
                 ))}
@@ -330,7 +333,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
                 <span className="w-1 h-4 rounded-full bg-[#2C7A7B] inline-block" />
-                Veículos Disponíveis
+                {t('drawer.availableVehicles')}
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 {vehicles.map((v) => (
@@ -356,8 +359,8 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-emerald-800 font-bold text-sm">Compartilhado (Jardineira)</p>
-                    <p className="text-emerald-600 text-xs">por pessoa — ótimo custo-benefício</p>
+                    <p className="text-emerald-800 font-bold text-sm">{t('drawer.sharedTitle')}</p>
+                    <p className="text-emerald-600 text-xs">{t('drawer.sharedSub')}</p>
                   </div>
                   <p className="text-emerald-700 font-extrabold text-lg">{formatPrice(sharedPrice)}</p>
                 </div>
@@ -366,15 +369,15 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
           })()}
 
           {/* Price section */}
-          <PriceSection item={item} category={category} isWhatsAppOnly={isWhatsAppOnly} />
+          <PriceSection item={item} category={category} isWhatsAppOnly={isWhatsAppOnly} t={t} />
 
           {/* Trust items */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { icon: Shield, text: 'Cadastur regularizado' },
-              { icon: Star, text: 'Motoristas certificados' },
-              { icon: Calendar, text: 'Sinal de 50% online' },
-              { icon: Check, text: 'Suporte 24 horas' },
+              { icon: Shield, text: t('drawer.cadasturBadge') },
+              { icon: Star, text: t('drawer.driversBadge') },
+              { icon: Calendar, text: t('drawer.depositBadge') },
+              { icon: Check, text: t('drawer.supportBadge') },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2 text-xs text-gray-500">
                 <Icon className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
@@ -395,7 +398,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             className="flex items-center justify-center gap-2 w-full h-12 rounded-2xl bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2"
           >
             <MessageCircle className="w-5 h-5" />
-            Consultar disponibilidade
+            {t('drawer.checkAvailability')}
           </a>
         ) : (
           <Button
@@ -403,18 +406,19 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
             className="w-full h-12 rounded-2xl bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base shadow-lg shadow-[#2C7A7B]/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#2C7A7B] focus-visible:ring-offset-2"
           >
             <Calendar className="w-5 h-5 mr-2" />
-            Reservar experiência
+            {t('drawer.bookExperience')}
           </Button>
         )}
         <button
           onClick={onClose}
           className="w-full h-9 rounded-xl text-gray-500 hover:text-gray-700 text-xs font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
         >
-          Fechar
+          {t('drawer.close')}
         </button>
       </div>
     </div>
   );
+
 
   return (
     <AnimatePresence>

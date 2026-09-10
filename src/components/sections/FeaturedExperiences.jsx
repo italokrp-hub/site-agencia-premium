@@ -17,6 +17,7 @@ const FEATURED_IDS = [
 ];
 
 import { openWhatsApp } from '@/utils/whatsapp';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 function resolveItem(catalogId, category) {
   if (category === 'tour') return toursData.find((t) => t.id === catalogId);
@@ -38,14 +39,14 @@ function getStartingPrice(item, category) {
   return null;
 }
 
-function getPriceLabel(item, category) {
+function getPriceLabel(item, category, t) {
   if (category === 'tour') {
-    if (item.requireWhatsApp) return 'Sob consulta';
-    if (item.options?.shared?.available && !item.options?.private?.available) return 'por pessoa';
-    return 'por veículo';
+    if (item.requireWhatsApp) return t('featured.onConsult');
+    if (item.options?.shared?.available && !item.options?.private?.available) return t('tours.perPerson');
+    return t('tours.perVehicle');
   }
-  if (item.options?.shared?.available) return 'por pessoa · ida';
-  return 'por veículo';
+  if (item.options?.shared?.available) return `${t('tours.perPerson')} · ${t('transfers.oneWay')}`;
+  return t('tours.perVehicle');
 }
 
 const FeaturedExperiences = () => {
@@ -53,6 +54,7 @@ const FeaturedExperiences = () => {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const [bookingItem, setBookingItem] = useState(null);
   const [drawerItem, setDrawerItem] = useState(null);
+  const { t } = useLanguage();
 
   const handleViewDetails = (item) => {
     setDrawerItem(item);
@@ -93,11 +95,10 @@ const FeaturedExperiences = () => {
         >
           <div>
             <p className="text-[#2C7A7B] text-xs font-bold tracking-[0.3em] uppercase mb-3">
-              Nossas Experiências
+              {t('featured.sectionTag')}
             </p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight max-w-lg">
-              Experiências que você{' '}
-              <span className="text-[#2C7A7B]">não pode perder</span>
+              {t('featured.sectionTitle')}
             </h2>
           </div>
           <a
@@ -108,18 +109,20 @@ const FeaturedExperiences = () => {
             }}
             className="group flex items-center gap-2 text-sm font-bold text-[#2C7A7B] hover:text-[#1a5a5b] transition-colors shrink-0"
           >
-            Ver todas
+            {t('featured.viewAll')}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
         </motion.div>
+
 
         {/* Cards grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {featured.map(({ item, category, badge }, index) => {
             const startPrice = getStartingPrice(item, category);
-            const priceLabel = getPriceLabel(item, category);
+            const priceLabel = getPriceLabel(item, category, t);
             const isWhatsAppOnly = !!item.requireWhatsApp;
             const locations = item.locations || [];
+            const displayTitle = t(`catalog.${item.id}`, { defaultValue: item.title });
 
             return (
               <motion.div
@@ -135,12 +138,12 @@ const FeaturedExperiences = () => {
                   onClick={() => handleViewDetails(item)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Ver detalhes de ${item.title}`}
+                  aria-label={`${t('featured.details')} - ${displayTitle}`}
                   onKeyDown={(e) => e.key === 'Enter' && handleViewDetails(item)}
                 >
                   <img
                     src={item.image}
-                    alt={item.title}
+                    alt={displayTitle}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
@@ -150,18 +153,18 @@ const FeaturedExperiences = () => {
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5" />
-                      Ver detalhes
+                      {t('tours.viewDetails')}
                     </span>
                   </div>
 
                   {/* Badge */}
                   <span className="absolute top-3 left-3 bg-[#D4AF37] text-gray-900 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                    {badge}
+                    {badge === 'Mais Popular' ? t('tours.mostPopular') : badge === 'Melhor Custo' ? t('transfers.cheapestOption') : badge}
                   </span>
 
                   {/* Category chip */}
                   <span className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-1 rounded-full capitalize">
-                    {category === 'tour' ? 'Passeio' : 'Transfer'}
+                    {category === 'tour' ? t('tours.bookTour').split(' ')[1] || 'Tour' : 'Transfer'}
                   </span>
                 </div>
 
@@ -171,7 +174,7 @@ const FeaturedExperiences = () => {
                     className="font-bold text-gray-900 text-base leading-snug mb-2 cursor-pointer hover:text-[#2C7A7B] transition-colors"
                     onClick={() => handleViewDetails(item)}
                   >
-                    {renderTourTitle(item.title)}
+                    {renderTourTitle(displayTitle)}
                   </h3>
 
                   {/* Locations */}
@@ -184,7 +187,7 @@ const FeaturedExperiences = () => {
                         </li>
                       ))}
                       {locations.length > 3 && (
-                        <li className="text-xs text-gray-400">+{locations.length - 3} pontos</li>
+                        <li className="text-xs text-gray-400">+{locations.length - 3}</li>
                       )}
                     </ul>
                   )}
@@ -197,10 +200,10 @@ const FeaturedExperiences = () => {
                   {/* Price + CTAs */}
                   <div className="mt-auto pt-4 border-t border-gray-100">
                     {isWhatsAppOnly ? (
-                      <p className="text-[#D4AF37] font-bold text-base">Sob consulta</p>
+                      <p className="text-[#D4AF37] font-bold text-base">{t('featured.onConsult')}</p>
                     ) : startPrice ? (
                       <div>
-                        <span className="text-xs text-gray-400">A partir de</span>
+                        <span className="text-xs text-gray-400">{t('featured.from')}</span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-xl font-extrabold text-[#2C7A7B]">
                             {formatPrice(startPrice)}
@@ -217,13 +220,13 @@ const FeaturedExperiences = () => {
                         className="flex-1 h-9 text-xs font-bold rounded-xl border-gray-200 text-gray-600 hover:border-[#2C7A7B] hover:text-[#2C7A7B] transition-all"
                       >
                         <Eye className="w-3.5 h-3.5 mr-1" />
-                        Detalhes
+                        {t('featured.details')}
                       </Button>
 
                       <Button
                         onClick={() =>
                           isWhatsAppOnly
-                            ? openWhatsApp(`Olá! Gostaria de saber mais sobre: ${item.title}`)
+                            ? openWhatsApp(`Olá! Gostaria de saber mais sobre: ${displayTitle}`)
                             : handleBook(item)
                         }
                         className={`flex-1 h-9 text-xs font-bold rounded-xl transition-all duration-300 ${
@@ -232,7 +235,7 @@ const FeaturedExperiences = () => {
                             : 'bg-[#2C7A7B] hover:bg-[#235f60] text-white'
                         }`}
                       >
-                        {isWhatsAppOnly ? 'WhatsApp' : 'Reservar'}
+                        {isWhatsAppOnly ? 'WhatsApp' : t('featured.reserve')}
                       </Button>
                     </div>
                   </div>
@@ -240,6 +243,7 @@ const FeaturedExperiences = () => {
               </motion.div>
             );
           })}
+
         </div>
       </div>
 

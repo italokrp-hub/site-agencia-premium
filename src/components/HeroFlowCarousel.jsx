@@ -114,6 +114,7 @@ const SCENES = [
 
 import { transfersData, toursData } from '@/data/catalog';
 import { openWhatsApp as triggerWhatsApp } from '@/utils/whatsapp';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // Helper for whatsapp redirect
 const openWhatsApp = (serviceName) => {
@@ -121,10 +122,10 @@ const openWhatsApp = (serviceName) => {
   triggerWhatsApp(msgText);
 };
 
-
 const HeroFlowCarousel = () => {
   const [currentScene, setCurrentScene] = useState(0);
   const [bookingItem, setBookingItem] = useState(null);
+  const { t } = useLanguage();
   
   // Keep track of video elements for play/pause control
   const videoRefs = useRef([]);
@@ -154,33 +155,24 @@ const HeroFlowCarousel = () => {
   const handleOpenBooking = () => {
     const scene = SCENES[currentScene];
     if (scene.id === 8) {
-      // Scroll to #servicos
-      const element = document.querySelector('#servicos');
+      const element = document.querySelector('#servicos') || document.querySelector('#experiencias');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (scene.id === 3) {
-      // Helicóptero
       openWhatsApp('Helicóptero');
     } else if (scene.id === 6) {
-      // UTV - actually scene 6 is Lagoa do Paraíso now, wait.
-      // UTV was previously scene 6 in my old list but the user didn't mention it. Let's just keep the WhatsApp logic if UTV is ever added back, but for now we only have Helicóptero.
-      // Wait, UTV isn't mapped to a specific scene ID here, it's covered in scene 8 text.
       openWhatsApp('UTV');
     } else if (scene.id === 1) {
-      // Transfer VIP
       const transfer = transfersData.find(t => t.id === 'fortaleza');
       setBookingItem(transfer);
     } else if (scene.id === 2 || scene.id === 5) {
-      // Buggy / Leste
       const tourLeste = toursData.find(t => t.id === 'tour-leste-private');
       setBookingItem({ ...tourLeste, selectedVehicleType: 'Buggy' });
     } else if (scene.id === 4) {
-      // Oeste / Laguna
       const tourOeste = toursData.find(t => t.id === 'tour-oeste-private');
       setBookingItem(tourOeste);
     } else {
-      // General Fallback
       const tourLeste = toursData.find(t => t.id === 'tour-leste-private');
       setBookingItem(tourLeste);
     }
@@ -257,15 +249,15 @@ const HeroFlowCarousel = () => {
               className="space-y-6"
             >
               <div className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium tracking-wide uppercase">
-                {scene.badge}
+                {t(`carousel.scene${scene.id}Badge`, { defaultValue: scene.badge })}
               </div>
               
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
-                {scene.title}
+                {t(`carousel.scene${scene.id}Title`, { defaultValue: scene.title })}
               </h1>
               
               <p className="text-base sm:text-xl text-white/90 font-light max-w-xl drop-shadow-md">
-                {scene.description}
+                {t(`carousel.scene${scene.id}Desc`, { defaultValue: scene.description })}
               </p>
 
               <div className="pt-4">
@@ -275,7 +267,7 @@ const HeroFlowCarousel = () => {
                   className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group"
                 >
                   <Calendar className="w-5 h-5 mr-2" />
-                  {scene.id === 8 ? 'Ver Todos os Passeios' : 'Reservar Experiência'}
+                  {scene.id === 8 ? t('hero.exploreTours') : t('carousel.bookNow')}
                   <ArrowRight className="w-5 h-5 ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </Button>
               </div>
@@ -294,16 +286,17 @@ const HeroFlowCarousel = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="bg-black/20 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-sm"
             >
-              <h3 className="text-white text-xl font-semibold mb-6">Destaques da Experiência</h3>
+              <h3 className="text-white text-xl font-semibold mb-6">{t('tours.locationsIncluded', { defaultValue: 'Destaques da Experiência' })}</h3>
               <div className="space-y-5">
                 {scene.highlights.map((highlight, index) => {
                   const Icon = highlight.icon;
+                  const translatedText = t(`carousel.scene${scene.id}H${index + 1}`, { defaultValue: highlight.text });
                   return (
                     <div key={index} className="flex items-center gap-4 text-white/90">
                       <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center border border-[#D4AF37]/30">
                         <Icon className="w-5 h-5 text-[#D4AF37]" />
                       </div>
-                      <span className="font-medium">{highlight.text}</span>
+                      <span className="font-medium">{translatedText}</span>
                     </div>
                   );
                 })}
