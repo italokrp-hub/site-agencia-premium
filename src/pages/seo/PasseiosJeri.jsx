@@ -17,6 +17,8 @@ const PasseiosJeri = () => {
   const tourOestePrivate = toursData.find(t => t.id === 'tour-oeste-private');
   const buggyLesteOpt = tourLestePrivate?.options?.private?.vehicles?.find(v => v.type === 'Buggy');
   const buggyOesteOpt = tourOestePrivate?.options?.private?.vehicles?.find(v => v.type === 'Buggy');
+  const tourUtv = toursData.find(t => t.id === 'tour-utv');
+  const tourHelicoptero = toursData.find(t => t.id === 'tour-helicoptero');
 
   const handleWhatsApp = () => {
     openWhatsApp("Olá! Quero montar um roteiro personalizado para os passeios Leste e Oeste em Jeri.");
@@ -204,11 +206,76 @@ const PasseiosJeri = () => {
         </div>
       </section>
 
-      {/* Experiência Premium */}
-      <section className="py-20 bg-gray-50">
+      {/* Experiência Premium - UTV e Helicóptero */}
+      <section className="py-20 bg-gray-50 border-t border-gray-200">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Experiências Premium Exclusivas</h2>
+            <div className="w-20 h-1 bg-[#D4AF37] mx-auto rounded-full" />
+            <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+              Eleve sua viagem a outro nível. Aventura extrema em UTVs de última geração ou vistas panorâmicas inesquecíveis a bordo de um helicóptero.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* UTV */}
+            <div className="bg-gray-900 text-white rounded-3xl overflow-hidden shadow-2xl flex flex-col relative group">
+              <div className="h-64 overflow-hidden relative">
+                <div className="absolute top-4 right-4 bg-[#D4AF37] text-gray-900 font-bold px-4 py-1 rounded-full text-sm z-10 shadow-lg">
+                  Off-Road VIP
+                </div>
+                <img src={tourUtv?.image || '/images/passeio-utv-maverick.webp'} alt="UTV Jericoacoara" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
+              </div>
+              <div className="p-8 flex-grow">
+                <h3 className="text-2xl font-bold mb-2">{tourUtv?.title}</h3>
+                <p className="text-gray-400 text-sm mb-6">{tourUtv?.description}</p>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start text-sm"><Check className="text-[#D4AF37] w-5 h-5 mr-3 shrink-0" /> Máquinas esportivas Can-Am Maverick X3.</li>
+                  <li className="flex items-start text-sm"><Check className="text-[#D4AF37] w-5 h-5 mr-3 shrink-0" /> Pilotagem cheia de adrenalina nas dunas.</li>
+                  <li className="flex items-start text-sm"><Check className="text-[#D4AF37] w-5 h-5 mr-3 shrink-0" /> Roteiros flexíveis sob consulta.</li>
+                </ul>
+              </div>
+              <div className="p-8 pt-0 mt-auto">
+                <Button onClick={() => handleBook(tourUtv, 'private', 'UTV')} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold h-12 shadow-lg">
+                  Consultar Passeio de UTV
+                </Button>
+              </div>
+            </div>
+
+            {/* Helicóptero */}
+            <div className="bg-[#2C7A7B] text-white rounded-3xl overflow-hidden shadow-2xl flex flex-col relative group">
+              <div className="h-64 overflow-hidden relative">
+                <div className="absolute top-4 right-4 bg-white text-[#2C7A7B] font-bold px-4 py-1 rounded-full text-sm z-10 shadow-lg">
+                  Vista Aérea
+                </div>
+                <img src={tourHelicoptero?.image || '/images/voo-helicoptero-jeri.webp'} alt="Helicóptero Jericoacoara" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2C7A7B] to-transparent" />
+              </div>
+              <div className="p-8 flex-grow">
+                <h3 className="text-2xl font-bold mb-2">{tourHelicoptero?.title}</h3>
+                <p className="text-white/80 text-sm mb-6">{tourHelicoptero?.description}</p>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start text-sm"><Check className="text-[#D4AF37] w-5 h-5 mr-3 shrink-0" /> Contemple Pedra Furada e as dunas lá do alto.</li>
+                  <li className="flex items-start text-sm"><Check className="text-[#D4AF37] w-5 h-5 mr-3 shrink-0" /> Experiência romântica e inesquecível.</li>
+                  <li className="flex items-start text-sm"><Check className="text-[#D4AF37] w-5 h-5 mr-3 shrink-0" /> Duração e rotas variáveis sob demanda.</li>
+                </ul>
+              </div>
+              <div className="p-8 pt-0 mt-auto">
+                <Button onClick={() => handleBook(tourHelicoptero, 'private', 'Helicóptero')} className="w-full bg-white hover:bg-gray-100 text-[#2C7A7B] font-bold h-12 shadow-lg">
+                  Consultar Voo de Helicóptero
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Padrão Jericoacoara Premium */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4 max-w-5xl">
-          <div className="bg-[#2C7A7B] text-white rounded-3xl p-10 md:p-14 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          <div className="bg-gray-900 text-white rounded-3xl p-10 md:p-14 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
             <div className="relative z-10 text-center">
               <Star className="w-12 h-12 text-[#D4AF37] mx-auto mb-6" />
               <h2 className="text-3xl font-bold mb-6">Padrão Jericoacoara Premium</h2>
@@ -218,7 +285,7 @@ const PasseiosJeri = () => {
               <Button
                 onClick={handleWhatsApp}
                 size="lg"
-                className="bg-white text-[#2C7A7B] hover:bg-gray-100 font-bold px-10 py-6 text-xl rounded-full shadow-lg"
+                className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-10 py-6 text-xl rounded-full shadow-lg"
               >
                 Falar com um Consultor Especialista
               </Button>

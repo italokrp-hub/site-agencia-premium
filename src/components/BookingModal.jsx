@@ -131,6 +131,14 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return null;
   }, [internalItem]);
 
+  const serviceTitle = useMemo(() => {
+    const itemObj = transferItem || tourItem || internalItem;
+    const rawTitle = itemObj?.title || 'Serviço';
+    if (!itemObj?.id) return rawTitle;
+    const res = t(`catalog.${itemObj.id}`, { defaultValue: rawTitle });
+    return (res && typeof res === 'string' && !res.startsWith('catalog.')) ? res : rawTitle;
+  }, [transferItem, tourItem, internalItem, t]);
+
   const isTransfer = Boolean(transferItem || internalItem?.category === 'transfer');
   const isTour = Boolean(tourItem || internalItem?.category === 'tour');
   const isRoundTrip = isTransfer && form.tripType === 'roundTrip';
@@ -320,14 +328,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
     },
     [onOpenChange, resetModal]
   );
-
-  const serviceTitle = useMemo(() => {
-    const itemObj = transferItem || tourItem || internalItem;
-    const rawTitle = itemObj?.title || 'Serviço';
-    if (!itemObj?.id) return rawTitle;
-    const res = t(`catalog.${itemObj.id}`, { defaultValue: rawTitle });
-    return (res && typeof res === 'string' && !res.startsWith('catalog.')) ? res : rawTitle;
-  }, [transferItem, tourItem, internalItem, t]);
 
 
 
