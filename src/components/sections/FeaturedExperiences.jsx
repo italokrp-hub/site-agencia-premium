@@ -123,6 +123,7 @@ const FeaturedExperiences = () => {
             const isWhatsAppOnly = !!item.requireWhatsApp;
             const translated = t(`catalog.${item.id}`, { defaultValue: item.title });
             const displayTitle = (translated && typeof translated === 'string' && !translated.startsWith('catalog.')) ? translated : item.title;
+            const locations = item.locations || [];
 
             return (
               <motion.div
