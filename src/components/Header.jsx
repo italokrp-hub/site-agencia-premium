@@ -34,7 +34,9 @@ const Header = () => {
       isDropdown: true,
       items: [
         { label: 'Fortaleza ↔ Jeri', href: '/transfer-fortaleza-jericoacoara' },
-        { label: 'Aeroporto (JJD) ↔ Jeri', href: '/transfer-aeroporto-jericoacoara' }
+        { label: 'Aeroporto (JJD) ↔ Jeri', href: '/transfer-aeroporto-jericoacoara' },
+        { label: 'Jijoca ↔ Jeri', href: '/transfer-jijoca-jericoacoara' },
+        { label: 'Praia do Preá ↔ Jeri', href: '/transfer-prea-jericoacoara' }
       ]
     },
     { label: t('nav.destinations'), href: '#mapa' },

@@ -120,8 +120,9 @@ const TransferAeroportoJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Saindo do Aeroporto JJD</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(cruzTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa</span>
+                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
               <div className="p-8 flex-grow">
                 <ul className="space-y-4 mb-8">
@@ -130,9 +131,12 @@ const TransferAeroportoJeri = () => {
                   <li className="flex items-start"><Check className="text-emerald-500 w-5 h-5 mr-3 mt-0.5 shrink-0" /> Veículos 4x4 (Hilux ou SW4) compartilhados.</li>
                 </ul>
               </div>
-              <div className="p-8 pt-0 mt-auto">
-                <Button onClick={() => handleBook(cruzTransfer, 'shared')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 text-lg">
+              <div className="p-8 pt-0 mt-auto space-y-3">
+                <Button onClick={() => handleBook(cruzTransfer, 'shared')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 text-lg relative">
                   Reservar Compartilhado
+                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
+                    Economize 5% pagando via PIX
+                  </span>
                 </Button>
               </div>
             </div>
@@ -147,8 +151,9 @@ const TransferAeroportoJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Hilux / SW4 Exclusiva</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(cruzTransfer?.options?.private?.tiers?.[0]?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /veículo (até 4 pessoas)</span>
+                  <span className="text-sm opacity-80"> /veículo (trecho)</span>
                 </div>
+                <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
               <div className="p-8 flex-grow">
                 <ul className="space-y-4 mb-8">
@@ -158,9 +163,12 @@ const TransferAeroportoJeri = () => {
                   <li className="flex items-start"><Check className="text-emerald-500 w-5 h-5 mr-3 mt-0.5 shrink-0" /> Sem tempo de espera por outros passageiros.</li>
                 </ul>
               </div>
-              <div className="p-8 pt-0 mt-auto">
-                <Button onClick={() => handleBook(cruzTransfer, 'private')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 h-12 text-lg text-white">
+              <div className="p-8 pt-0 mt-auto space-y-3">
+                <Button onClick={() => handleBook(cruzTransfer, 'private')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 h-12 text-lg text-white relative">
                   Reservar Privativo
+                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
+                    Economize 5% pagando via PIX
+                  </span>
                 </Button>
               </div>
             </div>

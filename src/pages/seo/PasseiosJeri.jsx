@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, MapPin, Star, Check } from 'lucide-react';
+import { MessageCircle, MapPin, Star, Check, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
@@ -107,8 +107,11 @@ const PasseiosJeri = () => {
                   {tourLesteShared?.locations?.slice(0,4).map((loc, idx) => (
                     <li key={idx} className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> {loc}</li>
                   ))}
-                  <li className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> Saída do Centro de Jeri</li>
+                  <li className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> Embarque e desembarque direto na porta da sua pousada em Jericoacoara</li>
                 </ul>
+                <div className="mt-4 flex items-center justify-center bg-gray-100 text-gray-700 text-xs font-bold py-2 rounded-lg">
+                  <Clock className="w-4 h-4 mr-2 text-[#D4AF37]" /> Duração média: 5 a 6 horas de passeio
+                </div>
               </div>
               <div className="p-8 pt-0 mt-auto">
                 <Button onClick={() => handleBook(tourLesteShared, 'shared', 'Jardineira')} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold h-12">
@@ -120,18 +123,23 @@ const PasseiosJeri = () => {
             {/* Leste Privativo */}
             <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200 flex flex-col hover:shadow-xl transition-all">
               <div className="p-8 flex-grow">
-                <h3 className="text-2xl font-bold mb-2">Privativo (Buggy / Quadri)</h3>
+                <h3 className="text-2xl font-bold mb-2">Privativo (Exclusivo)</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(buggyLesteOpt?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /veículo (até 4 pessoas)</span>
+                  <span className="text-sm opacity-80 text-gray-500"> /veículo</span>
+                  <p className="text-xs text-gray-500 mt-1">Buggy (até 4 pax) / Quadriciclo (até 2 pax)</p>
                 </div>
                 <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Vantagens Premium:</h4>
                 <ul className="space-y-2 mb-8">
+                  <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Embarque e desembarque direto na porta da sua pousada em Jericoacoara</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Exclusividade total do veículo (Buggy, UTV ou Quadriciclo)</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Tempo livre em cada atração</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Guia fotógrafo para fazer os melhores registros</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Paradas personalizadas no trajeto leste</li>
                 </ul>
+                <div className="mt-4 flex items-center justify-center bg-gray-50 border border-gray-100 text-gray-700 text-xs font-bold py-2 rounded-lg">
+                  <Clock className="w-4 h-4 mr-2 text-[#D4AF37]" /> Duração média: 5 a 6 horas de passeio
+                </div>
               </div>
               <div className="p-8 pt-0 mt-auto">
                 <Button onClick={() => handleBook(tourLestePrivate, 'private', 'Buggy')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 font-bold">
@@ -171,8 +179,12 @@ const PasseiosJeri = () => {
                   {tourOesteShared?.locations?.slice(0,4).map((loc, idx) => (
                     <li key={idx} className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> {loc}</li>
                   ))}
+                  <li className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> Embarque e desembarque direto na porta da sua pousada em Jericoacoara</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> Travessia de Balsa inclusa</li>
                 </ul>
+                <div className="mt-4 flex items-center justify-center bg-white text-gray-700 text-xs font-bold py-2 rounded-lg border border-gray-200">
+                  <Clock className="w-4 h-4 mr-2 text-[#2C7A7B]" /> Duração média: 5 a 6 horas de passeio
+                </div>
               </div>
               <div className="p-8 pt-0 mt-auto">
                 <Button onClick={() => handleBook(tourOesteShared, 'shared', 'Jardineira')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 text-white font-bold h-12">
@@ -184,17 +196,22 @@ const PasseiosJeri = () => {
             {/* Oeste Privativo */}
             <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200 flex flex-col hover:shadow-xl transition-all">
               <div className="p-8 flex-grow">
-                <h3 className="text-2xl font-bold mb-2">Privativo (Buggy / Quadri)</h3>
+                <h3 className="text-2xl font-bold mb-2">Privativo (Exclusivo)</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(buggyOesteOpt?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /veículo (até 4 pessoas)</span>
+                  <span className="text-sm opacity-80 text-gray-500"> /veículo</span>
+                  <p className="text-xs text-gray-500 mt-1">Buggy (até 4 pax) / Quadriciclo (até 2 pax)</p>
                 </div>
                 <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Vantagens Premium:</h4>
                 <ul className="space-y-2 mb-8">
+                  <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Embarque e desembarque direto na porta da sua pousada em Jericoacoara</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Mais aventura pelas trilhas nas dunas da Tatajuba</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Roteiro 100% flexível ao seu ritmo</li>
                   <li className="flex items-center text-sm text-gray-600"><Check className="text-[#D4AF37] w-4 h-4 mr-2 shrink-0" /> Paradas sem pressa para curtir o Toboágua e as barracas</li>
                 </ul>
+                <div className="mt-4 flex items-center justify-center bg-gray-50 border border-gray-100 text-gray-700 text-xs font-bold py-2 rounded-lg">
+                  <Clock className="w-4 h-4 mr-2 text-[#D4AF37]" /> Duração média: 5 a 6 horas de passeio
+                </div>
               </div>
               <div className="p-8 pt-0 mt-auto">
                 <Button onClick={() => handleBook(tourOestePrivate, 'private', 'Buggy')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 font-bold">

@@ -126,6 +126,8 @@ const Footer = () => {
             <div className="flex flex-col gap-3 text-sm text-gray-400">
               <Link to="/transfer-fortaleza-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Fortaleza ↔ Jeri</Link>
               <Link to="/transfer-aeroporto-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Aeroporto ↔ Jeri</Link>
+              <Link to="/transfer-jijoca-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Jijoca ↔ Jeri</Link>
+              <Link to="/transfer-prea-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Preá ↔ Jeri</Link>
               <Link to="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</Link>
             </div>
           </div>

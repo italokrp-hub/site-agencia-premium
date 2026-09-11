@@ -32,6 +32,8 @@ import VoucherPage from '@/pages/VoucherPage';
 // SEO Landing Pages
 import TransferFortalezaJeri from '@/pages/seo/TransferFortalezaJeri';
 import TransferAeroportoJeri from '@/pages/seo/TransferAeroportoJeri';
+import TransferJijocaJeri from '@/pages/seo/TransferJijocaJeri';
+import TransferPreaJeri from '@/pages/seo/TransferPreaJeri';
 import PasseiosJeri from '@/pages/seo/PasseiosJeri';
 
 function LandingPage() {
@@ -141,6 +143,8 @@ function App() {
             {/* SEO Landing Pages */}
             <Route path="/transfer-fortaleza-jericoacoara" element={<TransferFortalezaJeri />} />
             <Route path="/transfer-aeroporto-jericoacoara" element={<TransferAeroportoJeri />} />
+            <Route path="/transfer-jijoca-jericoacoara" element={<TransferJijocaJeri />} />
+            <Route path="/transfer-prea-jericoacoara" element={<TransferPreaJeri />} />
             <Route path="/passeios-jericoacoara" element={<PasseiosJeri />} />
           </Routes>
         </BrowserRouter>

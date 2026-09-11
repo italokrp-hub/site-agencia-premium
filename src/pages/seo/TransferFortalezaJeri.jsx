@@ -118,8 +118,9 @@ const TransferFortalezaJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Ônibus/Van Regular</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(busTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa</span>
+                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
                 </div>
+                <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
               <div className="p-8 flex-grow">
                 <ul className="space-y-4 mb-8">
@@ -130,8 +131,11 @@ const TransferFortalezaJeri = () => {
                 </ul>
               </div>
               <div className="p-8 pt-0 mt-auto space-y-3">
-                <Button onClick={() => handleBook(busTransfer, 'shared')} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold h-12 text-lg">
+                <Button onClick={() => handleBook(busTransfer, 'shared')} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold h-12 text-lg relative">
                   Reservar Econômico
+                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
+                    Economize 5% pagando via PIX
+                  </span>
                 </Button>
               </div>
             </div>
@@ -143,8 +147,9 @@ const TransferFortalezaJeri = () => {
                 <p className="opacity-70 text-sm mt-1">Hilux / SW4 Compartilhada</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold">{formatPrice(sharedTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa</span>
+                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
               <div className="p-8 flex-grow">
                 <ul className="space-y-4 mb-8">
@@ -154,8 +159,11 @@ const TransferFortalezaJeri = () => {
                 </ul>
               </div>
               <div className="p-8 pt-0 mt-auto space-y-3">
-                <Button onClick={() => handleBook(sharedTransfer, 'shared')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 text-lg">
+                <Button onClick={() => handleBook(sharedTransfer, 'shared')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 text-lg relative">
                   Reservar Compartilhado
+                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
+                    Economize 5% pagando via PIX
+                  </span>
                 </Button>
               </div>
             </div>
@@ -167,8 +175,9 @@ const TransferFortalezaJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Veículo Exclusivo (Até 4 pax)</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold">{formatPrice(sharedTransfer?.options?.private?.tiers?.[0]?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /veículo</span>
+                  <span className="text-sm opacity-80"> /veículo (trecho)</span>
                 </div>
+                <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
               <div className="p-8 flex-grow">
                 <ul className="space-y-4 mb-8">
@@ -179,8 +188,11 @@ const TransferFortalezaJeri = () => {
                 </ul>
               </div>
               <div className="p-8 pt-0 mt-auto space-y-3">
-                <Button onClick={() => handleBook(sharedTransfer, 'private')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 h-12 text-lg text-white">
+                <Button onClick={() => handleBook(sharedTransfer, 'private')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 h-12 text-lg text-white relative">
                   Reservar Privativo
+                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
+                    Economize 5% pagando via PIX
+                  </span>
                 </Button>
               </div>
             </div>
