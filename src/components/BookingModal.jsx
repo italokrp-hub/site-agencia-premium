@@ -290,8 +290,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
       client_name: form.name || 'Cliente Jericoacoara Premium',
       client_phone: form.whatsapp || '',
       client_email: form.email || '',
-      status: 'confirmada',
-      payment_status: isDeposit ? 'sinal_pago' : 'pago_integral',
+      status: isPix ? 'pendente' : 'confirmada',
+      payment_status: isPix ? 'pendente' : (isDeposit ? 'sinal_pago' : 'pago_integral'),
       payment_method: isPix ? 'pix' : 'cartao',
       amount_total: fullTotal,
       amount_paid: amountPaid,
@@ -1268,7 +1268,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
               className="w-full h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <MessageCircle className="w-5 h-5" />
-              {t('bookingModal.confirmWhatsApp')}
+              Já realizei o pagamento no banco
             </Button>
           </div>
         )}

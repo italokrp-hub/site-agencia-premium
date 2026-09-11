@@ -247,6 +247,14 @@ export default function VoucherPage() {
 
   const statusBadge = useMemo(() => {
     if (!booking) return null;
+    if (booking.payment_status === 'pendente' || booking.status === 'pendente') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">
+          <AlertCircle className="w-3.5 h-3.5" />
+          AGUARDANDO PAGAMENTO (PIX PENDENTE)
+        </span>
+      );
+    }
     if (booking.payment_status === 'pago_integral' || booking.status === 'concluida') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -356,6 +364,16 @@ export default function VoucherPage() {
             Emissão: {new Date(booking.created_at || Date.now()).toLocaleDateString('pt-BR')} às {new Date(booking.created_at || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
+
+        {/* Warning se pendente */}
+        {(booking.payment_status === 'pendente' || booking.status === 'pendente') && (
+          <div className="bg-orange-50 border-b border-orange-200 px-6 py-4">
+            <p className="text-sm text-orange-800 font-semibold flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              Esta reserva ainda não foi confirmada. Conclua o pagamento via Pix para validação do voucher.
+            </p>
+          </div>
+        )}
 
         <div className="p-6 sm:p-8 space-y-6">
           
