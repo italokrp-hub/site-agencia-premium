@@ -273,23 +273,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const serviceTitle = useMemo(() => {
     const itemObj = transferItem || tourItem || internalItem;
     const rawTitle = itemObj?.title || 'Serviço';
-    const keyMap = {
-      'fortaleza': 'fortaleza',
-      'cruz': 'cruz',
-      'jijoca': 'jijoca',
-      'prea': 'prea',
-      'onibus-regular': 'onibusRegular',
-      'tour-leste-private': 'tourLestePrivate',
-      'tour-leste-shared': 'tourLesteShared',
-      'tour-oeste-private': 'tourOestePrivate',
-      'tour-quadri': 'tourQuadri',
-      'tour-utv': 'tourUtv',
-      'tour-helicoptero': 'tourHelicoptero',
-      'tour-lagoa-paraíso': 'tourLagoaParaiso',
-    };
-    const key = keyMap[itemObj?.id];
-    return key ? t(`catalog.${key}`, { defaultValue: rawTitle }) : rawTitle;
+    if (!itemObj?.id) return rawTitle;
+    const res = t(`catalog.${itemObj.id}`, { defaultValue: rawTitle });
+    return (res && typeof res === 'string' && !res.startsWith('catalog.')) ? res : rawTitle;
   }, [transferItem, tourItem, internalItem, t]);
+
 
 
   const triggerHotelOpsSync = useCallback(

@@ -187,7 +187,8 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
   // ── Derived data ─────────────────────────────────────────────────────────
   const category = resolveCategory(item);
   const rawTitle = resolveTitle(item);
-  const title = t(`catalog.${item.id}`, { defaultValue: rawTitle });
+  const translatedTitle = item?.id ? t(`catalog.${item.id}`, { defaultValue: rawTitle }) : rawTitle;
+  const title = (translatedTitle && typeof translatedTitle === 'string' && !translatedTitle.startsWith('catalog.')) ? translatedTitle : rawTitle;
   const description = resolveDescription(item);
   const image = resolveImage(item);
   const locations = resolveLocations(item);

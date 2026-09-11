@@ -116,8 +116,8 @@ const ToursExplorer = () => {
             const startPrice = getTourStartingPrice(tour);
             const priceLabel = getTourPriceLabel(tour);
             const vehicles = tour.options?.private?.vehicles || [];
-            const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
-            const displayTitle = t(`catalog.${tour.id}`, { defaultValue: tour.title });
+            const translated = t(`catalog.${tour.id}`, { defaultValue: tour.title });
+            const displayTitle = (translated && typeof translated === 'string' && !translated.startsWith('catalog.')) ? translated : tour.title;
 
             return (
               <motion.div

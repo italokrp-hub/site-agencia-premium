@@ -20,23 +20,10 @@ export default function BookingBar({ onBook }) {
 
   // Helper to resolve catalog item title key safely
   const getCatalogTitle = (itemId, fallbackTitle) => {
-    const keyMap = {
-      'fortaleza': 'fortaleza',
-      'cruz': 'cruz',
-      'jijoca': 'jijoca',
-      'prea': 'prea',
-      'onibus-regular': 'onibusRegular',
-      'tour-leste-private': 'tourLestePrivate',
-      'tour-leste-shared': 'tourLesteShared',
-      'tour-oeste-private': 'tourOestePrivate',
-      'tour-quadri': 'tourQuadri',
-      'tour-utv': 'tourUtv',
-      'tour-helicoptero': 'tourHelicoptero',
-      'tour-lagoa-paraíso': 'tourLagoaParaiso',
-    };
-    const key = keyMap[itemId];
-    return key ? t(`catalog.${key}`, { defaultValue: fallbackTitle }) : fallbackTitle;
+    const res = t(`catalog.${itemId}`, { defaultValue: fallbackTitle });
+    return (res && typeof res === 'string' && !res.startsWith('catalog.')) ? res : fallbackTitle;
   };
+
 
   // Lista unificada de opções para o dropdown do BookingBar
   const serviceOptions = useMemo(() => {

@@ -121,8 +121,8 @@ const FeaturedExperiences = () => {
             const startPrice = getStartingPrice(item, category);
             const priceLabel = getPriceLabel(item, category, t);
             const isWhatsAppOnly = !!item.requireWhatsApp;
-            const locations = item.locations || [];
-            const displayTitle = t(`catalog.${item.id}`, { defaultValue: item.title });
+            const translated = t(`catalog.${item.id}`, { defaultValue: item.title });
+            const displayTitle = (translated && typeof translated === 'string' && !translated.startsWith('catalog.')) ? translated : item.title;
 
             return (
               <motion.div

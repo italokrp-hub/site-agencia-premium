@@ -31,36 +31,50 @@ export function LanguageProvider({ children }) {
   }, []);
 
   const t = useCallback((keyPath, params = {}) => {
+    if (!keyPath || typeof keyPath !== 'string') return '';
+
     const keys = keyPath.split('.');
     let currentDict = translations[language] || translations.pt;
     let fallbackDict = translations.pt;
 
-    let value = currentDict;
-    for (const key of keys) {
-      if (value && typeof value === 'object' && key in value) {
-        value = value[key];
-      } else {
-        value = undefined;
-        break;
-      }
-    }
-
-    if (value === undefined) {
-      let fbVal = fallbackDict;
-      for (const key of keys) {
-        if (fbVal && typeof fbVal === 'object' && key in fbVal) {
-          fbVal = fbVal[key];
+    const getValueFromDict = (dict) => {
+      let val = dict;
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (val && typeof val === 'object') {
+          if (k in val) {
+            val = val[k];
+          } else {
+            // Try camelCase fallback (e.g. tour-leste-shared -> tourLesteShared)
+            const camelKey = k.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+            if (camelKey in val) {
+              val = val[camelKey];
+            } else {
+              return undefined;
+            }
+          }
         } else {
-          fbVal = undefined;
-          break;
+          return undefined;
         }
       }
-      value = fbVal !== undefined ? fbVal : keyPath;
+      return val;
+    };
+
+    let value = getValueFromDict(currentDict);
+
+    if (value === undefined && language !== 'pt') {
+      value = getValueFromDict(fallbackDict);
+    }
+
+    if (value === undefined || typeof value !== 'string') {
+      value = (params && params.defaultValue !== undefined) ? params.defaultValue : keyPath;
     }
 
     if (typeof value === 'string' && params && typeof params === 'object') {
       Object.keys(params).forEach((paramKey) => {
-        value = value.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), params[paramKey]);
+        if (paramKey !== 'defaultValue') {
+          value = value.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), params[paramKey]);
+        }
       });
     }
 
