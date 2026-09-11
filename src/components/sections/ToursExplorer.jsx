@@ -113,6 +113,7 @@ const ToursExplorer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTours.map((tour, index) => {
             const isPremium = tour.requireWhatsApp;
+            const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
             const startPrice = getTourStartingPrice(tour);
             const priceLabel = getTourPriceLabel(tour);
             const vehicles = tour.options?.private?.vehicles || [];

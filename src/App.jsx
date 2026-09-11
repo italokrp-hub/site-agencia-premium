@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { LanguageProvider } from '@/i18n/LanguageContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Layout
 import Header from '@/components/Header';
@@ -52,40 +53,64 @@ function LandingPage() {
         <Header />
         <main>
           {/* 1. Immersive Hero */}
-          <ImmersiveHero />
+          <ErrorBoundary>
+            <ImmersiveHero />
+          </ErrorBoundary>
 
           {/* 2. Experience Selector */}
-          <ExperienceSelector />
+          <ErrorBoundary>
+            <ExperienceSelector />
+          </ErrorBoundary>
 
           {/* 3. Featured Experiences */}
-          <FeaturedExperiences />
+          <ErrorBoundary>
+            <FeaturedExperiences />
+          </ErrorBoundary>
 
           {/* 4. Tours Explorer */}
-          <ToursExplorer />
+          <ErrorBoundary>
+            <ToursExplorer />
+          </ErrorBoundary>
 
           {/* 5. Transfers Section */}
-          <TransfersSection />
+          <ErrorBoundary>
+            <TransfersSection />
+          </ErrorBoundary>
 
           {/* 6. Explore Jericoacoara Map */}
-          <ExploreJericoMap />
+          <ErrorBoundary>
+            <ExploreJericoMap />
+          </ErrorBoundary>
 
           {/* 7. Jeri Travel Planner */}
-          <TravelPlanner />
+          <ErrorBoundary>
+            <TravelPlanner />
+          </ErrorBoundary>
 
           {/* 8. Premium Experiences */}
-          <PremiumExperiences />
+          <ErrorBoundary>
+            <PremiumExperiences />
+          </ErrorBoundary>
 
           {/* 7. Trust Section */}
-          <TrustSection />
+          <ErrorBoundary>
+            <TrustSection />
+          </ErrorBoundary>
 
           {/* 8. Testimonials */}
-          <TestimonialsSection />
+          <ErrorBoundary>
+            <TestimonialsSection />
+          </ErrorBoundary>
 
           {/* 9. FAQ */}
-          <FAQSection />
+          <ErrorBoundary>
+            <FAQSection />
+          </ErrorBoundary>
 
           {/* 10. Final CTA */}
-          <FinalCTA />
+          <ErrorBoundary>
+            <FinalCTA />
+          </ErrorBoundary>
         </main>
         <Footer />
         <JeriDuneTrail />
@@ -98,15 +123,17 @@ function LandingPage() {
 
 function App() {
   return (
-    <LanguageProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/agencia/reservas" element={<Reservas />} />
-          <Route path="/reservas" element={<Reservas />} />
-        </Routes>
-      </BrowserRouter>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/agencia/reservas" element={<Reservas />} />
+            <Route path="/reservas" element={<Reservas />} />
+          </Routes>
+        </BrowserRouter>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 
