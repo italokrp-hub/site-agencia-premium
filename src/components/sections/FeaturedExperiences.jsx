@@ -117,13 +117,14 @@ const FeaturedExperiences = () => {
 
         {/* Cards grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {featured.map(({ item, category, badge }, index) => {
+          {(Array.isArray(featured) ? featured : []).map(({ item, category, badge }, index) => {
             const startPrice = getStartingPrice(item, category);
             const priceLabel = getPriceLabel(item, category, t);
             const isWhatsAppOnly = !!item.requireWhatsApp;
             const translated = t(`catalog.${item.id}`, { defaultValue: item.title });
             const displayTitle = (translated && typeof translated === 'string' && !translated.startsWith('catalog.')) ? translated : item.title;
-            const locations = item.locations || [];
+            const rawLocations = item?.locations;
+            const locations = Array.isArray(rawLocations) ? rawLocations : [];
 
             return (
               <motion.div

@@ -58,7 +58,7 @@ const PremiumExperiences = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {premiumTours.map((tour, index) => {
+          {(Array.isArray(premiumTours) ? premiumTours : []).map((tour, index) => {
             const meta = premiumMeta[tour.id] || {
               icon: '✨',
               highlight: 'Experiência VIP',

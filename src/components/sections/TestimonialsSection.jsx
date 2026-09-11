@@ -75,7 +75,7 @@ const TestimonialsSection = () => {
 
         {/* Mobile: horizontal scroll; Desktop: grid */}
         <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-5 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-4 md:pb-0">
-          {testimonials.map((testimonial, index) => (
+          {(Array.isArray(testimonials) ? testimonials : []).map((testimonial, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 24 }}

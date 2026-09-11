@@ -59,7 +59,8 @@ const FAQSection = () => {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const { t } = useLanguage();
 
-  const itemsToRender = t('faq.items') || faqItems;
+  const rawFaq = t('faq.items');
+  const itemsToRender = Array.isArray(rawFaq) ? rawFaq : (Array.isArray(faqItems) ? faqItems : []);
 
   return (
     <section id="faq" className="py-20 md:py-28 bg-[#F7F3E9] overflow-hidden">
@@ -84,7 +85,7 @@ const FAQSection = () => {
         </motion.div>
 
         <div className="space-y-3">
-          {itemsToRender.map((item, index) => (
+          {(Array.isArray(itemsToRender) ? itemsToRender : []).map((item, index) => (
             <FAQItem key={index} item={item} index={index} />
           ))}
         </div>

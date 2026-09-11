@@ -465,7 +465,7 @@ const TravelPlanner = () => {
 
                 {/* Suggested Catalog Products */}
                 <div className="space-y-3 mb-8">
-                  {recommendation.tours.map((tour) => {
+                  {(Array.isArray(recommendation.tours) ? recommendation.tours : []).map((tour) => {
                     const startPrice =
                       tour.options?.private?.vehicles?.[0]?.price ||
                       tour.options?.shared?.price;
@@ -507,7 +507,7 @@ const TravelPlanner = () => {
                     );
                   })}
 
-                  {recommendation.transfers.map((tr) => (
+                  {(Array.isArray(recommendation.transfers) ? recommendation.transfers : []).map((tr) => (
                     <div
                       key={tr.id}
                       className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-gray-200 bg-[#FAF8F5] gap-4"
@@ -549,7 +549,7 @@ const TravelPlanner = () => {
                     Sugestão Dia a Dia:
                   </h4>
                   <div className="space-y-3">
-                    {recommendation.itinerary.map((item) => (
+                    {(Array.isArray(recommendation.itinerary) ? recommendation.itinerary : []).map((item) => (
                       <div key={item.day} className="flex items-start gap-3 text-xs">
                         <span className="px-2.5 py-1 bg-[#2C7A7B] text-white font-bold rounded-lg shrink-0">
                           {item.day}

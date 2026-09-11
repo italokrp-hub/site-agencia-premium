@@ -111,12 +111,14 @@ const ToursExplorer = () => {
 
         {/* Tours grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredTours.map((tour, index) => {
+          {(Array.isArray(filteredTours) ? filteredTours : []).map((tour, index) => {
             const isPremium = tour.requireWhatsApp;
             const isSharedOnly = tour.options?.shared?.available && !tour.options?.private?.available;
             const startPrice = getTourStartingPrice(tour);
             const priceLabel = getTourPriceLabel(tour);
-            const vehicles = tour.options?.private?.vehicles || [];
+            const rawVehicles = tour.options?.private?.vehicles;
+            const vehicles = Array.isArray(rawVehicles) ? rawVehicles : [];
+            const tourLocations = Array.isArray(tour.locations) ? tour.locations : [];
             const translated = t(`catalog.${tour.id}`, { defaultValue: tour.title });
             const displayTitle = (translated && typeof translated === 'string' && !translated.startsWith('catalog.')) ? translated : tour.title;
 
@@ -181,9 +183,9 @@ const ToursExplorer = () => {
                     {renderTourTitle(displayTitle)}
                   </h3>
 
-                  {tour.locations && (
+                  {tourLocations.length > 0 && (
                     <ul className="space-y-1.5 mb-4">
-                      {tour.locations.slice(0, 4).map((loc) => (
+                      {tourLocations.slice(0, 4).map((loc) => (
                         <li key={loc} className="flex items-start gap-1.5 text-xs text-gray-500">
                           <Check className="w-3 h-3 text-[#2C7A7B] mt-0.5 shrink-0" />
                           {loc}

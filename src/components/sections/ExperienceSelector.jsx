@@ -45,7 +45,7 @@ const ExperienceSelector = ({ onStyleSelect }) => {
 
         {/* Experience grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-          {experienceStyles.map((style, index) => (
+          {(Array.isArray(experienceStyles) ? experienceStyles : []).map((style, index) => (
             <motion.button
               key={style.id}
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}

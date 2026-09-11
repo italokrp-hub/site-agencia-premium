@@ -27,14 +27,14 @@ export default function BookingBar({ onBook }) {
 
   // Lista unificada de opções para o dropdown do BookingBar
   const serviceOptions = useMemo(() => {
-    const transferOpts = transfers.map((tItem) => ({
+    const transferOpts = (Array.isArray(transfers) ? transfers : []).map((tItem) => ({
       id: tItem.id,
       title: getCatalogTitle(tItem.id, tItem.title),
       type: 'Transfer',
       category: 'transfer',
       rawItem: tItem.raw || tItem,
     }));
-    const tourOpts = tours.map((tItem) => ({
+    const tourOpts = (Array.isArray(tours) ? tours : []).map((tItem) => ({
       id: tItem.id,
       title: getCatalogTitle(tItem.id, tItem.title),
       type: 'Passeio',

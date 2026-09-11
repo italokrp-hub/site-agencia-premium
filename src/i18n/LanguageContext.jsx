@@ -66,7 +66,7 @@ export function LanguageProvider({ children }) {
       value = getValueFromDict(fallbackDict);
     }
 
-    if (value === undefined || typeof value !== 'string') {
+    if (value === undefined || (typeof value !== 'string' && !Array.isArray(value) && typeof value !== 'object')) {
       value = (params && params.defaultValue !== undefined) ? params.defaultValue : keyPath;
     }
 

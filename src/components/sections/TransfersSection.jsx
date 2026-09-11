@@ -52,7 +52,7 @@ const TransfersSection = () => {
 
         {/* Transfers grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {transfersData.map((transfer, index) => {
+          {(Array.isArray(transfersData) ? transfersData : []).map((transfer, index) => {
             const Icon = getIcon(transfer.id);
             const sharedOpt = transfer.options.shared;
             const privateOpt = transfer.options.private;

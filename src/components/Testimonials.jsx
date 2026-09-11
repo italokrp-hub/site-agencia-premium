@@ -65,7 +65,7 @@ const Testimonials = () => {
         </motion.div>
 
         <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-x-auto snap-x snap-mandatory no-scrollbar px-4 pb-4 md:pb-0 md:mx-auto md:px-0">
-          {testimonials.map((testimonial, index) => (
+          {(Array.isArray(testimonials) ? testimonials : []).map((testimonial, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
