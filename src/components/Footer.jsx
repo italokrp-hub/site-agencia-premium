@@ -6,7 +6,9 @@ const Footer = () => {
   const { t } = useLanguage();
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5588988463182', '_blank', 'noopener,noreferrer');
+    import('@/utils/whatsapp').then(({ openWhatsApp, WA_MESSAGES }) => {
+      openWhatsApp(WA_MESSAGES.generic);
+    });
   };
 
   const handleSocialClick = (platform) => {
@@ -52,6 +54,7 @@ const Footer = () => {
                   <p className="text-sm text-gray-400">WhatsApp</p>
                   <button 
                     onClick={handleWhatsApp}
+                    data-tracking="whatsapp-cta-footer"
                     className="text-white hover:text-[#D4AF37] transition-colors text-left font-semibold cursor-pointer"
                     aria-label="WhatsApp Jericoacoara Premium"
                   >

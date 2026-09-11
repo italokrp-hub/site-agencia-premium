@@ -4,7 +4,7 @@ import { MessageCircle, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BookingBar from '@/components/BookingBar';
 import BookingModal from '@/components/BookingModal';
-import { openWhatsApp } from '@/utils/whatsapp';
+import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 const Hero = () => {
@@ -12,7 +12,7 @@ const Hero = () => {
   const { t } = useLanguage();
 
   const handleWhatsApp = () => {
-    openWhatsApp();
+    openWhatsApp(WA_MESSAGES?.generic || 'Olá! Gostaria de saber mais sobre os serviços da Jericoacoara Premium.');
   };
 
   const handleReserve = () => {
@@ -85,6 +85,8 @@ const Hero = () => {
           >
             <Button
               onClick={handleReserve}
+              id="btn-hero-reserve"
+              data-tracking="hero-reserve-btn"
               size="lg"
               className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
             >
@@ -94,6 +96,7 @@ const Hero = () => {
             
             <Button
               onClick={handleWhatsApp}
+              data-tracking="whatsapp-cta-hero"
               size="lg"
               variant="outline"
               className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white font-bold px-8 py-6 text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"

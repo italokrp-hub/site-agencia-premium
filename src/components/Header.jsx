@@ -37,7 +37,9 @@ const Header = () => {
   const currentLangObj = languages.find((l) => l.code === language) || languages[0];
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/5588988463182', '_blank', 'noopener,noreferrer');
+    import('@/utils/whatsapp').then(({ openWhatsApp, WA_MESSAGES }) => {
+      openWhatsApp(WA_MESSAGES.generic);
+    });
   };
 
   const handleNavClick = (href) => {
@@ -155,6 +157,7 @@ const Header = () => {
             >
               <Button
                 onClick={handleWhatsApp}
+                data-tracking="whatsapp-cta-header"
                 className="bg-[#25D366] hover:bg-[#20BA5A] text-white font-semibold px-5 py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 text-xs"
               >
                 <Phone className="w-4 h-4" />
@@ -222,6 +225,7 @@ const Header = () => {
                 <div className="pt-2 border-t border-gray-100">
                   <Button
                     onClick={handleWhatsApp}
+                    data-tracking="whatsapp-cta-header-mobile"
                     className="w-full bg-[#25D366] hover:bg-[#20BA5A] text-white font-semibold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2"
                   >
                     <Phone className="w-4 h-4" />

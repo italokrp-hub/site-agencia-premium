@@ -158,6 +158,8 @@ export default function BookingBar({ onBook }) {
           <div className="md:col-span-2 flex items-center justify-end">
             <Button
               onClick={handleSearch}
+              id="btn-cotar-transfer"
+              data-tracking="btn-cotar-transfer"
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold px-5 h-11 shadow-lg shadow-emerald-600/30 transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer text-sm"
             >
               <Search className="w-4 h-4 transition-transform group-hover:scale-110" />
