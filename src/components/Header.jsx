@@ -23,12 +23,18 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
   const menuItems = [
     { label: t('nav.home'), href: '#home' },
     { label: t('nav.experiences'), href: '#experiencias' },
     { label: 'Passeios', href: '/passeios-jericoacoara' },
-    { label: 'Transfers', href: '/transfer-fortaleza-jericoacoara' },
+    { 
+      label: 'Transfers', 
+      isDropdown: true,
+      items: [
+        { label: 'Fortaleza ↔ Jeri', href: '/transfer-fortaleza-jericoacoara' },
+        { label: 'Aeroporto (JJD) ↔ Jeri', href: '/transfer-aeroporto-jericoacoara' }
+      ]
+    },
     { label: t('nav.destinations'), href: '#mapa' },
     { label: t('nav.planner'), href: '#planner' },
     { label: t('nav.testimonials'), href: '#depoimentos' },
@@ -88,23 +94,49 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
-            {menuItems.map((item, index) => (
-              <motion.a
-                key={item.href}
-                href={item.href}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(item.href);
-                }}
-                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#2C7A7B] transition-colors duration-200 relative group"
-              >
-                {item.label}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#2C7A7B] transition-all duration-300 group-hover:w-full" />
-              </motion.a>
-            ))}
+            {menuItems.map((item, index) => {
+              if (item.isDropdown) {
+                return (
+                  <div key={item.label} className="relative group">
+                    <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#2C7A7B] transition-colors duration-200 relative">
+                      {item.label}
+                    </button>
+                    <div className="absolute left-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-50">
+                      {item.items.map(subItem => (
+                        <a
+                          key={subItem.href}
+                          href={subItem.href}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavClick(subItem.href);
+                          }}
+                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-teal-50 hover:text-[#2C7A7B] transition-colors"
+                        >
+                          {subItem.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <motion.a
+                  key={item.href}
+                  href={item.href}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(item.href);
+                  }}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#2C7A7B] transition-colors duration-200 relative group"
+                >
+                  {item.label}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#2C7A7B] transition-all duration-300 group-hover:w-full" />
+                </motion.a>
+              );
+            })}
           </div>
 
           {/* Right Actions: Language Selector & WhatsApp */}
@@ -212,19 +244,41 @@ const Header = () => {
               className="lg:hidden overflow-hidden"
             >
               <div className="px-3 pt-2 pb-4 space-y-1 bg-white shadow-xl rounded-xl mb-4 border border-gray-100">
-                {menuItems.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleNavClick(item.href);
-                    }}
-                    className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-[#2C7A7B] hover:bg-teal-50/50 rounded-lg transition-colors duration-200"
-                  >
-                    {item.label}
-                  </a>
-                ))}
+                {menuItems.map((item) => {
+                  if (item.isDropdown) {
+                    return (
+                      <div key={item.label} className="py-2">
+                        <div className="px-3 py-2 text-sm font-bold text-gray-900 border-b border-gray-100 mb-1">{item.label}</div>
+                        {item.items.map(subItem => (
+                          <a
+                            key={subItem.href}
+                            href={subItem.href}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNavClick(subItem.href);
+                            }}
+                            className="block px-4 py-2 text-sm font-medium text-gray-600 hover:text-[#2C7A7B] hover:bg-teal-50/50 rounded-lg transition-colors duration-200"
+                          >
+                            - {subItem.label}
+                          </a>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavClick(item.href);
+                      }}
+                      className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-[#2C7A7B] hover:bg-teal-50/50 rounded-lg transition-colors duration-200"
+                    >
+                      {item.label}
+                    </a>
+                  );
+                })}
                 
                 <div className="pt-2 border-t border-gray-100">
                   <Button
