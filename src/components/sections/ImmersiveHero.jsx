@@ -68,15 +68,13 @@ const ImmersiveHero = () => {
           </span>
         </motion.div>
 
-        {/* H1 Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.08] tracking-tight max-w-5xl [text-wrap:balance]"
         >
-          {t('hero.titleHighlight')}{' '}
-          <span className="text-[#D4AF37]">{t('hero.titleSuffix')}</span>
+          Transfers e Passeios Exclusivos em <span className="text-[#D4AF37]">Jericoacoara</span>
         </motion.h1>
 
         {/* Subtitle */}
