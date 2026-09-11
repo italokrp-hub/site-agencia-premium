@@ -35,10 +35,11 @@ class ErrorBoundary extends React.Component {
             <p className="text-sm text-gray-600 mb-6">
               Ocorreu um erro temporário no navegador. Clique abaixo para recarregar a página ou refazer sua ação.
             </p>
-            {process.env.NODE_ENV !== 'production' && this.state.error && (
-              <pre className="text-xs text-left bg-gray-900 text-red-300 p-3 rounded-lg overflow-x-auto mb-6 max-h-40">
+            {this.state.error && (
+              <details className="text-xs text-left bg-gray-900 text-red-300 p-3 rounded-lg overflow-x-auto mb-6 max-h-40 font-mono">
+                <summary className="cursor-pointer font-bold mb-1 text-gray-400">Detalhes do erro técnico</summary>
                 {this.state.error.toString()}
-              </pre>
+              </details>
             )}
             <button
               onClick={this.handleReset}
