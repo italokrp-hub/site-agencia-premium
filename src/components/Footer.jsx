@@ -22,7 +22,7 @@ const Footer = () => {
   return (
     <footer id="contato" className="bg-gradient-to-b from-gray-900 to-black text-white pt-16 pb-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* About */}
           <div>
             <img 
@@ -116,6 +116,16 @@ const Footer = () => {
             </div>
             <div className="mt-6 text-sm text-gray-500">
               <p>@jericoacoarapremium</p>
+            </div>
+          </div>
+
+          {/* SEO Links */}
+          <div>
+            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Serviços Exclusivos</h3>
+            <div className="flex flex-col gap-3 text-sm text-gray-400">
+              <a href="/transfer-fortaleza-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Fortaleza ↔ Jeri</a>
+              <a href="/transfer-aeroporto-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Aeroporto ↔ Jeri</a>
+              <a href="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</a>
             </div>
           </div>
         </div>

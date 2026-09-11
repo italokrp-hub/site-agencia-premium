@@ -29,6 +29,11 @@ import JeriDuneTrail from '@/components/effects/JeriDuneTrail';
 import Reservas from '@/pages/agencia/Reservas';
 import VoucherPage from '@/pages/VoucherPage';
 
+// SEO Landing Pages
+import TransferFortalezaJeri from '@/pages/seo/TransferFortalezaJeri';
+import TransferAeroportoJeri from '@/pages/seo/TransferAeroportoJeri';
+import PasseiosJeri from '@/pages/seo/PasseiosJeri';
+
 function LandingPage() {
   return (
     <>
@@ -132,6 +137,11 @@ function App() {
             <Route path="/voucher/:code" element={<VoucherPage />} />
             <Route path="/agencia/reservas" element={<Reservas />} />
             <Route path="/reservas" element={<Reservas />} />
+            
+            {/* SEO Landing Pages */}
+            <Route path="/transfer-fortaleza-jericoacoara" element={<TransferFortalezaJeri />} />
+            <Route path="/transfer-aeroporto-jericoacoara" element={<TransferAeroportoJeri />} />
+            <Route path="/passeios-jericoacoara" element={<PasseiosJeri />} />
           </Routes>
         </BrowserRouter>
       </LanguageProvider>

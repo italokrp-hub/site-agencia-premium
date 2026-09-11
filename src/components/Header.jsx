@@ -27,8 +27,8 @@ const Header = () => {
   const menuItems = [
     { label: t('nav.home'), href: '#home' },
     { label: t('nav.experiences'), href: '#experiencias' },
-    { label: t('nav.tours'), href: '#tours' },
-    { label: t('nav.transfers'), href: '#transfers' },
+    { label: 'Passeios', href: '/passeios-jericoacoara' },
+    { label: 'Transfers', href: '/transfer-fortaleza-jericoacoara' },
     { label: t('nav.destinations'), href: '#mapa' },
     { label: t('nav.planner'), href: '#planner' },
     { label: t('nav.testimonials'), href: '#depoimentos' },
@@ -45,11 +45,15 @@ const Header = () => {
   const handleNavClick = (href) => {
     setIsOpen(false);
     setTimeout(() => {
+      if (href.startsWith('#') && window.location.pathname !== '/') {
+        window.location.href = `/${href}`;
+        return;
+      }
       const element = document.querySelector(href);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        window.location.hash = href;
+        window.location.href = href;
       }
     }, 50);
   };
