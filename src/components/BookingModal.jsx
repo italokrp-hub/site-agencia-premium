@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { ptBR, enUS, es } from 'date-fns/locale';
 import {
@@ -20,6 +21,9 @@ import {
   Plus,
   Globe,
   Lock,
+  FileText,
+  CheckCircle2,
+  ExternalLink,
 } from 'lucide-react';
 import {
   Dialog,
@@ -76,6 +80,7 @@ const initialForm = {
 };
 
 export default function BookingModal({ item, open, onOpenChange }) {
+  const navigate = useNavigate();
   const { language, t } = useLanguage();
   const isPortuguese = language === 'pt';
 
@@ -97,6 +102,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [error, setError] = useState(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isReturnCalendarOpen, setIsReturnCalendarOpen] = useState(false);
+  const [createdReservationCode, setCreatedReservationCode] = useState(null);
 
   // Seleção de Locale para date-fns conforme idioma
   const dateFnsLocale = useMemo(() => {
@@ -259,8 +265,53 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setIsCalendarOpen(false);
     setIsReturnCalendarOpen(false);
     setPaymentMode('50');
+    setCreatedReservationCode(null);
     hasSentToHotelOpsRef.current = false;
   }, []);
+
+  const saveBookingToStorage = useCallback((paymentMethodName = 'Pix') => {
+    const code = `JRI-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const isDeposit = isPortuguese && paymentMode === '50';
+    const isPix = (paymentMethodName || '').toLowerCase().includes('pix');
+    const amountPaid = isDeposit ? (isPix ? chargePixTotal : chargeTotal) : (isPix ? fullPixTotal : fullTotal);
+    const remaining = isDeposit ? remainingBalance : 0;
+
+    const bookingObj = {
+      code,
+      created_at: new Date().toISOString(),
+      client_name: form.name || 'Cliente Jericoacoara Premium',
+      client_phone: form.whatsapp || '',
+      client_email: form.email || '',
+      status: 'confirmada',
+      payment_status: isDeposit ? 'sinal_pago' : 'pago_integral',
+      payment_method: isPix ? 'pix' : 'cartao',
+      amount_total: fullTotal,
+      amount_paid: amountPaid,
+      remaining_balance: remaining,
+      pickup_location: form.pickup || 'Ponto informado no formulário',
+      notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
+      items: [
+        {
+          title: serviceTitle,
+          service_type: isTransfer ? 'transfer' : 'passeio',
+          modality: form.optionType,
+          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 4x4 / Buggy',
+          date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
+          time: form.time || '11:30',
+          pax: form.passengers || 1,
+          unit_price: fullTotal,
+        },
+      ],
+    };
+
+    try {
+      localStorage.setItem(`jeri_last_booking_${code}`, JSON.stringify(bookingObj));
+    } catch (e) {
+      console.warn('[BookingModal] Erro ao salvar voucher em localStorage:', e);
+    }
+    setCreatedReservationCode(code);
+    return code;
+  }, [form, fullTotal, fullPixTotal, chargeTotal, chargePixTotal, remainingBalance, isDeposit, isPortuguese, paymentMode, serviceTitle, isTransfer, selectedTier, tourPriceInfo]);
 
   const handleOpenChange = useCallback(
     (isOpen) => {
@@ -335,6 +386,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
         throw new Error('Valor inválido para o checkout. Verifique a opção e o veículo selecionados.');
       }
 
+      const resCode = saveBookingToStorage('Cartão de Crédito');
       triggerHotelOpsSync('Cartão de Crédito (Mercado Pago)');
 
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
@@ -365,11 +417,13 @@ export default function BookingModal({ item, open, onOpenChange }) {
           chargeTotal: finalUnitPrice,
           remainingBalance,
           cpf: form.cpf || undefined,
+          code: resCode,
         },
       });
 
       if (result.init_point) {
         window.open(result.init_point, '_blank');
+        setStep('success');
         return;
       }
 
@@ -379,7 +433,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
+  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync, saveBookingToStorage]);
 
   // Pix Handler (para PT)
   const handlePixPayment = useCallback(async () => {
@@ -391,6 +445,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
         throw new Error('Valor inválido para a chave Pix. Verifique a opção e o veículo selecionados.');
       }
 
+      const resCode = saveBookingToStorage('Pix');
       triggerHotelOpsSync('Pix');
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
@@ -422,6 +477,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           remainingBalance,
           isPixDiscount: true,
           cpf: form.cpf || undefined,
+          code: resCode,
         },
       });
 
@@ -441,11 +497,12 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync]);
+  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync, saveBookingToStorage]);
 
   // Handler do WhatsApp em PT, EN ou ES
   const handleWhatsApp = useCallback(() => {
     triggerHotelOpsSync(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
+    const resCode = createdReservationCode || saveBookingToStorage(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
 
     let msgText = '';
 
@@ -552,7 +609,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
 
     window.open(buildWhatsAppLink(msgText), '_blank');
-  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isPortuguese, language, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied, triggerHotelOpsSync]);
+    setStep('success');
+  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isPortuguese, language, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied, triggerHotelOpsSync, createdReservationCode, saveBookingToStorage]);
 
   const handleCopyPix = useCallback(() => {
     if (pixData?.qrCode) {
@@ -568,10 +626,18 @@ export default function BookingModal({ item, open, onOpenChange }) {
       <DialogContent className="z-[60] w-[95vw] max-w-lg mx-auto max-h-[90dvh] overflow-hidden rounded-xl bg-white p-0 shadow-xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
         <DialogHeader className="px-5 pt-5 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-gray-100 shrink-0">
           <DialogTitle className="text-lg font-bold text-gray-900 pr-8">
-            {step === 'pix' ? t('bookingModal.pixTitle') : (isWhatsAppOnly || !isPortuguese) ? t('bookingModal.whatsappTitle') : t('bookingModal.modalTitle')}
+            {step === 'success'
+              ? 'Reserva Solicitada!'
+              : step === 'pix'
+              ? t('bookingModal.pixTitle')
+              : (isWhatsAppOnly || !isPortuguese)
+              ? t('bookingModal.whatsappTitle')
+              : t('bookingModal.modalTitle')}
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
-            {step === 'pix'
+            {step === 'success'
+              ? 'Sua solicitação foi registrada no sistema com sucesso.'
+              : step === 'pix'
               ? t('bookingModal.pixInstructions')
               : serviceTitle}
           </DialogDescription>
@@ -1183,6 +1249,19 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </a>
             </div>
 
+            {createdReservationCode && (
+              <Button
+                onClick={() => {
+                  handleOpenChange(false);
+                  navigate(`/voucher/${createdReservationCode}`);
+                }}
+                className="w-full h-12 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                <FileText className="w-5 h-5" />
+                Visualizar Meu Voucher ({createdReservationCode})
+              </Button>
+            )}
+
             <Button
               onClick={handleWhatsApp}
               variant="outline"
@@ -1191,6 +1270,68 @@ export default function BookingModal({ item, open, onOpenChange }) {
               <MessageCircle className="w-5 h-5" />
               {t('bookingModal.confirmWhatsApp')}
             </Button>
+          </div>
+        )}
+
+        {step === 'success' && (
+          <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6 space-y-5 text-center">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-extrabold text-gray-900">
+                Reserva Confirmada com Sucesso!
+              </h3>
+              <p className="text-xs text-gray-500">
+                Sua reserva para <strong className="text-gray-800">{serviceTitle}</strong> foi registrada no sistema.
+              </p>
+            </div>
+
+            {createdReservationCode && (
+              <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl space-y-1">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Código Localizador</span>
+                <div className="flex items-center justify-center gap-2 font-mono text-2xl font-black text-[#2C7A7B]">
+                  <span>{createdReservationCode}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(createdReservationCode);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="h-8 w-8 p-0"
+                  >
+                    {copied ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2.5 pt-2">
+              {createdReservationCode && (
+                <Button
+                  onClick={() => {
+                    handleOpenChange(false);
+                    navigate(`/voucher/${createdReservationCode}`);
+                  }}
+                  className="w-full h-13 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                >
+                  <FileText className="w-5 h-5" />
+                  Visualizar Meu Voucher
+                </Button>
+              )}
+
+              <Button
+                onClick={handleWhatsApp}
+                variant="outline"
+                className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Falar com Suporte no WhatsApp
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>

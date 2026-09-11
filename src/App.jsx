@@ -25,8 +25,9 @@ import FAQSection from '@/components/sections/FAQSection';
 import FinalCTA from '@/components/sections/FinalCTA';
 import JeriDuneTrail from '@/components/effects/JeriDuneTrail';
 
-// Admin route
+// Admin & Voucher routes
 import Reservas from '@/pages/agencia/Reservas';
+import VoucherPage from '@/pages/VoucherPage';
 
 function LandingPage() {
   return (
@@ -128,6 +129,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/voucher/:code" element={<VoucherPage />} />
             <Route path="/agencia/reservas" element={<Reservas />} />
             <Route path="/reservas" element={<Reservas />} />
           </Routes>
