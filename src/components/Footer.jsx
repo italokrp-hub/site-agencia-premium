@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Instagram, Facebook, Clock, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -123,9 +124,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Serviços Exclusivos</h3>
             <div className="flex flex-col gap-3 text-sm text-gray-400">
-              <a href="/transfer-fortaleza-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Fortaleza ↔ Jeri</a>
-              <a href="/transfer-aeroporto-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Aeroporto ↔ Jeri</a>
-              <a href="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</a>
+              <Link to="/transfer-fortaleza-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Fortaleza ↔ Jeri</Link>
+              <Link to="/transfer-aeroporto-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Aeroporto ↔ Jeri</Link>
+              <Link to="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</Link>
             </div>
           </div>
         </div>

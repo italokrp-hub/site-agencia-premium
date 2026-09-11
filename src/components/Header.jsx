@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, Globe, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,15 +52,27 @@ const Header = () => {
 
   const handleNavClick = (href) => {
     setIsOpen(false);
+    
+    if (href.startsWith('/')) {
+      navigate(href);
+      return;
+    }
+    
     setTimeout(() => {
       if (href.startsWith('#') && window.location.pathname !== '/') {
-        window.location.href = `/${href}`;
+        navigate(`/${href}`);
         return;
       }
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
+      
+      try {
+        const element = document.querySelector(href);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.location.href = href;
+        }
+      } catch (error) {
+        // Fallback for unexpected hash formats
         window.location.href = href;
       }
     }, 50);
