@@ -36,6 +36,8 @@ export default async function handler(req, res) {
       },
       date_of_expiration: expiresAt.toISOString(),
       metadata: metadata || {},
+      external_reference: metadata?.code || undefined,
+      notification_url: 'https://jericoacoarapremium.com/api/mercadopago-webhook',
     };
 
     const idempotencyKey =

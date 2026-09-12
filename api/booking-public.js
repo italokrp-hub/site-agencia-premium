@@ -42,6 +42,22 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
+  if (req.method === 'GET') {
+    try {
+      const { code } = req.query;
+      if (!code) return res.status(400).json({ error: 'Reservation code is required' });
+      const { data, error } = await supabase
+        .from('agency_reservations')
+        .select('*')
+        .eq('reservation_code', code)
+        .single();
+      if (error || !data) return res.status(404).json({ error: 'Booking not found' });
+      return res.status(200).json({ success: true, booking: data });
+    } catch (err) {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed.' });
   }

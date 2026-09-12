@@ -39,6 +39,8 @@ export default async function handler(req, res) {
         excluded_payment_types: [],
       },
       statement_descriptor: 'JERICOACOARA PREMIUM',
+      external_reference: metadata?.code || undefined,
+      notification_url: 'https://jericoacoarapremium.com/api/mercadopago-webhook',
     };
 
     if (payer?.name) {

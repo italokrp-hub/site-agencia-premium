@@ -103,6 +103,32 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isReturnCalendarOpen, setIsReturnCalendarOpen] = useState(false);
   const [createdReservationCode, setCreatedReservationCode] = useState(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailStatus, setEmailStatus] = useState(''); // 'idle', 'sending', 'sent', 'error'
+
+  // Polling para pagamento aprovado
+  useEffect(() => {
+    let interval;
+    if (step === 'pix' && createdReservationCode) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`https://hotelops-rh.vercel.app/api/booking-public?code=${createdReservationCode}`);
+          const data = await res.json();
+          if (data && data.success && data.booking) {
+            const status = data.booking.payment_status;
+            if (status === 'pago_integral' || status === 'sinal_pago') {
+              setStep('success');
+            }
+          }
+        } catch (e) {
+          console.error('[Polling] Erro na consulta de status:', e);
+        }
+      }, 4000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, createdReservationCode]);
 
   // Seleção de Locale para date-fns conforme idioma
   const dateFnsLocale = useMemo(() => {
@@ -620,6 +646,28 @@ export default function BookingModal({ item, open, onOpenChange }) {
       });
     }
   }, [pixData]);
+
+  const handleSendVoucherEmail = useCallback(async () => {
+    if (!emailInput || !emailInput.includes('@')) {
+      setEmailStatus('error');
+      return;
+    }
+    setEmailStatus('sending');
+    try {
+      const res = await fetch('/api/send-voucher-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: createdReservationCode, email: emailInput })
+      });
+      if (res.ok) {
+        setEmailStatus('sent');
+      } else {
+        setEmailStatus('error');
+      }
+    } catch (e) {
+      setEmailStatus('error');
+    }
+  }, [emailInput, createdReservationCode]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -1332,6 +1380,39 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 Falar com Suporte no WhatsApp
               </Button>
             </div>
+
+            {/* Opcional: Enviar voucher por e-mail */}
+            {createdReservationCode && (
+              <div className="mt-6 pt-5 border-t border-gray-100 text-left">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Deseja receber o voucher no seu e-mail?</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input 
+                    type="email"
+                    placeholder="Seu melhor e-mail"
+                    value={emailInput}
+                    onChange={(e) => {
+                      setEmailInput(e.target.value);
+                      if (emailStatus === 'error') setEmailStatus('');
+                    }}
+                    disabled={emailStatus === 'sending' || emailStatus === 'sent'}
+                    className="h-10 text-xs flex-1"
+                  />
+                  <Button
+                    onClick={handleSendVoucherEmail}
+                    disabled={!emailInput || emailStatus === 'sending' || emailStatus === 'sent'}
+                    className="h-10 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold"
+                  >
+                    {emailStatus === 'sending' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Voucher'}
+                  </Button>
+                </div>
+                {emailStatus === 'sent' && (
+                  <p className="text-xs font-semibold text-emerald-600 mt-2">Voucher enviado com sucesso!</p>
+                )}
+                {emailStatus === 'error' && (
+                  <p className="text-xs font-semibold text-red-500 mt-2">Falha ao enviar e-mail. Verifique o endereço.</p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </DialogContent>
