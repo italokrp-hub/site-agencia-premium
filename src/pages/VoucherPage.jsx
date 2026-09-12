@@ -340,41 +340,28 @@ export default function VoucherPage() {
     const pStatus = (booking.payment_status || '').toLowerCase();
     const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
 
-    // 1. Enquanto payment_status for pendente, exibe obrigatoriamente o badge de AGUARDANDO PAGAMENTO
-    if (pStatus === 'pendente' || rStatus === 'pendente' || pStatus === 'pending') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-          <AlertCircle className="w-3.5 h-3.5 text-amber-700" />
-          AGUARDANDO PAGAMENTO (PIX PENDENTE)
-        </span>
-      );
-    }
-
     if (pStatus === 'pago_integral' || rStatus === 'concluida') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
           <CheckCircle className="w-3.5 h-3.5" />
-          CONFIRMADA · PAGO INTEGRAL
-        </span>
-      );
-    }
-
-    if (pStatus === 'sinal_pago' || rStatus === 'confirmada') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-          <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
-          CONFIRMADA · SINAL PAGO
+          CONFIRMADA · PAGO INTEGRAL (100%)
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
-        <Clock className="w-3.5 h-3.5" />
-        RESERVA SOLICITADA · EM PROCESSAMENTO
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+        <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
+        CONFIRMADA · SINAL PAGO (50%)
       </span>
     );
   }, [booking]);
+
+  const whatsappProofUrl = useMemo(() => {
+    const codeToUse = booking?.reservation_code || booking?.code || formattedCode;
+    const text = `Olá! Acabei de realizar o pagamento do Pix da minha reserva no site. Localizador: ${codeToUse}. Segue o comprovante em anexo.`;
+    return `https://wa.me/5588988463182?text=${encodeURIComponent(text)}`;
+  }, [booking, formattedCode]);
 
   const whatsappSupportUrl = useMemo(() => {
     const text = `Olá! Gostaria de suporte sobre meu voucher de reserva: *${formattedCode}*`;
@@ -499,24 +486,29 @@ export default function VoucherPage() {
           </p>
         </div>
 
-        {/* Warning se pendente */}
-        {(booking.payment_status === 'pendente' || booking.status === 'pendente') && (
-          <div className="bg-orange-50 border-b border-orange-200 px-6 py-4">
-            <p className="text-sm text-orange-800 font-semibold flex items-center gap-2 mb-3">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              Esta reserva ainda não foi confirmada. Conclua o pagamento via Pix para validação do voucher.
-            </p>
-            {pixData && (
-              <Button 
-                onClick={() => setIsPixModalOpen(true)}
-                className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm h-10 rounded-lg flex items-center gap-2"
-              >
-                <QrCode className="w-4 h-4" />
-                Pagar Agora via Pix / Ver QR Code
-              </Button>
-            )}
+        {/* Caixa de Instrução Operacional: Validação e Ativação do Voucher */}
+        <div className="bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-b border-emerald-200/80 px-6 py-5 no-print">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="text-sm font-extrabold text-emerald-950 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                Validação e Ativação do Voucher
+              </h4>
+              <p className="text-xs text-gray-700 leading-relaxed max-w-xl">
+                Para validar o seu voucher e receber o contato do seu guia/motorista, envie o comprovante de pagamento no nosso WhatsApp oficial.
+              </p>
+            </div>
+            <a
+              href={whatsappProofUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Enviar Comprovante no WhatsApp
+            </a>
           </div>
-        )}
+        </div>
 
         <div className="p-6 sm:p-8 space-y-6">
           

@@ -156,7 +156,11 @@ export default async function handler(req, res) {
     const rawPaymentStatus = (body.payment_status || body.paymentStatus || '').toLowerCase();
     const rawReservationStatus = (body.reservation_status || body.status || '').toLowerCase();
 
-    const isConfirmed = isConfirmedParam && rawPaymentStatus !== 'pendente' && rawPaymentStatus !== 'pending';
+    const isConfirmed =
+      isConfirmedParam ||
+      rawPaymentStatus === 'sinal_pago' ||
+      rawPaymentStatus === 'pago_integral' ||
+      rawReservationStatus === 'confirmada';
 
     const reservationStatus = isConfirmed ? (rawReservationStatus || 'confirmada') : 'pendente';
     const paymentStatus = isConfirmed ? (rawPaymentStatus || 'sinal_pago') : 'pendente';

@@ -543,6 +543,97 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
   }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync, saveBookingToStorage]);
 
+  // Handler para quando o cliente clica em "Já realizei o pagamento / Acessar Voucher"
+  const handlePixPaymentConfirmedAndRedirect = useCallback(async () => {
+    setLoadingPix(true);
+    const resCode = createdReservationCode || sessionStorage.getItem('active_booking_code');
+    if (!resCode) {
+      setLoadingPix(false);
+      return;
+    }
+
+    const isDeposit = isPortuguese && paymentMode === '50';
+    const amountPaid = isDeposit ? chargePixTotal : fullPixTotal;
+    const remaining = isDeposit ? remainingBalance : 0;
+
+    const bookingObj = {
+      code: resCode,
+      created_at: new Date().toISOString(),
+      client_name: form.name || 'Cliente Jericoacoara Premium',
+      client_phone: form.whatsapp || '',
+      client_email: form.email || '',
+      status: 'confirmada',
+      reservation_status: 'confirmada',
+      payment_status: 'sinal_pago',
+      payment_method: 'pix',
+      amount_total: fullTotal,
+      amount_paid: amountPaid,
+      remaining_balance: remaining,
+      pickup_location: form.pickup || 'Ponto informado no formulário',
+      notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
+      items: [
+        {
+          title: serviceTitle,
+          service_type: isTransfer ? 'transfer' : 'passeio',
+          modality: form.optionType,
+          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 4x4 / Buggy',
+          date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
+          time: form.time || '11:30',
+          pax: form.passengers || 1,
+          unit_price: fullTotal,
+        },
+      ],
+    };
+
+    try {
+      localStorage.setItem(`jeri_last_booking_${resCode}`, JSON.stringify(bookingObj));
+    } catch (e) {
+      console.warn('[BookingModal] Erro ao salvar voucher em localStorage:', e);
+    }
+
+    try {
+      const itemInfo = internalItem || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
+      const paymentInfo = {
+        code: resCode,
+        fullTotal,
+        fullPixTotal,
+        chargeTotal: chargePixTotal,
+        chargePixTotal,
+        remainingBalance: isPortuguese ? remainingBalance : 0,
+        paymentMode: isPortuguese ? paymentMode : '100',
+        paymentMethod: 'Pix',
+        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
+        isWhatsAppOnly: !isPortuguese || isWhatsAppOnly,
+        isConfirmed: true,
+        paymentStatus: 'sinal_pago',
+        reservationStatus: 'confirmada',
+      };
+      await sendBookingToHotelOps(form, itemInfo, paymentInfo);
+    } catch (err) {
+      console.error('[BookingModal] Erro ao sincronizar status confirmado no Supabase:', err);
+    }
+
+    setLoadingPix(false);
+    handleOpenChange(false);
+    window.location.href = `/voucher/${resCode}`;
+  }, [
+    createdReservationCode,
+    form,
+    isPortuguese,
+    paymentMode,
+    chargePixTotal,
+    fullPixTotal,
+    remainingBalance,
+    fullTotal,
+    serviceTitle,
+    isTransfer,
+    selectedTier,
+    tourPriceInfo,
+    internalItem,
+    isWhatsAppOnly,
+    handleOpenChange,
+  ]);
+
   // Handler do WhatsApp em PT, EN ou ES
   const handleWhatsApp = useCallback(async () => {
     const resCode = createdReservationCode || saveBookingToStorage(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
@@ -1315,26 +1406,17 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </a>
             </div>
 
-            {createdReservationCode && (
-              <Button
-                onClick={() => {
-                  handleOpenChange(false);
-                  window.open(`/voucher/${createdReservationCode}`, '_blank');
-                }}
-                className="w-full h-12 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              >
-                <FileText className="w-5 h-5" />
-                Visualizar Meu Voucher ({createdReservationCode})
-              </Button>
-            )}
-
             <Button
-              onClick={handleWhatsApp}
-              variant="outline"
-              className="w-full h-12 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+              onClick={handlePixPaymentConfirmedAndRedirect}
+              disabled={loadingPix}
+              className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer mt-2"
             >
-              <MessageCircle className="w-5 h-5" />
-              Já realizei o pagamento no banco
+              {loadingPix ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-6 h-6" />
+              )}
+              Já realizei o pagamento / Acessar Voucher
             </Button>
           </div>
         )}
