@@ -141,7 +141,7 @@ export default async function handler(req, res) {
 
             const email = fullRes?.agency_customers?.email;
             if (email) {
-              const host = req.headers.host || 'jericoacoarapremium.com';
+              const host = req.headers.host || 'www.jericoacoarapremium.com';
               const protocol = host.includes('localhost') ? 'http' : 'https';
               await fetch(`${protocol}://${host}/api/send-voucher-email`, {
                 method: 'POST',
