@@ -131,7 +131,11 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
     // Preço unitário integral do item
     const unitPrice = Number((paymentInfo.fullTotal || itemData.unitPrice || 0).toFixed(2));
 
+    const reservationCode = paymentInfo.code || paymentInfo.reservationCode || formData.code || formData.reservationCode;
+
     const payload = {
+      code: reservationCode || undefined,
+      reservation_code: reservationCode || undefined,
       client_name: formData.name ? formData.name.trim() : 'Cliente Site',
       client_phone: formData.whatsapp ? formData.whatsapp.trim() : '',
       client_email: formData.email ? formData.email.trim() : '',

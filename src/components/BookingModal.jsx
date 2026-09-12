@@ -358,15 +358,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
 
   const triggerHotelOpsSync = useCallback(
-    (paymentMethodName) => {
-      if (hasSentToHotelOpsRef.current) {
-        console.log('[HotelOps Sync] Disparo já realizado para este checkout. Ignorando duplicata.');
-        return;
-      }
-      hasSentToHotelOpsRef.current = true;
-
+    async (paymentMethodName, codeOverride = null) => {
+      const codeToUse = codeOverride || createdReservationCode;
       const itemInfo = internalItem || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
       const paymentInfo = {
+        code: codeToUse,
         fullTotal,
         fullPixTotal,
         chargeTotal: paymentMethodName === 'Pix' ? chargePixTotal : chargeTotal,
@@ -380,11 +376,17 @@ export default function BookingModal({ item, open, onOpenChange }) {
         reservationStatus: 'pendente',
       };
 
-      sendBookingToHotelOps(form, itemInfo, paymentInfo).catch((e) =>
-        console.error('Erro na sincronização HotelOps CRM:', e)
-      );
+      try {
+        const res = await sendBookingToHotelOps(form, itemInfo, paymentInfo);
+        console.log('[BookingModal] Reserva persistida com sucesso no Supabase:', res);
+        return res;
+      } catch (e) {
+        console.error('Erro na sincronização de reserva:', e);
+        return { success: false, error: e };
+      }
     },
     [
+      createdReservationCode,
       form,
       internalItem,
       serviceTitle,
@@ -413,7 +415,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
       }
 
       const resCode = saveBookingToStorage('Cartão de Crédito');
-      triggerHotelOpsSync('Cartão de Crédito (Mercado Pago)');
+      await triggerHotelOpsSync('Cartão de Crédito (Mercado Pago)', resCode);
 
       const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
       const result = await createCheckout({
@@ -476,11 +478,12 @@ export default function BookingModal({ item, open, onOpenChange }) {
       if (!resCode) {
         resCode = saveBookingToStorage('Pix');
         sessionStorage.setItem('active_booking_code', resCode);
-        triggerHotelOpsSync('Pix');
       } else {
-        // Apenas atualiza o storage local se já existe
         saveBookingToStorage('Pix', resCode);
       }
+
+      // Persiste no Supabase com o código exato antes de gerar o Pix
+      await triggerHotelOpsSync('Pix', resCode);
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
@@ -540,9 +543,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
   }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync, saveBookingToStorage]);
 
   // Handler do WhatsApp em PT, EN ou ES
-  const handleWhatsApp = useCallback(() => {
-    triggerHotelOpsSync(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
+  const handleWhatsApp = useCallback(async () => {
     const resCode = createdReservationCode || saveBookingToStorage(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
+    await triggerHotelOpsSync(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)', resCode);
 
     let msgText = '';
 

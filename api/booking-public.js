@@ -28,21 +28,24 @@ const sendTelegramNotification = async (data) => {
     console.error('[Telegram] Falha ao enviar:', error);
   }
 };
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const supabaseKey =
-  process.env.SUPABASE_SECRET_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.SUPABASE_PUBLISHABLE_KEY ||
-  '';
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://lnowzrgmzdmbijckxvrw.supabase.co';
+  const supabaseKey =
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    'sb_publishable_t7F-VeX21DiacNiJqBppjA_X_bqsIvv';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export default async function handler(req, res) {
+  const supabase = getSupabaseClient();
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -55,18 +58,49 @@ export default async function handler(req, res) {
     try {
       const { code } = req.query;
       if (!code) return res.status(400).json({ error: 'Reservation code is required' });
-      const { data, error } = await supabase
+
+      // 1. Busca tolerante da reserva principal
+      const { data: booking, error: bErr } = await supabase
         .from('agency_reservations')
-        .select(`
-          *,
-          agency_customers (name, whatsapp, email),
-          agency_reservation_items (category, service_name, vehicle_type, trecho, date_start, pax_adults, price_total)
-        `)
+        .select('*')
         .eq('reservation_code', code)
-        .single();
-      if (error || !data) return res.status(404).json({ error: 'Booking not found' });
-      return res.status(200).json({ success: true, booking: data });
+        .maybeSingle();
+
+      if (bErr || !booking) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+
+      // 2. Busca tolerante do cliente
+      let customer = null;
+      if (booking.customer_id) {
+        const { data: custData } = await supabase
+          .from('agency_customers')
+          .select('name, whatsapp, email')
+          .eq('id', booking.customer_id)
+          .maybeSingle();
+        if (custData) customer = custData;
+      }
+
+      // 3. Busca tolerante dos itens
+      let items = [];
+      if (booking.id) {
+        const { data: itemsData } = await supabase
+          .from('agency_reservation_items')
+          .select('category, service_name, vehicle_type, trecho, date_start, pax_adults, price_total')
+          .eq('reservation_id', booking.id);
+        if (itemsData && itemsData.length > 0) items = itemsData;
+      }
+
+      return res.status(200).json({
+        success: true,
+        booking: {
+          ...booking,
+          agency_customers: customer,
+          agency_reservation_items: items,
+        },
+      });
     } catch (err) {
+      console.error('[API booking-public GET] Erro:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -135,7 +169,6 @@ export default async function handler(req, res) {
         if (existing && existing.length > 0) {
           customerId = existing[0].id;
           
-          // Atualiza o nome do cliente se um novo nome foi fornecido e for diferente
           if (clientName && clientName !== 'Cliente Site') {
             await supabase
               .from('agency_customers')
@@ -174,7 +207,7 @@ export default async function handler(req, res) {
     const mainItem = rawItems[0] || {};
     const fullPrice = mainItem.unit_price || amountPaid || 0;
 
-    // 3. Tabela agency_reservations
+    // 3. Tabela agency_reservations (Upsert limpo)
     let reservationId = null;
     try {
       const reservationPayload = {
@@ -191,14 +224,30 @@ export default async function handler(req, res) {
         sale_source: notes.includes('Site') ? 'Site Institucional' : 'WhatsApp',
       };
 
-      const { data: newRes } = await supabase
+      const { data: existingRes } = await supabase
         .from('agency_reservations')
-        .insert([reservationPayload])
         .select('id')
-        .single();
+        .eq('reservation_code', reservationCode)
+        .maybeSingle();
 
-      if (newRes) {
-        reservationId = newRes.id;
+      if (existingRes) {
+        reservationId = existingRes.id;
+        await supabase
+          .from('agency_reservations')
+          .update(reservationPayload)
+          .eq('id', reservationId);
+      } else {
+        const { data: newRes, error: insErr } = await supabase
+          .from('agency_reservations')
+          .insert([reservationPayload])
+          .select('id')
+          .single();
+
+        if (newRes) {
+          reservationId = newRes.id;
+        } else if (insErr) {
+          console.error('[API booking-public] Erro inserção reserva:', insErr);
+        }
       }
     } catch (e) {
       console.error('[API booking-public] Erro etapa reserva:', e);
@@ -207,6 +256,8 @@ export default async function handler(req, res) {
     // 4. Tabela agency_reservation_items
     if (reservationId && rawItems.length > 0) {
       try {
+        await supabase.from('agency_reservation_items').delete().eq('reservation_id', reservationId);
+        
         const itemRows = rawItems.map((it) => ({
           reservation_id: reservationId,
           category: it.service_type || 'passeio',
