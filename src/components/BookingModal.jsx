@@ -450,9 +450,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
         },
       });
 
-      if (result.init_point) {
-        window.open(result.init_point, '_blank');
-        setStep('success');
+      if (result && (result.init_point || result.sandbox_init_point)) {
+        const checkoutUrl = result.init_point || result.sandbox_init_point;
+        window.location.href = checkoutUrl;
         return;
       }
 

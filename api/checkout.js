@@ -23,23 +23,31 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'MERCADO_PAGO_ACCESS_TOKEN não configurado.' });
     }
 
+    const reservationCode = (metadata?.code || metadata?.reservation_code || 'JRI-CHECKOUT').trim();
+
     const preferenceBody = {
       items: [
         {
           id: metadata?.serviceId || 'service',
           title,
-          unit_price: Math.round(unitPrice * 100) / 100,
+          unit_price: Math.round(unitPrice * quantity * 100) / 100,
           quantity: Number(quantity),
           currency_id: 'BRL',
         },
       ],
       metadata: metadata || {},
       payment_methods: {
-        installments: 1,
+        installments: 12,
         excluded_payment_types: [],
       },
+      back_urls: {
+        success: `https://www.jericoacoarapremium.com/voucher/${reservationCode}?payment_status=approved`,
+        failure: `https://www.jericoacoarapremium.com/voucher/${reservationCode}?payment_status=failure`,
+        pending: `https://www.jericoacoarapremium.com/voucher/${reservationCode}?payment_status=pending`,
+      },
+      auto_return: 'approved',
       statement_descriptor: 'JERICOACOARA PREMIUM',
-      external_reference: metadata?.code || undefined,
+      external_reference: reservationCode,
       notification_url: 'https://www.jericoacoarapremium.com/api/mercadopago-webhook',
     };
 
