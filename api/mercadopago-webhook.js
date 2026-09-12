@@ -12,27 +12,32 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SU
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-  // Retorna HTTP 200 rapidamente
-  res.status(200).json({ received: true });
+  // Responde imediatamente ao MP para evitar timeouts
+  res.status(200).send('OK');
 
   if (req.method !== 'POST') return;
 
-  const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+  const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN;
   if (!accessToken) {
     console.error('[MP Webhook] MERCADO_PAGO_ACCESS_TOKEN não configurado.');
     return;
   }
 
   try {
-    const { type, data, action } = req.body;
-    const id = req.query.id || req.query['data.id'] || data?.id;
+    const { type, data, action } = req.body || {};
+    
+    // Captura o ID do pagamento de todas as formas possíveis
+    const id = req.body?.data?.id || req.body?.id || req.query?.id || req.query?.['data.id'] || data?.id;
 
-    // Apenas eventos de pagamento
-    if (type !== 'payment' && req.body.topic !== 'payment' && action !== 'payment.updated' && action !== 'payment.created') {
+    if (!id) {
+      console.warn('[MP Webhook] Nenhum ID encontrado no payload.');
       return;
     }
 
-    if (!id) return;
+    // Apenas eventos de pagamento, ou tentamos buscar se tivermos ID
+    if (type !== 'payment' && req.body?.topic !== 'payment' && action !== 'payment.updated' && action !== 'payment.created' && !req.query?.['data.id']) {
+      return;
+    }
 
     // Buscar status real na API do Mercado Pago
     const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
@@ -47,14 +52,14 @@ export default async function handler(req, res) {
     const status = paymentData.status;
 
     if (status === 'approved') {
-      const reservationCode = paymentData.external_reference || paymentData.metadata?.code;
+      const reservationCode = paymentData.external_reference || paymentData.metadata?.code || paymentData.metadata?.reservation_code;
       
       if (!reservationCode) {
         console.warn('[MP Webhook] Pagamento aprovado sem reservation_code (external_reference). ID:', id);
         return;
       }
 
-      console.log(`[MP Webhook] Pagamento aprovado para reserva ${reservationCode}`);
+      console.log(`[MP Webhook] Pagamento aprovado (ID: ${id}) para reserva ${reservationCode}`);
 
       // Consultar reserva no banco
       const { data: resData, error: resError } = await supabase

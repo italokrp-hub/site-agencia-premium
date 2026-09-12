@@ -264,6 +264,41 @@ export default function VoucherPage() {
     }
   };
 
+  // Polling para pagamento pendente
+  useEffect(() => {
+    let interval;
+    if (booking && (booking.payment_status === 'pendente' || booking.status === 'pendente') && !DEMO_VOUCHERS[formattedCode]) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`https://hotelops-rh.vercel.app/api/booking-public?code=${formattedCode}`);
+          const data = await res.json();
+          if (data && data.success && data.booking) {
+            const status = data.booking.payment_status;
+            const resStatus = data.booking.reservation_status || data.booking.status;
+            
+            if (status === 'pago_integral' || status === 'sinal_pago' || resStatus === 'confirmada' || resStatus === 'concluida') {
+              // Pagamento confirmado!
+              setBooking((prev) => ({
+                ...prev,
+                status: resStatus || 'confirmada',
+                payment_status: status || 'pago_integral',
+                amount_paid: status === 'sinal_pago' ? prev.amount_total / 2 : prev.amount_total,
+                remaining_balance: status === 'sinal_pago' ? prev.amount_total / 2 : 0,
+              }));
+              setIsPixModalOpen(false);
+              clearInterval(interval);
+            }
+          }
+        } catch (e) {
+          console.error('[Polling Voucher] Erro:', e);
+        }
+      }, 4000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [booking?.payment_status, booking?.status, formattedCode]);
+
   const handlePrint = () => {
     window.print();
   };
