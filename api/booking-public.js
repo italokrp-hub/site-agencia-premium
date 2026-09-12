@@ -66,8 +66,17 @@ export default async function handler(req, res) {
         .eq('reservation_code', code)
         .maybeSingle();
 
+      if (bErr) {
+        console.error('[API booking-public GET] Erro de banco/RLS ao buscar reserva:', bErr, 'Código:', code);
+      }
+
       if (bErr || !booking) {
-        return res.status(404).json({ error: 'Booking not found' });
+        console.warn('[API booking-public GET] Reserva não localizada no Supabase:', code);
+        return res.status(404).json({
+          error: 'Booking not found',
+          code,
+          dbError: bErr?.message || bErr?.code || null,
+        });
       }
 
       // 2. Busca tolerante do cliente

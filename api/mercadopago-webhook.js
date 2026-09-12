@@ -97,11 +97,11 @@ export default async function handler(req, res) {
       const reservationCode = payment.external_reference || payment.metadata?.code || payment.metadata?.reservation_code;
 
       if (reservationCode) {
-        // Consultar reserva no Supabase cobrindo reservation_code e code
+        // Consultar reserva no Supabase pela coluna reservation_code
         const { data: resData, error: selectErr } = await supabaseAdmin
           .from('agency_reservations')
           .select('id, price_gross, price_final')
-          .or(`reservation_code.eq.${reservationCode},code.eq.${reservationCode}`)
+          .eq('reservation_code', reservationCode)
           .maybeSingle();
 
         if (selectErr) {
@@ -121,7 +121,7 @@ export default async function handler(req, res) {
               payment_status: paymentStatus,
               updated_at: new Date().toISOString(),
             })
-            .or(`reservation_code.eq.${reservationCode},code.eq.${reservationCode}`);
+            .eq('reservation_code', reservationCode);
 
           if (updateErr) {
             console.error('[MP Webhook] Erro ao atualizar reserva no Supabase:', updateErr);
