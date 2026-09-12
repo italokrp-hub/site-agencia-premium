@@ -68,14 +68,16 @@ const ImmersiveHero = () => {
           </span>
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.08] tracking-tight max-w-5xl [text-wrap:balance]"
-        >
-          Transfers e Passeios Exclusivos em <span className="text-[#D4AF37]">Jericoacoara</span>
-        </motion.h1>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.08] tracking-tight max-w-5xl [text-wrap:balance]">
+          <motion.span
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="block"
+          >
+            Transfers e Passeios Exclusivos em <span className="text-[#D4AF37]">Jericoacoara</span>
+          </motion.span>
+        </h1>
 
         {/* Subtitle */}
         <motion.p
