@@ -22,13 +22,6 @@ import {
   Copy,
   XCircle
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
 import { supabase } from '@/lib/supabase';
@@ -564,61 +557,62 @@ export default function VoucherPage() {
         </div>
       </div>
       
-      {/* Modal PIX Simplificado */}
-      <Dialog open={isPixModalOpen} onOpenChange={setIsPixModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#2C7A7B]">
-              <QrCode className="w-5 h-5" />
-              Pagamento via Pix
-            </DialogTitle>
-            <DialogDescription>
-              Escaneie o QR Code ou copie o código Pix Copia e Cola para finalizar sua reserva.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {pixData && (
-            <div className="flex flex-col items-center justify-center p-4 space-y-6">
-              {pixData.qrCodeBase64 ? (
-                <div className="p-4 bg-white border-2 border-[#2C7A7B] rounded-2xl shadow-sm inline-block">
+      {/* Modal PIX Simplificado (Raw HTML/Tailwind) */}
+      {isPixModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-sm bg-white rounded-2xl p-5 sm:p-6 shadow-2xl border border-gray-100 flex flex-col items-center text-center max-h-[90vh] overflow-y-auto">
+            
+            <button
+              onClick={() => setIsPixModalOpen(false)}
+              className="absolute top-3 right-3 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+
+            <div className="flex flex-col items-center gap-2 mb-6 mt-2">
+              <QrCode className="w-8 h-8 text-[#2C7A7B]" />
+              <h2 className="text-lg font-bold text-gray-900">Pagamento via Pix</h2>
+              <p className="text-sm text-gray-500 font-medium">Escaneie o QR Code ou copie a chave abaixo.</p>
+            </div>
+
+            {pixData ? (
+              <div className="w-full flex flex-col items-center space-y-5">
+                {pixData.qrCodeBase64 ? (
                   <img
                     src={`data:image/jpeg;base64,${pixData.qrCodeBase64}`}
                     alt="QR Code Pix"
-                    className="w-48 h-48 object-contain"
+                    className="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain p-2 bg-white rounded-xl border border-gray-200"
                   />
-                </div>
-              ) : (
-                <div className="w-48 h-48 bg-gray-100 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300">
-                  <QrCode className="w-8 h-8 text-gray-400 mb-2" />
-                  <p className="text-xs font-semibold text-gray-500">QR Code indisponível</p>
-                </div>
-              )}
+                ) : (
+                  <div className="w-48 h-48 sm:w-56 sm:h-56 bg-gray-100 flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300">
+                    <QrCode className="w-8 h-8 text-gray-400 mb-2" />
+                    <p className="text-xs font-semibold text-gray-500">QR Code indisponível</p>
+                  </div>
+                )}
 
-              <div className="w-full space-y-2">
-                <p className="text-xs font-bold text-gray-700 uppercase tracking-wider text-center">Pix Copia e Cola</p>
-                <div className="flex bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="flex-1 px-3 py-2 text-xs font-mono text-gray-600 truncate flex items-center select-all">
-                    {pixData.qrCode || 'Código indisponível'}
+                <div className="w-full space-y-2">
+                  <p className="text-xs font-bold text-gray-700 uppercase tracking-wider text-center">Pix Copia e Cola</p>
+                  <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-2">
+                    <p className="text-xs text-gray-600 font-mono break-all line-clamp-2 text-left flex-1 select-all">
+                      {pixData.qrCode || 'Código indisponível'}
+                    </p>
                   </div>
                   <button
                     onClick={handleCopyPix}
                     disabled={!pixData.qrCode}
-                    className="px-4 py-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white transition-colors flex items-center justify-center shrink-0 border-l border-[#235f60] disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Copiar código Pix"
+                    className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    {copied ? 'Código Copiado!' : 'Copiar Código Pix'}
                   </button>
                 </div>
-                {copied && (
-                  <p className="text-xs font-bold text-emerald-600 text-center animate-in fade-in slide-in-from-bottom-1">
-                    Código copiado com sucesso!
-                  </p>
-                )}
               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            ) : (
+              <p className="text-sm text-gray-500 my-8">Os dados do Pix não foram encontrados para esta sessão.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
