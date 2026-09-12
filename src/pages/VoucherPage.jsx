@@ -340,37 +340,41 @@ export default function VoucherPage() {
     const pStatus = (booking.payment_status || '').toLowerCase();
     const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
 
-    if (pStatus === 'pago_integral' || rStatus === 'concluida') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-          <CheckCircle className="w-3.5 h-3.5" />
-          CONFIRMADA · PAGO INTEGRAL (100%)
-        </span>
-      );
-    }
-    if (pStatus === 'sinal_pago' || rStatus === 'confirmada' || isDeposit) {
+    // 1. Enquanto payment_status for pendente, exibe obrigatoriamente o badge de AGUARDANDO PAGAMENTO
+    if (pStatus === 'pendente' || rStatus === 'pendente' || pStatus === 'pending') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-          <CheckCircle className="w-3.5 h-3.5 text-amber-700" />
-          CONFIRMADA · SINAL PAGO (50%)
-        </span>
-      );
-    }
-    if (pStatus === 'pendente' || rStatus === 'pendente') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">
-          <AlertCircle className="w-3.5 h-3.5" />
+          <AlertCircle className="w-3.5 h-3.5 text-amber-700" />
           AGUARDANDO PAGAMENTO (PIX PENDENTE)
         </span>
       );
     }
+
+    if (pStatus === 'pago_integral' || rStatus === 'concluida') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <CheckCircle className="w-3.5 h-3.5" />
+          CONFIRMADA · PAGO INTEGRAL
+        </span>
+      );
+    }
+
+    if (pStatus === 'sinal_pago' || rStatus === 'confirmada') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
+          CONFIRMADA · SINAL PAGO
+        </span>
+      );
+    }
+
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
         <Clock className="w-3.5 h-3.5" />
         RESERVA SOLICITADA · EM PROCESSAMENTO
       </span>
     );
-  }, [booking, isDeposit]);
+  }, [booking]);
 
   const whatsappSupportUrl = useMemo(() => {
     const text = `Olá! Gostaria de suporte sobre meu voucher de reserva: *${formattedCode}*`;

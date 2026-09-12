@@ -150,19 +150,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Dados do cliente (nome/telefone) são obrigatórios.' });
     }
 
-    // Regra estrita de status: Se o pagamento for pendente ou valor zerado, status = pendente
+    // Regra estrita de status: Ao criar a reserva na geração do Pix ou checkout, status DEVE SER 'pendente'.
+    // NUNCA criar a reserva como 'confirmada' ou 'sinal_pago' antes da confirmação do gateway.
+    const isConfirmedParam = Boolean(body.is_confirmed || body.isConfirmed);
     const rawPaymentStatus = (body.payment_status || body.paymentStatus || '').toLowerCase();
     const rawReservationStatus = (body.reservation_status || body.status || '').toLowerCase();
 
-    const isPending =
-      rawPaymentStatus === 'pendente' ||
-      rawPaymentStatus === 'pending' ||
-      rawReservationStatus === 'pendente' ||
-      rawReservationStatus === 'pending' ||
-      amountPaid === 0;
+    const isConfirmed = isConfirmedParam && rawPaymentStatus !== 'pendente' && rawPaymentStatus !== 'pending';
 
-    const reservationStatus = isPending ? 'pendente' : 'confirmada';
-    const paymentStatus = isPending ? 'pendente' : (body.payment_status || 'sinal_pago');
+    const reservationStatus = isConfirmed ? (rawReservationStatus || 'confirmada') : 'pendente';
+    const paymentStatus = isConfirmed ? (rawPaymentStatus || 'sinal_pago') : 'pendente';
 
     // 1. Tabela agency_customers
     let customerId = null;
@@ -230,6 +227,7 @@ export default async function handler(req, res) {
         payment_method: paymentMethod,
         payment_status: paymentStatus,
         reservation_status: reservationStatus,
+        status: reservationStatus,
         sale_source: notes.includes('Site') ? 'Site Institucional' : 'WhatsApp',
       };
 
