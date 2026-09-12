@@ -121,6 +121,14 @@ export default async function handler(req, res) {
         const { data: existing } = await query;
         if (existing && existing.length > 0) {
           customerId = existing[0].id;
+          
+          // Atualiza o nome do cliente se um novo nome foi fornecido e for diferente
+          if (clientName && clientName !== 'Cliente Site') {
+            await supabase
+              .from('agency_customers')
+              .update({ name: clientName })
+              .eq('id', customerId);
+          }
         }
       }
 
