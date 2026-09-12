@@ -131,14 +131,56 @@ export default function VoucherPage() {
         }
       }
 
-      // 3. Tentar buscar da API do HotelOps ou Supabase
+      // 3. Tentar buscar da API local (/api/booking-public)
       try {
-        const res = await fetch(`https://hotelops-rh.vercel.app/api/booking-public?code=${formattedCode}`).catch(() => null);
+        const res = await fetch(`/api/booking-public?code=${formattedCode}`).catch(() => null);
         if (res && res.ok) {
           const data = await res.json().catch(() => null);
           if (data && data.success && data.booking) {
+            const b = data.booking;
+            const cust = b.agency_customers || {};
+            const items = Array.isArray(b.agency_reservation_items) ? b.agency_reservation_items : [];
+            const priceFinal = Number(b.price_final || b.amount_total || 0);
+            const isDeposit = b.payment_status === 'sinal_pago';
+            const amountPaid = Number(b.amount_paid ?? (isDeposit ? priceFinal / 2 : (b.payment_status === 'pago_integral' ? priceFinal : 0)));
+
             if (isMounted) {
-              setBooking(data.booking);
+              setBooking({
+                code: b.reservation_code || formattedCode,
+                created_at: b.created_at,
+                client_name: cust.name || b.client_name || 'Cliente',
+                client_phone: cust.whatsapp || cust.phone || b.client_phone || '',
+                client_email: cust.email || b.client_email || '',
+                status: b.reservation_status || b.status || 'pendente',
+                payment_status: b.payment_status || 'pendente',
+                payment_method: b.payment_method || 'pix',
+                amount_total: priceFinal,
+                amount_paid: amountPaid,
+                remaining_balance: Math.max(0, priceFinal - amountPaid),
+                pickup_location: b.pickup_location || 'A combinar',
+                notes: b.notes || '',
+                items: items.length > 0 ? items.map((it) => ({
+                  title: it.title || it.service_name || 'Serviço Jericoacoara',
+                  service_type: it.category || 'passeio',
+                  vehicle: it.vehicle_type || 'SW4 / Buggy',
+                  modality: it.trecho || 'privativo',
+                  date: it.date_start || b.date || new Date().toISOString().split('T')[0],
+                  time: '11:30',
+                  pax: Number(it.pax_adults || b.pax_adults || 1),
+                  unit_price: Number(it.price_total || priceFinal),
+                })) : [
+                  {
+                    title: 'Serviço Jericoacoara Premium',
+                    service_type: 'passeio',
+                    vehicle: 'SW4 / Buggy',
+                    modality: 'privativo',
+                    date: b.date || new Date().toISOString().split('T')[0],
+                    time: '11:30',
+                    pax: Number(b.pax_adults || 1),
+                    unit_price: priceFinal,
+                  }
+                ],
+              });
               setLoading(false);
               return;
             }
@@ -159,6 +201,7 @@ export default function VoucherPage() {
             date,
             pax_adults,
             pickup_location,
+            price_gross,
             price_final,
             payment_method,
             payment_status,
@@ -179,18 +222,18 @@ export default function VoucherPage() {
           setBooking({
             code: data.reservation_code,
             created_at: data.created_at,
-            client_name: cust.name || 'Cliente Jericoacoara Premium',
+            client_name: cust.name || 'Cliente',
             client_phone: cust.whatsapp || '',
             client_email: cust.email || '',
-            status: data.reservation_status || 'confirmada',
-            payment_status: data.payment_status || 'sinal_pago',
+            status: data.reservation_status || 'pendente',
+            payment_status: data.payment_status || 'pendente',
             payment_method: data.payment_method || 'pix',
             amount_total: priceFinal,
             amount_paid: amountPaid,
             remaining_balance: Math.max(0, priceFinal - amountPaid),
             pickup_location: data.pickup_location || 'A combinar',
-            items: items.map((it) => ({
-              title: it.title || it.service_name || 'Serviço Jericoacoara Premium',
+            items: items.length > 0 ? items.map((it) => ({
+              title: it.title || it.service_name || 'Serviço Jericoacoara',
               service_type: it.category || 'passeio',
               vehicle: it.vehicle_type || 'SW4 / Buggy',
               modality: 'privativo',
@@ -198,7 +241,18 @@ export default function VoucherPage() {
               time: '11:30',
               pax: Number(it.pax_adults || data.pax_adults || 1),
               unit_price: Number(it.price_total || priceFinal),
-            })),
+            })) : [
+              {
+                title: 'Serviço Jericoacoara Premium',
+                service_type: 'passeio',
+                vehicle: 'SW4 / Buggy',
+                modality: 'privativo',
+                date: data.date || new Date().toISOString().split('T')[0],
+                time: '11:30',
+                pax: Number(data.pax_adults || 1),
+                unit_price: priceFinal,
+              }
+            ],
           });
           setLoading(false);
           return;
@@ -207,35 +261,10 @@ export default function VoucherPage() {
         // ignore
       }
 
-      // 5. Se não encontrou, gerar objeto dinâmico padrão baseado no código para evitar telas em branco
+      // 5. Se o código não for localizado no banco nem no localStorage, definir erro explícito (SEM MOCKS)
       if (isMounted) {
-        setBooking({
-          code: formattedCode,
-          created_at: new Date().toISOString(),
-          client_name: 'Cliente Jericoacoara Premium',
-          client_phone: '(88) 98846-3182',
-          client_email: 'contato@jericoacoarapremium.com',
-          status: 'confirmada',
-          payment_status: 'sinal_pago',
-          payment_method: 'pix',
-          amount_total: 600.0,
-          amount_paid: 300.0,
-          remaining_balance: 300.0,
-          pickup_location: 'Recepção da Pousada / Hotel informado',
-          notes: 'Reserva registrada com sucesso no sistema institucional.',
-          items: [
-            {
-              title: 'Transfer ou Passeio Jericoacoara Premium',
-              service_type: 'transfer',
-              modality: 'privativo',
-              vehicle: 'SW4 4x4 / Buggy',
-              date: new Date().toISOString().split('T')[0],
-              time: '09:00',
-              pax: 2,
-              unit_price: 600.0,
-            },
-          ],
-        });
+        setBooking(null);
+        setError('Reserva não encontrada no sistema.');
         setLoading(false);
       }
     }
@@ -270,7 +299,7 @@ export default function VoucherPage() {
     if (booking && (booking.payment_status === 'pendente' || booking.status === 'pendente') && !DEMO_VOUCHERS[formattedCode]) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`https://hotelops-rh.vercel.app/api/booking-public?code=${formattedCode}`);
+          const res = await fetch(`/api/booking-public?code=${formattedCode}`);
           const data = await res.json();
           if (data && data.success && data.booking) {
             const status = data.booking.payment_status;
@@ -351,6 +380,43 @@ export default function VoucherPage() {
         <div className="text-center space-y-3">
           <div className="w-12 h-12 border-4 border-[#2C7A7B] border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-semibold text-gray-600">Carregando Voucher Oficial...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !booking) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-200 p-6 sm:p-8 text-center space-y-5">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 shrink-0">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Reserva Não Encontrada</h2>
+            <p className="text-xs font-mono text-gray-500 mt-1">Localizador: <span className="font-bold text-gray-700">{formattedCode}</span></p>
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Não foi localizado nenhum agendamento registrado com o código fornecido. Verifique se o código está correto ou entre em contato com nossa equipe de suporte.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar ao Site
+            </Link>
+            <a
+              href={whatsappSupportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Suporte WhatsApp
+            </a>
+          </div>
         </div>
       </div>
     );

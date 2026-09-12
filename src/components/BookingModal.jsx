@@ -112,7 +112,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     if (step === 'pix' && createdReservationCode) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`https://hotelops-rh.vercel.app/api/booking-public?code=${createdReservationCode}`);
+          const res = await fetch(`/api/booking-public?code=${createdReservationCode}`);
           const data = await res.json();
           if (data && data.success && data.booking) {
             const status = data.booking.payment_status;

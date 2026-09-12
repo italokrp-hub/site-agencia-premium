@@ -29,7 +29,7 @@ const sendTelegramNotification = async (data) => {
   }
 };
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -48,7 +48,11 @@ export default async function handler(req, res) {
       if (!code) return res.status(400).json({ error: 'Reservation code is required' });
       const { data, error } = await supabase
         .from('agency_reservations')
-        .select('*')
+        .select(`
+          *,
+          agency_customers (name, whatsapp, email),
+          agency_reservation_items (category, service_name, vehicle_type, trecho, date_start, pax_adults, price_total)
+        `)
         .eq('reservation_code', code)
         .single();
       if (error || !data) return res.status(404).json({ error: 'Booking not found' });
@@ -153,9 +157,10 @@ export default async function handler(req, res) {
       console.error('[API booking-public] Erro etapa cliente:', e);
     }
 
-    // 2. Gerar código de reserva único (ex: JRI-XXXXXX)
+    // 2. Gerar código de reserva único (ex: JRI-XXXXXX) ou usar o código enviado
+    const providedCode = (body.code || body.reservation_code || '').trim();
     const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const reservationCode = `JRI-${randomCode}`;
+    const reservationCode = providedCode || `JRI-${randomCode}`;
 
     const mainItem = rawItems[0] || {};
     const fullPrice = mainItem.unit_price || amountPaid || 0;

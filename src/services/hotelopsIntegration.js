@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-const HOTEL_OPS_ENDPOINT = import.meta.env.VITE_HOTEL_OPS_ENDPOINT || 'https://hotelops-rh.vercel.app/api/booking-public';
+const HOTEL_OPS_ENDPOINT = import.meta.env.VITE_HOTEL_OPS_ENDPOINT || '/api/booking-public';
 
 /**
  * Normaliza o tipo de veículo para um dos valores aceitos pelo CRM HotelOps:
