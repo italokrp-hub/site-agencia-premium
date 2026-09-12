@@ -131,9 +131,9 @@ export default function VoucherPage() {
         }
       }
 
-      // 3. Tentar buscar da API local (/api/booking-public)
+      // 3. Tentar buscar da API local (/api/booking-public) com cache-busting
       try {
-        const res = await fetch(`/api/booking-public?code=${formattedCode}`).catch(() => null);
+        const res = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`).catch(() => null);
         if (res && res.ok) {
           const data = await res.json().catch(() => null);
           if (data && data.success && data.booking) {
@@ -209,8 +209,8 @@ export default function VoucherPage() {
             agency_customers (name, whatsapp, email),
             agency_reservation_items (title, service_name, vehicle_type, category, date_start, pax_adults, price_total)
           `)
-          .eq('reservation_code', formattedCode)
-          .single();
+          .or(`reservation_code.eq.${formattedCode},code.eq.${formattedCode}`)
+          .maybeSingle();
 
         if (data && isMounted) {
           const cust = data.agency_customers || {};
@@ -220,7 +220,7 @@ export default function VoucherPage() {
           const amountPaid = isDeposit ? priceFinal / 2 : (data.payment_status === 'pago_integral' ? priceFinal : 0);
 
           setBooking({
-            code: data.reservation_code,
+            code: data.reservation_code || formattedCode,
             created_at: data.created_at,
             client_name: cust.name || 'Cliente',
             client_phone: cust.whatsapp || '',
@@ -293,13 +293,13 @@ export default function VoucherPage() {
     }
   };
 
-  // Polling para pagamento pendente
+  // Polling para pagamento pendente com cache-busting
   useEffect(() => {
     let interval;
     if (booking && (booking.payment_status === 'pendente' || booking.status === 'pendente') && !DEMO_VOUCHERS[formattedCode]) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`/api/booking-public?code=${formattedCode}`);
+          const res = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`);
           const data = await res.json();
           if (data && data.success && data.booking) {
             const status = data.booking.payment_status;
@@ -310,7 +310,7 @@ export default function VoucherPage() {
               setBooking((prev) => ({
                 ...prev,
                 status: resStatus || 'confirmada',
-                payment_status: status || 'pago_integral',
+                payment_status: status || 'sinal_pago',
                 amount_paid: status === 'sinal_pago' ? prev.amount_total / 2 : prev.amount_total,
                 remaining_balance: status === 'sinal_pago' ? prev.amount_total / 2 : 0,
               }));
@@ -337,15 +337,10 @@ export default function VoucherPage() {
 
   const statusBadge = useMemo(() => {
     if (!booking) return null;
-    if (booking.payment_status === 'pendente' || booking.status === 'pendente') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">
-          <AlertCircle className="w-3.5 h-3.5" />
-          AGUARDANDO PAGAMENTO (PIX PENDENTE)
-        </span>
-      );
-    }
-    if (booking.payment_status === 'pago_integral' || booking.status === 'concluida') {
+    const pStatus = (booking.payment_status || '').toLowerCase();
+    const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
+
+    if (pStatus === 'pago_integral' || rStatus === 'concluida') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
           <CheckCircle className="w-3.5 h-3.5" />
@@ -353,11 +348,19 @@ export default function VoucherPage() {
         </span>
       );
     }
-    if (booking.payment_status === 'sinal_pago' || isDeposit) {
+    if (pStatus === 'sinal_pago' || rStatus === 'confirmada' || isDeposit) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
           <CheckCircle className="w-3.5 h-3.5 text-amber-700" />
           CONFIRMADA · SINAL PAGO (50%)
+        </span>
+      );
+    }
+    if (pStatus === 'pendente' || rStatus === 'pendente') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">
+          <AlertCircle className="w-3.5 h-3.5" />
+          AGUARDANDO PAGAMENTO (PIX PENDENTE)
         </span>
       );
     }

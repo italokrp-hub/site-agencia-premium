@@ -97,37 +97,96 @@ export default async function handler(req, res) {
       const reservationCode = payment.external_reference || payment.metadata?.code || payment.metadata?.reservation_code;
 
       if (reservationCode) {
-        // Consultar reserva no Supabase
+        // Consultar reserva no Supabase cobrindo reservation_code e code
         const { data: resData, error: selectErr } = await supabaseAdmin
           .from('agency_reservations')
           .select('id, price_gross, price_final')
-          .eq('reservation_code', reservationCode)
+          .or(`reservation_code.eq.${reservationCode},code.eq.${reservationCode}`)
           .maybeSingle();
 
         if (selectErr) {
           console.error('[MP Webhook] Erro ao buscar reserva no Supabase:', selectErr);
         }
 
-        let paymentStatus = 'sinal_pago';
-        if (resData && payment.transaction_amount && payment.transaction_amount >= (resData.price_gross || resData.price_final)) {
-          paymentStatus = 'pago_integral';
-        }
+        const isFullPayment = resData && payment.transaction_amount && payment.transaction_amount >= (resData.price_gross || resData.price_final);
+        const paymentStatus = isFullPayment ? 'pago_integral' : 'sinal_pago';
 
-        // Atualizar status da reserva
-        const { error: updateErr } = await supabaseAdmin
-          .from('agency_reservations')
-          .update({
-            status: 'confirmada',
-            reservation_status: 'confirmada',
-            payment_status: paymentStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('reservation_code', reservationCode);
+        if (resData) {
+          // Atualizar status da reserva existente
+          const { error: updateErr } = await supabaseAdmin
+            .from('agency_reservations')
+            .update({
+              status: 'confirmada',
+              reservation_status: 'confirmada',
+              payment_status: paymentStatus,
+              updated_at: new Date().toISOString(),
+            })
+            .or(`reservation_code.eq.${reservationCode},code.eq.${reservationCode}`);
 
-        if (updateErr) {
-          console.error('[MP Webhook] Erro ao atualizar reserva no Supabase:', updateErr);
+          if (updateErr) {
+            console.error('[MP Webhook] Erro ao atualizar reserva no Supabase:', updateErr);
+          } else {
+            console.log('[MP Webhook] Reserva confirmada com sucesso no Supabase:', reservationCode);
+          }
         } else {
-          console.log('[MP Webhook] Reserva confirmada com sucesso:', reservationCode);
+          // Se a reserva não existir no Supabase, cria a reserva confirmada automaticamente (Auto-Upsert)
+          const amount = payment.transaction_amount || 0;
+          const payerName = payment.payer?.first_name ? `${payment.payer.first_name} ${payment.payer.last_name || ''}`.trim() : (payment.payer?.email || 'Cliente Jericoacoara Premium');
+          const payerPhone = payment.payer?.phone?.number || '';
+          const payerEmail = payment.payer?.email || '';
+
+          let customerId = null;
+          if (payerPhone || payerEmail) {
+            try {
+              const { data: cust } = await supabaseAdmin
+                .from('agency_customers')
+                .insert([{ name: payerName, whatsapp: payerPhone, email: payerEmail }])
+                .select('id')
+                .single();
+              if (cust) customerId = cust.id;
+            } catch (e) {}
+          }
+
+          const newReservation = {
+            customer_id: customerId || null,
+            reservation_code: reservationCode,
+            date: new Date().toISOString().split('T')[0],
+            pax_adults: 1,
+            pickup_location: 'Confirmado via Mercado Pago Webhook (Pagamento aprovado)',
+            price_gross: amount,
+            price_final: amount,
+            payment_method: payment.payment_method_id || 'pix',
+            payment_status: paymentStatus,
+            reservation_status: 'confirmada',
+            status: 'confirmada',
+            sale_source: 'Site Institucional (Mercado Pago)',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          const { data: createdRes, error: createErr } = await supabaseAdmin
+            .from('agency_reservations')
+            .insert([newReservation])
+            .select('id')
+            .single();
+
+          if (createdRes) {
+            await supabaseAdmin.from('agency_reservation_items').insert([
+              {
+                reservation_id: createdRes.id,
+                category: 'passeio',
+                service_name: payment.description || 'Passeio / Transfer Jericoacoara',
+                vehicle_type: 'buggy',
+                trecho: 'privativo',
+                date_start: new Date().toISOString().split('T')[0],
+                pax_adults: 1,
+                price_total: amount,
+              },
+            ]);
+            console.log('[MP Webhook] Reserva criada e confirmada automaticamente no Supabase:', reservationCode);
+          } else if (createErr) {
+            console.error('[MP Webhook] Erro ao criar nova reserva no Supabase:', createErr);
+          }
         }
 
         // Enviar e-mail de confirmação (se customer tiver e-mail)
