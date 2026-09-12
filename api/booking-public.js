@@ -217,6 +217,8 @@ export default async function handler(req, res) {
     const mainItem = rawItems[0] || {};
     const fullPrice = mainItem.unit_price || amountPaid || 0;
 
+    let dbInsertError = null;
+
     // 3. Tabela agency_reservations (Upsert limpo)
     let reservationId = null;
     try {
@@ -231,9 +233,10 @@ export default async function handler(req, res) {
         payment_method: paymentMethod,
         payment_status: paymentStatus,
         reservation_status: reservationStatus,
-        status: reservationStatus,
         sale_source: notes.includes('Site') ? 'Site Institucional' : 'WhatsApp',
       };
+
+      console.log('[API booking-public POST] Payload para agency_reservations:', JSON.stringify(reservationPayload, null, 2));
 
       const { data: existingRes } = await supabase
         .from('agency_reservations')
@@ -243,10 +246,17 @@ export default async function handler(req, res) {
 
       if (existingRes) {
         reservationId = existingRes.id;
-        await supabase
+        const { error: updErr } = await supabase
           .from('agency_reservations')
           .update(reservationPayload)
           .eq('id', reservationId);
+
+        if (updErr) {
+          console.error('[API booking-public] Erro ao atualizar reserva no Supabase:', updErr);
+          dbInsertError = updErr;
+        } else {
+          console.log('[API booking-public] Reserva atualizada com sucesso no Supabase. ID:', reservationId);
+        }
       } else {
         const { data: newRes, error: insErr } = await supabase
           .from('agency_reservations')
@@ -254,14 +264,25 @@ export default async function handler(req, res) {
           .select('id')
           .single();
 
-        if (newRes) {
+        if (insErr) {
+          console.error('[API booking-public] Erro inserção reserva no Supabase:', insErr);
+          dbInsertError = insErr;
+        } else if (newRes) {
           reservationId = newRes.id;
-        } else if (insErr) {
-          console.error('[API booking-public] Erro inserção reserva:', insErr);
+          console.log('[API booking-public] Nova reserva inserida com sucesso no Supabase! ID:', reservationId);
         }
       }
     } catch (e) {
       console.error('[API booking-public] Erro etapa reserva:', e);
+      dbInsertError = e;
+    }
+
+    if (!reservationId && dbInsertError) {
+      return res.status(500).json({
+        success: false,
+        error: 'Erro ao gravar reserva no Supabase',
+        dbError: dbInsertError.message || dbInsertError,
+      });
     }
 
     // 4. Tabela agency_reservation_items
@@ -298,8 +319,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: 'Reserva registrada com sucesso!',
-      booking_id: reservationId || `bk_${Date.now()}`,
-      reservation_id: reservationId || `bk_${Date.now()}`,
+      booking_id: reservationId,
+      reservation_id: reservationId,
       reservation_code: reservationCode,
       reservation_status: reservationStatus,
       price_final: amountPaid || fullPrice,

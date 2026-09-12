@@ -178,16 +178,16 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
 
     const data = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      console.error('[HotelOps Integration] Resposta de erro HTTP do CRM:', response.status, data);
+    if (!response.ok || (data && data.success === false)) {
+      console.error('[BookingModal] Erro ao gravar reserva no Supabase:', response.status, data);
       return { success: false, status: response.status, error: data };
     }
 
-    console.log('[HotelOps Integration] Reserva sincronizada com sucesso! Status HTTP:', response.status, data);
+    console.log('[HotelOps Integration] Reserva sincronizada com sucesso no Supabase! Status HTTP:', response.status, data);
     return { success: true, status: response.status, data };
   } catch (err) {
     // Tratamento de Erro Silencioso: NUNCA trava o fluxo do cliente
-    console.error('[HotelOps Integration] Falha no envio para o CRM HotelOps:', err);
+    console.error('[BookingModal] Erro ao gravar reserva no Supabase:', err);
     return { success: false, error: err?.message || err };
   }
 }
