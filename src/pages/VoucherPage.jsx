@@ -18,7 +18,18 @@ import {
   AlertCircle,
   CreditCard,
   Building,
+  QrCode,
+  Copy,
+  XCircle
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
 import { supabase } from '@/lib/supabase';
 import { buildWhatsAppLink } from '@/utils/whatsapp';
@@ -87,6 +98,11 @@ export default function VoucherPage() {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // States for Pix Modal
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+  const [pixData, setPixData] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const formattedCode = useMemo(() => (code || '').toUpperCase().trim(), [code]);
 
@@ -233,10 +249,27 @@ export default function VoucherPage() {
 
     loadVoucher();
 
+    // Load Pix Data if exists
+    try {
+      const pixStorage = localStorage.getItem(`jeri_pix_data_${formattedCode}`);
+      if (pixStorage) {
+        setPixData(JSON.parse(pixStorage));
+      }
+    } catch (e) {}
+
     return () => {
       isMounted = false;
     };
   }, [formattedCode]);
+
+  const handleCopyPix = () => {
+    if (pixData?.qrCode) {
+      navigator.clipboard.writeText(pixData.qrCode).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -368,10 +401,19 @@ export default function VoucherPage() {
         {/* Warning se pendente */}
         {(booking.payment_status === 'pendente' || booking.status === 'pendente') && (
           <div className="bg-orange-50 border-b border-orange-200 px-6 py-4">
-            <p className="text-sm text-orange-800 font-semibold flex items-center gap-2">
+            <p className="text-sm text-orange-800 font-semibold flex items-center gap-2 mb-3">
               <AlertCircle className="w-5 h-5 shrink-0" />
               Esta reserva ainda não foi confirmada. Conclua o pagamento via Pix para validação do voucher.
             </p>
+            {pixData && (
+              <Button 
+                onClick={() => setIsPixModalOpen(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm h-10 rounded-lg flex items-center gap-2"
+              >
+                <QrCode className="w-4 h-4" />
+                Pagar Agora via Pix / Ver QR Code
+              </Button>
+            )}
           </div>
         )}
 
@@ -521,6 +563,62 @@ export default function VoucherPage() {
           <p className="text-[10px] text-gray-500 pt-1">https://jericoacoarapremium.com/voucher/{booking.code}</p>
         </div>
       </div>
+      
+      {/* Modal PIX Simplificado */}
+      <Dialog open={isPixModalOpen} onOpenChange={setIsPixModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#2C7A7B]">
+              <QrCode className="w-5 h-5" />
+              Pagamento via Pix
+            </DialogTitle>
+            <DialogDescription>
+              Escaneie o QR Code ou copie o código Pix Copia e Cola para finalizar sua reserva.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {pixData && (
+            <div className="flex flex-col items-center justify-center p-4 space-y-6">
+              {pixData.qrCodeBase64 ? (
+                <div className="p-4 bg-white border-2 border-[#2C7A7B] rounded-2xl shadow-sm inline-block">
+                  <img
+                    src={`data:image/jpeg;base64,${pixData.qrCodeBase64}`}
+                    alt="QR Code Pix"
+                    className="w-48 h-48 object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-48 h-48 bg-gray-100 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300">
+                  <QrCode className="w-8 h-8 text-gray-400 mb-2" />
+                  <p className="text-xs font-semibold text-gray-500">QR Code indisponível</p>
+                </div>
+              )}
+
+              <div className="w-full space-y-2">
+                <p className="text-xs font-bold text-gray-700 uppercase tracking-wider text-center">Pix Copia e Cola</p>
+                <div className="flex bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="flex-1 px-3 py-2 text-xs font-mono text-gray-600 truncate flex items-center select-all">
+                    {pixData.qrCode || 'Código indisponível'}
+                  </div>
+                  <button
+                    onClick={handleCopyPix}
+                    disabled={!pixData.qrCode}
+                    className="px-4 py-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white transition-colors flex items-center justify-center shrink-0 border-l border-[#235f60] disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Copiar código Pix"
+                  >
+                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                {copied && (
+                  <p className="text-xs font-bold text-emerald-600 text-center animate-in fade-in slide-in-from-bottom-1">
+                    Código copiado com sucesso!
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

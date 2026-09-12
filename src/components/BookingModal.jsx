@@ -303,8 +303,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
     hasSentToHotelOpsRef.current = false;
   }, []);
 
-  const saveBookingToStorage = useCallback((paymentMethodName = 'Pix') => {
-    const code = `JRI-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const saveBookingToStorage = useCallback((paymentMethodName = 'Pix', existingCode = null) => {
+    const code = existingCode || `JRI-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const isDeposit = isPortuguese && paymentMode === '50';
     const isPix = (paymentMethodName || '').toLowerCase().includes('pix');
     const amountPaid = isDeposit ? (isPix ? chargePixTotal : chargeTotal) : (isPix ? fullPixTotal : fullTotal);
@@ -471,8 +471,16 @@ export default function BookingModal({ item, open, onOpenChange }) {
         throw new Error('Valor inválido para a chave Pix. Verifique a opção e o veículo selecionados.');
       }
 
-      const resCode = saveBookingToStorage('Pix');
-      triggerHotelOpsSync('Pix');
+      // Verifica se já existe um active_booking_code nesta sessão para reaproveitar
+      let resCode = sessionStorage.getItem('active_booking_code');
+      if (!resCode) {
+        resCode = saveBookingToStorage('Pix');
+        sessionStorage.setItem('active_booking_code', resCode);
+        triggerHotelOpsSync('Pix');
+      } else {
+        // Apenas atualiza o storage local se já existe
+        saveBookingToStorage('Pix', resCode);
+      }
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
       const result = await createPixPayment({
@@ -508,11 +516,17 @@ export default function BookingModal({ item, open, onOpenChange }) {
       });
 
       if (result.qr_code_base64) {
-        setPixData({
+        const pixInfo = {
           qrCodeBase64: result.qr_code_base64,
           qrCode: result.qr_code,
           ticketUrl: result.ticket_url,
-        });
+        };
+        setPixData(pixInfo);
+        
+        try {
+          localStorage.setItem(`jeri_pix_data_${resCode}`, JSON.stringify(pixInfo));
+        } catch(e) {}
+        
         setStep('pix');
         return;
       }
@@ -1301,7 +1315,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
               <Button
                 onClick={() => {
                   handleOpenChange(false);
-                  navigate(`/voucher/${createdReservationCode}`);
+                  window.open(`/voucher/${createdReservationCode}`, '_blank');
                 }}
                 className="w-full h-12 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md"
               >
@@ -1362,7 +1376,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
                 <Button
                   onClick={() => {
                     handleOpenChange(false);
-                    navigate(`/voucher/${createdReservationCode}`);
+                    window.open(`/voucher/${createdReservationCode}`, '_blank');
                   }}
                   className="w-full h-13 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                 >
