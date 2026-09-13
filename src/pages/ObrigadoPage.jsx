@@ -22,9 +22,9 @@ const ObrigadoPage = () => {
       }
       try {
         window.gtag('event', 'conversion', {
-          send_to: 'AW-16498872340/6pkrCI6Ii9kaEJSgo7s9',
+          send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9',
         });
-        console.log('[Google Ads] Tag de conversão disparada com sucesso: AW-16498872340/6pkrCI6Ii9kaEJSgo7s9');
+        console.log('[Google Ads] Tag de conversão disparada com sucesso: AW-18434748779/6pkrCI6Ii9kaEJSgo7s9');
       } catch (err) {
         console.error('[Google Ads] Erro ao disparar tag de conversão:', err);
       }
