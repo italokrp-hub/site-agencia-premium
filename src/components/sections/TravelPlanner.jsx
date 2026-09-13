@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toursData, transfersData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
-import { buildWhatsAppLink, WA_MESSAGES } from '@/utils/whatsapp';
+import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WIZARD STEPS DEFINITION
@@ -196,7 +196,7 @@ const TravelPlanner = () => {
       style: answers.style,
       interests: answers.interests,
     });
-    window.open(buildWhatsAppLink(message), '_blank');
+    openWhatsApp(message);
   };
 
   const recommendation = step === 5 ? generateRecommendation(answers) : null;

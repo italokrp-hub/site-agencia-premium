@@ -18,7 +18,7 @@ import {
   PIX_DISCOUNT_PERCENT,
 } from '@/data/catalog';
 import { renderTourTitle } from '@/utils/titleHelper';
-import { buildWhatsAppLink } from '@/utils/whatsapp';
+import { buildObrigadoLink } from '@/utils/whatsapp';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -393,7 +393,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
       <div className="shrink-0 px-5 pb-6 pt-3 md:px-6 border-t border-gray-100 bg-white space-y-2.5 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         {isWhatsAppOnly ? (
           <a
-            href={buildWhatsAppLink(waMessage)}
+            href={buildObrigadoLink(waMessage)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full h-12 rounded-2xl bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2"

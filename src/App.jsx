@@ -25,9 +25,10 @@ import FAQSection from '@/components/sections/FAQSection';
 import FinalCTA from '@/components/sections/FinalCTA';
 import JeriDuneTrail from '@/components/effects/JeriDuneTrail';
 
-// Admin & Voucher routes
+// Admin, Voucher & Conversion routes
 import Reservas from '@/pages/agencia/Reservas';
 import VoucherPage from '@/pages/VoucherPage';
+import ObrigadoPage from '@/pages/ObrigadoPage';
 
 // SEO Landing Pages
 import TransferFortalezaJeri from '@/pages/seo/TransferFortalezaJeri';
@@ -136,6 +137,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/obrigado" element={<ObrigadoPage />} />
             <Route path="/voucher/:code" element={<VoucherPage />} />
             <Route path="/agencia/reservas" element={<Reservas />} />
             <Route path="/reservas" element={<Reservas />} />

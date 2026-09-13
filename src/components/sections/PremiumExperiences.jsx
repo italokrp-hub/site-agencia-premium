@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { WA_MESSAGES, buildWhatsAppLink } from '@/utils/whatsapp';
+import { WA_MESSAGES, buildObrigadoLink } from '@/utils/whatsapp';
 import { toursData } from '@/data/catalog';
 
 const PremiumExperiences = () => {
@@ -110,7 +110,7 @@ const PremiumExperiences = () => {
                   </p>
 
                   <a
-                    href={buildWhatsAppLink(getWaMessage(tour))}
+                    href={buildObrigadoLink(getWaMessage(tour))}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"

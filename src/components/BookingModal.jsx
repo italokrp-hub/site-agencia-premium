@@ -55,7 +55,7 @@ import { createCheckout, createPixPayment } from '@/services/payment';
 import { createStripeCheckout } from '@/services/stripePayment';
 import { sendBookingToHotelOps } from '@/services/hotelopsIntegration';
 import { useLanguage } from '@/i18n/LanguageContext';
-import { buildWhatsAppLink } from '@/utils/whatsapp';
+import { openWhatsApp } from '@/utils/whatsapp';
 
 function formatPhone(value) {
   return value;
@@ -743,7 +743,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
       if (form.email) msgText += `\nE-mail: ${form.email}`;
     }
 
-    window.open(buildWhatsAppLink(msgText), '_blank');
+    openWhatsApp(msgText);
     setStep('success');
   }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isPortuguese, language, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied, triggerHotelOpsSync, createdReservationCode, saveBookingToStorage]);
 
