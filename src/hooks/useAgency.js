@@ -6,6 +6,38 @@ import { ptBR } from 'date-fns/locale';
 // Dados simulados realistas para demonstrar o sistema PMS/FareHarbor com perfeição caso o Supabase não retorne registros
 const INITIAL_MOCK_RESERVATIONS = [
   {
+    id: 'res-kr2hwh',
+    code: 'JRI-KR2HWH',
+    created_at: new Date().toISOString(),
+    client_name: 'Matheus',
+    client_phone: '(88) 98846-3182',
+    client_email: 'matheus@gmail.com',
+    status: 'confirmada',
+    payment_status: 'sinal_pago',
+    payment_method: 'cartao',
+    amount_paid: 25.0,
+    amount_total: 50.0,
+    discount: 0.0,
+    remaining_balance: 25.0,
+    origin: 'Site Institucional',
+    notes: 'Origem: Site Institucional | Ponto de Embarque: Estacionamento de Jijoca | Trajeto: Somente Volta | Saldo Restante no Embarque: R$ 25.00',
+    pickup_location: 'Estacionamento de Jijoca',
+    flight_details: '',
+    items: [
+      {
+        id: 'it-kr2hwh',
+        service_type: 'transfer',
+        title: 'Transfer Jijoca ↔ Jericoacoara',
+        vehicle: 'jardineira',
+        modality: 'compartilhado',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        time: '12:00',
+        pax: 1,
+        unit_price: 50.0,
+      },
+    ],
+  },
+  {
     id: 'res-101',
     code: 'JRI-77A91',
     created_at: new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
@@ -216,7 +248,7 @@ export function useAgency() {
         const formatted = resData.map((r) => {
           const cust = r.agency_customers || {};
           const items = r.agency_reservation_items || [];
-          const priceFinal = Number(r.price_final || 0);
+          const priceFinal = Number(r.price_final || r.price_gross || 0);
           const priceGross = Number(r.price_gross || priceFinal);
           const isDeposit = r.payment_status === 'sinal_pago';
           const amountPaid = isDeposit ? priceFinal / 2 : (r.payment_status === 'pago_integral' ? priceFinal : 0);
@@ -226,6 +258,7 @@ export function useAgency() {
             id: r.id,
             code: r.reservation_code || `JRI-${r.id.substring(0, 5).toUpperCase()}`,
             created_at: r.created_at || new Date().toISOString(),
+            service_name: r.service_name || null,
             client_name: cust.name || 'Cliente Sem Nome',
             client_phone: cust.whatsapp || cust.phone || '',
             client_email: cust.email || '',

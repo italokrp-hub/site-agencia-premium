@@ -126,7 +126,7 @@ export default async function handler(req, res) {
     const clientPhone = (body.client_phone || body.phone || body.whatsapp || '').trim();
     const clientEmail = (body.client_email || body.email || '').trim();
     const paymentMethod = (body.payment_method || body.paymentMethod || 'pix').toLowerCase();
-    const amountPaid = Number(body.amount_paid ?? body.total_amount ?? body.price_final ?? body.chargePixTotal ?? body.chargeTotal ?? 0);
+    const amountPaid = Number(body.amount_paid ?? body.amountPaid ?? 0);
     const discount = Number(body.discount || 0);
     const notes = (body.notes || body.pickup_location || 'Origem: Site Institucional').trim();
     
@@ -141,7 +141,7 @@ export default async function handler(req, res) {
           date: body.date || body.date_start || new Date().toISOString().split('T')[0],
           time: body.time || '12:00',
           pax: Number(body.pax || body.pax_adults || 1),
-          unit_price: Number(body.unit_price || body.price_total || amountPaid || 0),
+          unit_price: Number(body.unit_price || body.price_total || body.fullTotal || 0),
         },
       ];
     }
@@ -215,7 +215,10 @@ export default async function handler(req, res) {
     const reservationCode = providedCode || `JRI-${randomCode}`;
 
     const mainItem = rawItems[0] || {};
-    const fullPrice = mainItem.unit_price || amountPaid || 0;
+    // Valor integral do contrato: NUNCA deve ser sobrescrito pelo valor do sinal (amountPaid)
+    const rawFullPrice = Number(body.fullTotal ?? body.price_gross ?? body.total_amount ?? mainItem.unit_price ?? 0);
+    const fullPrice = rawFullPrice > 0 ? rawFullPrice : (amountPaid > 0 ? amountPaid * 2 : 0);
+    const serviceTitle = mainItem.title || mainItem.service_name || body.title || body.service_name || 'Serviço Jericoacoara';
 
     let dbInsertError = null;
 
@@ -229,7 +232,7 @@ export default async function handler(req, res) {
         pax_adults: Number(mainItem.pax || 1),
         pickup_location: notes || null,
         price_gross: fullPrice,
-        price_final: amountPaid || fullPrice,
+        price_final: fullPrice,
         payment_method: paymentMethod,
         payment_status: paymentStatus,
         reservation_status: reservationStatus,
@@ -311,7 +314,7 @@ export default async function handler(req, res) {
     sendTelegramNotification({
       customerName: clientName,
       itemsSummary: rawItems.map(i => i.title || i.service_name || 'Serviço').join(', '),
-      totalValue: amountPaid || fullPrice,
+      totalValue: fullPrice,
       origin: 'Site Institucional',
       reservationId: reservationId,
     }).catch(() => {}); // Ignora falhas para não quebrar retorno
@@ -323,7 +326,9 @@ export default async function handler(req, res) {
       reservation_id: reservationId,
       reservation_code: reservationCode,
       reservation_status: reservationStatus,
-      price_final: amountPaid || fullPrice,
+      price_final: fullPrice,
+      amount_paid: amountPaid || (paymentStatus === 'sinal_pago' ? fullPrice / 2 : (paymentStatus === 'pago_integral' ? fullPrice : 0)),
+      remaining_amount: Math.max(0, fullPrice - (amountPaid || (paymentStatus === 'sinal_pago' ? fullPrice / 2 : (paymentStatus === 'pago_integral' ? fullPrice : 0)))),
       client: {
         name: clientName,
         phone: clientPhone,

@@ -25,8 +25,8 @@ function normalizeVehicle(rawVehicle, serviceType, optionType) {
     return 'sw4';
   }
 
+  if (optionType === 'shared' || optionType === 'compartilhado') return 'jardineira';
   if (serviceType === 'transfer') return 'sw4';
-  if (optionType === 'shared') return 'jardineira';
   return 'buggy';
 }
 

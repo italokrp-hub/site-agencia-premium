@@ -26,9 +26,37 @@ import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
 import { supabase } from '@/lib/supabase';
 import { buildWhatsAppLink } from '@/utils/whatsapp';
+import { formatModalityLabel } from '@/utils/reservationUtils';
 
 // Mocks dedicados para os códigos demonstrativos e fallbacks
 const DEMO_VOUCHERS = {
+  'JRI-KR2HWH': {
+    code: 'JRI-KR2HWH',
+    created_at: new Date().toISOString(),
+    client_name: 'Matheus',
+    client_phone: '(88) 98846-3182',
+    client_email: 'matheus@gmail.com',
+    status: 'confirmada',
+    payment_status: 'sinal_pago',
+    payment_method: 'cartao',
+    amount_total: 50.0,
+    amount_paid: 25.0,
+    remaining_balance: 25.0,
+    pickup_location: 'Estacionamento de Jijoca',
+    notes: 'Origem: Site Institucional | Ponto de Embarque: Estacionamento de Jijoca | Trajeto: Somente Volta | Saldo Restante no Embarque: R$ 25.00',
+    items: [
+      {
+        title: 'Transfer Jijoca ↔ Jericoacoara',
+        service_type: 'transfer',
+        modality: 'compartilhado',
+        vehicle: 'jardineira',
+        date: new Date().toISOString().split('T')[0],
+        time: '12:00',
+        pax: 1,
+        unit_price: 50.0,
+      },
+    ],
+  },
   'JRI-QTWTMR': {
     code: 'JRI-QTWTMR',
     created_at: new Date().toISOString(),
@@ -546,7 +574,7 @@ export default function VoucherPage() {
                 {mainItem.title || 'Transfer ou Passeio Jericoacoara Premium'}
               </h4>
               <p className="text-xs text-[#2C7A7B] font-bold">
-                Modalidade: {mainItem.modality === 'shared' ? 'Compartilhado Econômico' : `Privativo Exclusivo (${mainItem.vehicle || 'SW4 4x4 / Buggy'})`}
+                Modalidade: {formatModalityLabel(mainItem)}
               </p>
             </div>
 
@@ -580,8 +608,8 @@ export default function VoucherPage() {
               <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <Car className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-xs text-gray-400 block font-medium">Veículo / Tipo</span>
-                  <span className="font-bold text-gray-900 capitalize">{mainItem.vehicle || 'SW4 4x4 Especial'}</span>
+                  <span className="text-xs text-gray-400 block font-medium">Veículo / Modalidade</span>
+                  <span className="font-bold text-gray-900">{formatModalityLabel(mainItem)}</span>
                 </div>
               </div>
             </div>

@@ -130,7 +130,8 @@ export default async function handler(req, res) {
           }
         } else {
           // Se a reserva não existir no Supabase, cria a reserva confirmada automaticamente (Auto-Upsert)
-          const amount = payment.transaction_amount || 0;
+          const amountPaidVal = payment.transaction_amount || 0;
+          const fullPriceVal = paymentStatus === 'sinal_pago' ? amountPaidVal * 2 : amountPaidVal;
           const payerName = payment.payer?.first_name ? `${payment.payer.first_name} ${payment.payer.last_name || ''}`.trim() : (payment.payer?.email || 'Cliente Jericoacoara Premium');
           const payerPhone = payment.payer?.phone?.number || '';
           const payerEmail = payment.payer?.email || '';
@@ -153,8 +154,8 @@ export default async function handler(req, res) {
             date: new Date().toISOString().split('T')[0],
             pax_adults: 1,
             pickup_location: 'Confirmado via Mercado Pago Webhook (Pagamento aprovado)',
-            price_gross: amount,
-            price_final: amount,
+            price_gross: fullPriceVal,
+            price_final: fullPriceVal,
             payment_method: payment.payment_method_id || 'pix',
             payment_status: paymentStatus,
             reservation_status: 'confirmada',
