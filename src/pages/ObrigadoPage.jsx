@@ -12,6 +12,17 @@ const ObrigadoPage = () => {
   const targetWhatsAppUrl = buildWhatsAppLink(customMessage);
 
   useEffect(() => {
+    let redirected = false;
+    let tagFired = false;
+    let timerFinished = false;
+
+    const executeRedirect = () => {
+      if (!redirected && tagFired && timerFinished) {
+        redirected = true;
+        window.location.href = targetWhatsAppUrl;
+      }
+    };
+
     // 1. Disparar evento de conversão do Google Ads de forma segura
     if (typeof window !== 'undefined') {
       window.dataLayer = window.dataLayer || [];
@@ -23,19 +34,38 @@ const ObrigadoPage = () => {
       try {
         window.gtag('event', 'conversion', {
           send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9',
+          event_callback: () => {
+            console.log('[Google Ads] Tag de conversão disparada (callback recebido)');
+            tagFired = true;
+            executeRedirect();
+          }
         });
-        console.log('[Google Ads] Tag de conversão disparada com sucesso: AW-18434748779/6pkrCI6Ii9kaEJSgo7s9');
       } catch (err) {
         console.error('[Google Ads] Erro ao disparar tag de conversão:', err);
+        tagFired = true; // Continua o fluxo mesmo com erro
       }
+    } else {
+      tagFired = true;
     }
 
-    // 2. Redirecionar automaticamente para o WhatsApp após 1,2s (entre 1 e 1.5s)
-    const timer = setTimeout(() => {
-      window.location.href = targetWhatsAppUrl;
-    }, 1200);
+    // 2. Timer visual para garantir que a mensagem apareça por pelo menos 2s
+    const displayTimer = setTimeout(() => {
+      timerFinished = true;
+      executeRedirect();
+    }, 2000);
 
-    return () => clearTimeout(timer);
+    // 3. Fallback de segurança absoluto (2.5s): se o callback do GA falhar, força o redirect
+    const safetyTimer = setTimeout(() => {
+      if (!redirected) {
+        redirected = true;
+        window.location.href = targetWhatsAppUrl;
+      }
+    }, 2500);
+
+    return () => {
+      clearTimeout(displayTimer);
+      clearTimeout(safetyTimer);
+    };
   }, [targetWhatsAppUrl]);
 
   return (
@@ -72,10 +102,10 @@ const ObrigadoPage = () => {
           {/* Main Title & Subtitle */}
           <div className="space-y-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              Quase lá! Redirecionando para nosso atendimento...
+              Redirecionando para o nosso WhatsApp em instantes...
             </h1>
             <p className="text-sm sm:text-base text-white/70 font-light leading-relaxed">
-              Em instantes você será levado ao WhatsApp oficial da Jericoacoara Premium para receber seu orçamento.
+              Caso não abra automaticamente, clique no botão abaixo.
             </p>
           </div>
 
@@ -92,7 +122,7 @@ const ObrigadoPage = () => {
               className="inline-flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#25D366]/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              Clique aqui se o WhatsApp não abrir automaticamente
+              Clique aqui para abrir
             </a>
 
             <Link
