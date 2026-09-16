@@ -19,38 +19,39 @@ import { Button } from '@/components/ui/button';
 import { toursData, transfersData, formatPrice } from '@/data/catalog';
 import BookingModal from '@/components/BookingModal';
 import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WIZARD STEPS DEFINITION
+// WIZARD STEPS DEFINITION (Helper functions for i18n support)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TRAVELER_OPTIONS = [
-  { id: 'Casal', label: 'Casal', icon: '👩‍❤️‍👨', desc: 'Viagem a dois, momentos inesquecíveis' },
-  { id: 'Família', label: 'Família', icon: '👨‍👩‍👧‍👦', desc: 'Conforto e diversão para todas as idades' },
-  { id: 'Amigos', label: 'Amigos', icon: '👯‍♂️', desc: 'Aventura, grupos e curtição' },
-  { id: 'Sozinho', label: 'Sozinho', icon: '🎒', desc: 'Liberdade, paz e novas conexões' },
+const getTravelerOptions = (t) => [
+  { id: 'Casal', label: t('planner.travelers.couple', { defaultValue: 'Casal' }), icon: '👩‍❤️‍👨', desc: t('planner.travelers.coupleDesc', { defaultValue: 'Viagem a dois, momentos inesquecíveis' }) },
+  { id: 'Família', label: t('planner.travelers.family', { defaultValue: 'Família' }), icon: '👨‍👩‍👧‍👦', desc: t('planner.travelers.familyDesc', { defaultValue: 'Conforto e diversão para todas as idades' }) },
+  { id: 'Amigos', label: t('planner.travelers.friends', { defaultValue: 'Amigos' }), icon: '👯‍♂️', desc: t('planner.travelers.friendsDesc', { defaultValue: 'Aventura, grupos e curtição' }) },
+  { id: 'Sozinho', label: t('planner.travelers.solo', { defaultValue: 'Sozinho' }), icon: '🎒', desc: t('planner.travelers.soloDesc', { defaultValue: 'Liberdade, paz e novas conexões' }) },
 ];
 
-const DURATION_OPTIONS = [
-  { id: '2 dias', label: '2 dias', badge: 'Express', desc: 'O essencial de Jeri em um final de semana' },
-  { id: '3 dias', label: '3 dias', badge: 'Recomendado', desc: 'Leste, Oeste e tempo para relaxar' },
-  { id: '4–5 dias', label: '4–5 dias', badge: 'Imersão', desc: 'Conheça cada canto do paraíso sem pressa' },
-  { id: '6+ dias', label: '6+ dias', badge: 'Slow Travel', desc: 'Jeri completo + Rota das Emoções e arredores' },
+const getDurationOptions = (t) => [
+  { id: '2 dias', label: t('planner.durations.d2', { defaultValue: '2 dias' }), badge: t('planner.durations.expressBadge', { defaultValue: 'Express' }), desc: t('planner.durations.d2Desc', { defaultValue: 'O essencial de Jeri em um final de semana' }) },
+  { id: '3 dias', label: t('planner.durations.d3', { defaultValue: '3 dias' }), badge: t('planner.durations.recBadge', { defaultValue: 'Recomendado' }), desc: t('planner.durations.d3Desc', { defaultValue: 'Leste, Oeste e tempo para relaxar' }) },
+  { id: '4–5 dias', label: t('planner.durations.d45', { defaultValue: '4–5 dias' }), badge: t('planner.durations.immBadge', { defaultValue: 'Imersão' }), desc: t('planner.durations.d45Desc', { defaultValue: 'Conheça cada canto do paraíso sem pressa' }) },
+  { id: '6+ dias', label: t('planner.durations.d6plus', { defaultValue: '6+ dias' }), badge: t('planner.durations.slowBadge', { defaultValue: 'Slow Travel' }), desc: t('planner.durations.d6plusDesc', { defaultValue: 'Jeri completo + Rota das Emoções e arredores' }) },
 ];
 
-const STYLE_OPTIONS = [
-  { id: 'Relaxamento', label: 'Relaxamento', icon: '🧘‍♀️', desc: 'Beach clubs, redes na água e tranquilidade' },
-  { id: 'Aventura', label: 'Aventura', icon: '🏜️', desc: 'Dunas, buggy, tirolesa e quadriciclo' },
-  { id: 'Romance', label: 'Romance', icon: '🌅', desc: 'Jantares ao luar, pôr do sol e passeios privativos' },
-  { id: 'Exclusividade', label: 'Exclusividade', icon: '🚁', desc: 'Helicóptero, transfer VIP e atrações reservadas' },
-  { id: 'Misturado', label: 'Misturado', icon: '✨', desc: 'O melhor de todos os mundos' },
+const getStyleOptions = (t) => [
+  { id: 'Relaxamento', label: t('experienceStyles.relaxamento.label', { defaultValue: 'Relaxamento' }), icon: '🧘‍♀️', desc: t('experienceStyles.relaxamento.description', { defaultValue: 'Lagoas cristalinas, pôr do sol e paz' }) },
+  { id: 'Aventura', label: t('experienceStyles.aventura.label', { defaultValue: 'Aventura' }), icon: '🏜️', desc: t('experienceStyles.aventura.description', { defaultValue: 'Dunas, buggy, trilhas e adrenalina pura' }) },
+  { id: 'Romance', label: t('experienceStyles.romance.label', { defaultValue: 'Romance' }), icon: '🌅', desc: t('experienceStyles.romance.description', { defaultValue: 'Lua de mel e momentos inesquecíveis a dois' }) },
+  { id: 'Exclusividade', label: t('experienceStyles.exclusividade.label', { defaultValue: 'Exclusividade' }), icon: '🚁', desc: t('experienceStyles.exclusividade.description', { defaultValue: 'Privativo, conforto total e personalização' }) },
+  { id: 'Misturado', label: t('planner.styles.mixed', { defaultValue: 'Misturado' }), icon: '✨', desc: t('planner.styles.mixedDesc', { defaultValue: 'O melhor de todos os mundos' }) },
 ];
 
-const INTEREST_OPTIONS = [
-  { id: 'Transfer', label: 'Transfer', icon: '🚘', desc: 'Aeroporto x Jericoacoara com conforto' },
-  { id: 'Passeios', label: 'Passeios', icon: '🏖️', desc: 'Roteiros Leste & Oeste com buggy ou quadriciclo' },
-  { id: 'Hospedagem', label: 'Hospedagem', icon: '🏨', desc: 'Recomendações das melhores pousadas da vila' },
-  { id: 'Pacote completo', label: 'Pacote completo', icon: '🌟', desc: 'Transfer + Passeios + Consultoria dedicada' },
+const getInterestOptions = (t) => [
+  { id: 'Transfer', label: t('nav.transfers', { defaultValue: 'Transfer' }), icon: '🚘', desc: t('planner.interests.transferDesc', { defaultValue: 'Aeroporto x Jericoacoara com conforto' }) },
+  { id: 'Passeios', label: t('nav.tours', { defaultValue: 'Passeios' }), icon: '🏖️', desc: t('planner.interests.toursDesc', { defaultValue: 'Roteiros Leste & Oeste com buggy ou quadriciclo' }) },
+  { id: 'Hospedagem', label: t('planner.interests.lodging', { defaultValue: 'Hospedagem' }), icon: '🏨', desc: t('planner.interests.lodgingDesc', { defaultValue: 'Recomendações das melhores pousadas da vila' }) },
+  { id: 'Pacote completo', label: t('planner.interests.fullPackage', { defaultValue: 'Pacote completo' }), icon: '🌟', desc: t('planner.interests.fullPackageDesc', { defaultValue: 'Transfer + Passeios + Consultoria dedicada' }) },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -130,9 +131,15 @@ function generateRecommendation(answers) {
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 const TravelPlanner = () => {
+  const { t } = useLanguage();
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' });
   const shouldReduceMotion = useReducedMotion();
+
+  const TRAVELER_OPTIONS = getTravelerOptions(t);
+  const DURATION_OPTIONS = getDurationOptions(t);
+  const STYLE_OPTIONS = getStyleOptions(t);
+  const INTEREST_OPTIONS = getInterestOptions(t);
 
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState({
@@ -218,10 +225,10 @@ const TravelPlanner = () => {
             Jeri Travel Planner
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-            Monte sua experiência em <span className="text-[#2C7A7B]">Jericoacoara</span>
+            {t('planner.sectionTitle', { defaultValue: 'Monte seu Roteiro Personalizado em Jeri' })}
           </h2>
           <p className="mt-3 text-gray-600 text-base max-w-lg mx-auto">
-            Responda 4 perguntas rápidas e receba uma sugestão de roteiro sob medida para sua viagem.
+            {t('planner.sectionSubtitle', { defaultValue: 'Responda 4 perguntas rápidas e receba uma sugestão de roteiro sob medida para sua viagem.' })}
           </p>
         </motion.div>
 
@@ -232,9 +239,11 @@ const TravelPlanner = () => {
           {step <= totalSteps && (
             <div className="mb-8">
               <div className="flex items-center justify-between text-xs font-bold text-gray-400 mb-2">
-                <span>Etapa {step} de {totalSteps}</span>
+                <span>
+                  {t('planner.stepCount', { step, totalSteps, defaultValue: `Etapa ${step} de ${totalSteps}` })}
+                </span>
                 <span className="text-[#2C7A7B]">
-                  {Math.round((step / totalSteps) * 100)}% concluído
+                  {Math.round((step / totalSteps) * 100)}% {t('planner.completed', { defaultValue: 'concluído' })}
                 </span>
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -262,7 +271,9 @@ const TravelPlanner = () => {
               >
                 <div className="flex items-center gap-2 mb-6">
                   <Users className="w-5 h-5 text-[#2C7A7B]" />
-                  <h3 className="text-xl font-bold text-gray-900">Quem vai viajar?</h3>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {t('planner.step2Title', { defaultValue: 'Quem vai viajar?' })}
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
@@ -301,7 +312,9 @@ const TravelPlanner = () => {
               >
                 <div className="flex items-center gap-2 mb-6">
                   <Calendar className="w-5 h-5 text-[#2C7A7B]" />
-                  <h3 className="text-xl font-bold text-gray-900">Quantos dias pretender ficar?</h3>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {t('planner.step3Title', { defaultValue: 'Quantos dias pretende ficar?' })}
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
@@ -342,7 +355,9 @@ const TravelPlanner = () => {
               >
                 <div className="flex items-center gap-2 mb-6">
                   <Compass className="w-5 h-5 text-[#2C7A7B]" />
-                  <h3 className="text-xl font-bold text-gray-900">Qual estilo de viagem você busca?</h3>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {t('planner.step1Title', { defaultValue: 'Qual estilo de viagem você busca?' })}
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
@@ -381,9 +396,13 @@ const TravelPlanner = () => {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Briefcase className="w-5 h-5 text-[#2C7A7B]" />
-                  <h3 className="text-xl font-bold text-gray-900">O que você precisa para sua viagem?</h3>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {t('planner.step4Title', { defaultValue: 'Quais experiências mais te interessam?' })}
+                  </h3>
                 </div>
-                <p className="text-xs text-gray-400 mb-6">Você pode selecionar mais de uma opção.</p>
+                <p className="text-xs text-gray-400 mb-6">
+                  {t('planner.step4Subtitle', { defaultValue: 'Você pode selecionar mais de uma opção.' })}
+                </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                   {INTEREST_OPTIONS.map((opt) => {
@@ -426,7 +445,9 @@ const TravelPlanner = () => {
                 {/* Summary Pill Badge */}
                 <div className="flex items-center justify-between flex-wrap gap-2 pb-6 border-b border-gray-100 mb-6">
                   <div>
-                    <span className="text-xs text-gray-400 uppercase font-bold tracking-wider">Seu Perfil Selecionado</span>
+                    <span className="text-xs text-gray-400 uppercase font-bold tracking-wider">
+                      {t('planner.selectedProfile', { defaultValue: 'Seu Perfil Selecionado' })}
+                    </span>
                     <div className="flex flex-wrap gap-2 mt-1">
                       <span className="px-2.5 py-1 bg-[#2C7A7B]/10 text-[#2C7A7B] text-xs font-bold rounded-lg">
                         {answers.travelers}
@@ -450,16 +471,16 @@ const TravelPlanner = () => {
                     className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    Refazer teste
+                    {t('planner.redoTest', { defaultValue: 'Refazer teste' })}
                   </Button>
                 </div>
 
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                    Seu Roteiro Sugerido em Jericoacoara ✨
+                    {t('planner.step5Title', { defaultValue: 'Seu Roteiro Sugerido em Jericoacoara ✨' })}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Com base nas suas preferências, selecionamos os melhores passeios e serviços do nosso catálogo:
+                    {t('planner.suggestedItinerarySub', { defaultValue: 'Com base nas suas preferências, selecionamos os melhores passeios e serviços do nosso catálogo:' })}
                   </p>
                 </div>
 
@@ -482,14 +503,14 @@ const TravelPlanner = () => {
                           />
                           <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[#2C7A7B] bg-[#2C7A7B]/10 px-2 py-0.5 rounded-md">
-                              Passeio Recomendado
+                              {t('planner.recommendedTour', { defaultValue: 'Passeio Recomendado' })}
                             </span>
                             <h4 className="font-bold text-gray-900 text-base leading-snug mt-0.5">
                               {tour.title}
                             </h4>
                             {startPrice && (
                               <p className="text-xs font-bold text-gray-500">
-                                A partir de <span className="text-[#2C7A7B] font-extrabold">{formatPrice(startPrice)}</span>
+                                {t('tours.from', { defaultValue: 'A partir de' })} <span className="text-[#2C7A7B] font-extrabold">{formatPrice(startPrice)}</span>
                               </p>
                             )}
                           </div>
@@ -501,7 +522,7 @@ const TravelPlanner = () => {
                           size="sm"
                           className="border-[#2C7A7B] text-[#2C7A7B] hover:bg-[#2C7A7B] hover:text-white font-bold rounded-xl text-xs shrink-0"
                         >
-                          Ver detalhes
+                          {t('tours.viewDetails', { defaultValue: 'Ver Detalhes' })}
                         </Button>
                       </div>
                     );
@@ -520,13 +541,13 @@ const TravelPlanner = () => {
                         />
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                            Transfer Recomendado
+                            {t('planner.recommendedTransfer', { defaultValue: 'Transfer Recomendado' })}
                           </span>
                           <h4 className="font-bold text-gray-900 text-base leading-snug mt-0.5">
                             {tr.title}
                           </h4>
                           <p className="text-xs text-gray-500">
-                            Preço garantido no checkout oficial
+                            {t('planner.guaranteedPrice', { defaultValue: 'Preço garantido no checkout oficial' })}
                           </p>
                         </div>
                       </div>
@@ -537,7 +558,7 @@ const TravelPlanner = () => {
                         size="sm"
                         className="border-[#2C7A7B] text-[#2C7A7B] hover:bg-[#2C7A7B] hover:text-white font-bold rounded-xl text-xs shrink-0"
                       >
-                        Ver opções
+                        {t('tours.viewDetails', { defaultValue: 'Ver opções' })}
                       </Button>
                     </div>
                   ))}
@@ -546,7 +567,7 @@ const TravelPlanner = () => {
                 {/* Itinerary Preview Breakdown */}
                 <div className="mb-8 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                   <h4 className="font-bold text-gray-900 text-sm uppercase tracking-wider mb-3 text-center sm:text-left">
-                    Sugestão Dia a Dia:
+                    {t('planner.dailyItineraryTitle', { defaultValue: 'Sugestão Dia a Dia:' })}
                   </h4>
                   <div className="space-y-3">
                     {(Array.isArray(recommendation.itinerary) ? recommendation.itinerary : []).map((item) => (
@@ -570,10 +591,10 @@ const TravelPlanner = () => {
                     className="w-full sm:w-auto px-8 h-14 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-base rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2.5"
                   >
                     <MessageCircle className="w-5 h-5 fill-current" />
-                    Receber meu roteiro personalizado no WhatsApp
+                    {t('planner.submitBtn', { defaultValue: 'Receber meu roteiro personalizado no WhatsApp' })}
                   </Button>
                   <p className="text-xs text-gray-400 mt-2 text-center">
-                    Atendimento rápido e exclusivo com nossos especialistas locais
+                    {t('planner.fastSupport', { defaultValue: 'Atendimento rápido e exclusivo com nossos especialistas locais' })}
                   </p>
                 </div>
               </motion.div>
@@ -591,7 +612,7 @@ const TravelPlanner = () => {
                 className="text-gray-500 font-bold text-xs disabled:opacity-30"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Voltar
+                {t('planner.back', { defaultValue: 'Voltar' })}
               </Button>
 
               <Button
@@ -599,7 +620,9 @@ const TravelPlanner = () => {
                 disabled={!isCurrentStepValid()}
                 className="bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-xs px-6 h-11 rounded-xl shadow-md transition-all disabled:opacity-40"
               >
-                {step === totalSteps ? 'Ver Meu Roteiro' : 'Próxima Etapa'}
+                {step === totalSteps
+                  ? t('planner.seeItinerary', { defaultValue: 'Ver Meu Roteiro' })
+                  : t('planner.nextStep', { defaultValue: 'Próxima Etapa' })}
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </div>

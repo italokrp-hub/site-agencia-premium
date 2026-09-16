@@ -4,7 +4,8 @@ import { useInView } from 'framer-motion';
 import { MapPin, ArrowRight, Compass, Sparkles, Check, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toursData, formatPrice } from '@/data/catalog';
-import BookingModal from '@/components/BookingModal';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp } from '@/utils/whatsapp';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Destination data for Jericoacoara coastal route
@@ -16,7 +17,6 @@ const DESTINATIONS = [
     region: 'Vila & Centro',
     icon: '🏖️',
     badge: 'Ponto Central',
-    // Coastline canvas coordinates (% relative to map area)
     x: 48,
     y: 35,
     tagline: 'O coração pulsante do paraíso',
@@ -133,13 +133,6 @@ const DESTINATIONS = [
   },
 ];
 
-const REGIONS = [
-  { id: 'todos', label: 'Todos os Destinos' },
-  { id: 'Litoral Leste', label: 'Litoral Leste' },
-  { id: 'Litoral Oeste', label: 'Litoral Oeste' },
-  { id: 'Vila & Centro', label: 'Vila & Centro' },
-];
-
 function getRelatedTours(catalogIds) {
   return catalogIds
     .map((id) => toursData.find((t) => t.id === id))
@@ -150,10 +143,10 @@ const ExploreJericoMap = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' });
   const shouldReduceMotion = useReducedMotion();
+  const { t } = useLanguage();
 
   const [activeRegion, setActiveRegion] = useState('todos');
   const [selectedDestId, setSelectedDestId] = useState('lagoa-paraiso');
-  const [bookingItem, setBookingItem] = useState(null);
 
   const filteredDestinations = DESTINATIONS.filter(
     (d) => activeRegion === 'todos' || d.region === activeRegion
@@ -163,14 +156,16 @@ const ExploreJericoMap = () => {
     DESTINATIONS.find((d) => d.id === selectedDestId) || DESTINATIONS[0];
   const relatedTours = getRelatedTours(currentDest.relatedCatalogIds);
 
+  const REGIONS = [
+    { id: 'todos', label: t('map.categories.all') },
+    { id: 'Litoral Leste', label: t('map.categories.lagoons') },
+    { id: 'Litoral Oeste', label: t('map.categories.dunes') },
+    { id: 'Vila & Centro', label: t('map.categories.village') },
+  ];
+
   const handleBook = (tour) => {
     const raw = tour?.raw || tour;
-    const isShared = raw.options?.shared?.available && !raw.options?.private?.available;
-    setBookingItem({
-      ...raw,
-      selectedType: isShared ? 'Compartilhado' : 'Privativo',
-      selectedVehicleType: raw.options?.private?.vehicles?.[0]?.type || 'Buggy',
-    });
+    openWhatsApp({ servico: raw?.id || raw?.title });
   };
 
   return (
@@ -191,13 +186,13 @@ const ExploreJericoMap = () => {
         >
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2C7A7B]/10 text-[#2C7A7B] text-xs font-bold uppercase tracking-widest mb-3">
             <Compass className="w-3.5 h-3.5" />
-            Guia Geográfico
+            Jericoacoara Premium
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-            Mapa Interativo dos <span className="text-[#2C7A7B]">Destinos</span>
+            {t('map.sectionTitle')}
           </h2>
           <p className="mt-3 text-gray-600 text-base max-w-xl mx-auto">
-            Explore os pontos turísticos mais bonitos de Jericoacoara divididos entre o Litoral Leste e Oeste.
+            {t('map.sectionSubtitle')}
           </p>
 
           {/* Region Tabs */}
@@ -349,7 +344,7 @@ const ExploreJericoMap = () => {
               <div className="absolute bottom-4 left-4 right-4">
                 <h3 className="text-2xl font-bold text-white leading-tight flex items-center gap-2">
                   <span>{currentDest.icon}</span>
-                  {currentDest.name}
+                  {t(`map.destinations.${currentDest.id}.name`, { defaultValue: currentDest.name })}
                 </h3>
                 <p className="text-white/80 text-xs font-medium mt-1">
                   {currentDest.tagline}
@@ -361,7 +356,7 @@ const ExploreJericoMap = () => {
             <div className="p-6 flex-1 flex flex-col justify-between">
               <div>
                 <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                  {currentDest.description}
+                  {t(`map.destinations.${currentDest.id}.description`, { defaultValue: currentDest.description })}
                 </p>
 
                 {/* Highlights */}

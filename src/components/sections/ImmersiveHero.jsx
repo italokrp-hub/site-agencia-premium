@@ -76,7 +76,7 @@ const ImmersiveHero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="block"
           >
-            Transfers e Passeios Exclusivos em <span className="text-[#D4AF37]">Jericoacoara</span>
+            {t('hero.title', { defaultValue: 'Transfers e Passeios Exclusivos em' })} <span className="text-[#D4AF37]">Jericoacoara</span>
           </motion.span>
         </h1>
 

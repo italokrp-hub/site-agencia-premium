@@ -6,8 +6,10 @@ import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
 import BookingModal from '@/components/BookingModal';
 import { toursData, formatPrice } from '@/data/catalog';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const PasseiosJeri = () => {
+  const { t } = useLanguage();
   const [bookingItem, setBookingItem] = useState(null);
 
   // Load actual data from catalog
@@ -55,13 +57,13 @@ const PasseiosJeri = () => {
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}
               className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
             >
-              Explore as Maravilhas de <span className="text-[#D4AF37]">Jericoacoara</span>
+              {t('seoPasseios.heroTitle', { defaultValue: 'Explore as Maravilhas de' })} <span className="text-[#D4AF37]">Jericoacoara</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
               className="text-lg md:text-xl text-white/90 mb-8 font-light"
             >
-              Descubra os roteiros do Lado Leste e Lado Oeste em Buggy, Quadriciclo ou Jardineira (Econômico) com guias nativos credenciados.
+              {t('seoPasseios.heroSubtitle', { defaultValue: 'Descubra os roteiros do Lado Leste e Lado Oeste em Buggy, Quadriciclo ou Jardineira (Econômico) com guias nativos credenciados.' })}
             </motion.p>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
               <Button
@@ -72,7 +74,7 @@ const PasseiosJeri = () => {
                 size="lg"
                 className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-xl hover:scale-105 transition-all"
               >
-                Ver Valores dos Roteiros
+                {t('seoPasseios.viewPricesBtn', { defaultValue: 'Ver Valores dos Roteiros' })}
               </Button>
             </motion.div>
           </div>
@@ -83,10 +85,10 @@ const PasseiosJeri = () => {
       <section id="roteiros" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Roteiro Lado Leste</h2>
+            <h2 className="text-3xl font-bold mb-4">{t('seoPasseios.lesteTitle', { defaultValue: 'Roteiro Lado Leste' })}</h2>
             <div className="w-20 h-1 bg-[#D4AF37] mx-auto rounded-full" />
             <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-              O roteiro perfeito para relaxar nas lagoas de águas cristalinas, visitar a Árvore da Preguiça, o famoso Buraco Azul e a deslumbrante Lagoa do Paraíso (Alchymist).
+              {t('seoPasseios.lesteDesc', { defaultValue: 'O roteiro perfeito para relaxar nas lagoas de águas cristalinas, visitar a Árvore da Preguiça, o famoso Buraco Azul e a deslumbrante Lagoa do Paraíso (Alchymist).' })}
             </p>
           </div>
           
@@ -94,28 +96,24 @@ const PasseiosJeri = () => {
             {/* Leste Compartilhado */}
             <div className="bg-white rounded-3xl overflow-hidden shadow-md border-2 border-[#D4AF37] flex flex-col hover:shadow-xl transition-all relative">
               <div className="absolute top-0 right-0 bg-[#D4AF37] text-gray-900 font-bold px-4 py-1 rounded-bl-lg text-sm z-10">
-                Econômico / Destaque
+                {t('transfers.cheapestOption', { defaultValue: 'Econômico' })}
               </div>
               <div className="p-8 flex-grow">
-                <h3 className="text-2xl font-bold mb-2">Compartilhado em Jardineira</h3>
+                <h3 className="text-2xl font-bold mb-2">{t('seoPasseios.lesteSharedTitle', { defaultValue: 'Compartilhado em Jardineira' })}</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(tourLesteShared?.options?.shared?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /pessoa</span>
+                  <span className="text-sm opacity-80 text-gray-500"> /{t('tours.perPerson', { defaultValue: 'pessoa' })}</span>
                 </div>
-                <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Incluso no roteiro:</h4>
+                <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> {t('tours.locationsIncluded', { defaultValue: 'Incluso no roteiro:' })}</h4>
                 <ul className="space-y-2 mb-8">
                   {tourLesteShared?.locations?.slice(0,4).map((loc, idx) => (
                     <li key={idx} className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> {loc}</li>
                   ))}
-                  <li className="flex items-center text-sm text-gray-600"><Check className="text-emerald-500 w-4 h-4 mr-2 shrink-0" /> Embarque e desembarque direto na porta da sua pousada em Jericoacoara</li>
                 </ul>
-                <div className="mt-4 flex items-center justify-center bg-gray-100 text-gray-700 text-xs font-bold py-2 rounded-lg">
-                  <Clock className="w-4 h-4 mr-2 text-[#D4AF37]" /> Duração média: 5 a 6 horas de passeio
-                </div>
               </div>
               <div className="p-8 pt-0 mt-auto">
                 <Button onClick={() => handleBook(tourLesteShared, 'shared', 'Jardineira')} className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold h-12">
-                  Reservar Leste Econômico
+                  {t('seoPasseios.reserveLesteShared', { defaultValue: 'Reservar Leste Econômico' })}
                 </Button>
               </div>
             </div>

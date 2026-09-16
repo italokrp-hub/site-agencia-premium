@@ -27,6 +27,7 @@ import { formatPrice } from '@/data/catalog';
 import { supabase } from '@/lib/supabase';
 import { buildWhatsAppLink } from '@/utils/whatsapp';
 import { formatModalityLabel } from '@/utils/reservationUtils';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // Mocks dedicados para os códigos demonstrativos e fallbacks
 const DEMO_VOUCHERS = {
@@ -116,6 +117,7 @@ const DEMO_VOUCHERS = {
 export default function VoucherPage() {
   const { code } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

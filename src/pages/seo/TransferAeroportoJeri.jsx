@@ -6,8 +6,10 @@ import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
 import BookingModal from '@/components/BookingModal';
 import { transfersData, formatPrice } from '@/data/catalog';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const TransferAeroportoJeri = () => {
+  const { t } = useLanguage();
   const [bookingItem, setBookingItem] = useState(null);
 
   // Load actual data from catalog
@@ -48,13 +50,13 @@ const TransferAeroportoJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight max-w-4xl mx-auto"
           >
-            Transfer do Aeroporto de Jericoacoara direto para sua Pousada
+            {t('seoTransfers.cruzTitle', { defaultValue: 'Transfer do Aeroporto de Jericoacoara direto para sua Pousada' })}
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
             className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto font-light"
           >
-            O trajeto leva apenas ~45 minutos. Chegue no paraíso sem estresse com nossa frota 4x4.
+            {t('seoTransfers.cruzSubtitle', { defaultValue: 'O trajeto leva apenas ~45 minutos. Chegue no paraíso sem estresse com nossa frota 4x4.' })}
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
             <Button
@@ -65,7 +67,7 @@ const TransferAeroportoJeri = () => {
               size="lg"
               className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-xl hover:scale-105 transition-all"
             >
-              Ver Opções de Transfer
+              {t('seoTransfers.viewOptionsBtn', { defaultValue: 'Ver Opções de Transfer' })}
             </Button>
           </motion.div>
         </div>

@@ -6,8 +6,10 @@ import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
 import BookingModal from '@/components/BookingModal';
 import { transfersData, formatPrice } from '@/data/catalog';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const TransferPreaJeri = () => {
+  const { t } = useLanguage();
   const [bookingItem, setBookingItem] = useState(null);
 
   // Load actual data from catalog
@@ -46,13 +48,13 @@ const TransferPreaJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
           >
-            Transfer Preá <span className="text-[#D4AF37]">Jericoacoara</span>
+            {t('seoTransfers.preaTitle', { defaultValue: 'Transfer Preá Jericoacoara' })}
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
             className="text-lg md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto font-light"
           >
-            Conexão rápida e exclusiva entre a Praia do Preá e Jericoacoara via beira-mar e Parque Nacional.
+            {t('seoTransfers.preaSubtitle', { defaultValue: 'Conexão rápida e exclusiva entre a Praia do Preá e Jericoacoara via beira-mar e Parque Nacional.' })}
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
             <Button
@@ -63,7 +65,7 @@ const TransferPreaJeri = () => {
               size="lg"
               className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-xl hover:scale-105 transition-all"
             >
-              Ver Opções Exclusivas
+              {t('seoTransfers.viewOptionsBtn', { defaultValue: 'Ver Opções Exclusivas' })}
             </Button>
           </motion.div>
         </div>

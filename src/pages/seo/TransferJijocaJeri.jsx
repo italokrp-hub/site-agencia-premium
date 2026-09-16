@@ -6,8 +6,10 @@ import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
 import BookingModal from '@/components/BookingModal';
 import { transfersData, formatPrice } from '@/data/catalog';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const TransferJijocaJeri = () => {
+  const { t } = useLanguage();
   const [bookingItem, setBookingItem] = useState(null);
 
   // Load actual data from catalog
@@ -46,13 +48,13 @@ const TransferJijocaJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
           >
-            Transfer Jijoca <span className="text-[#D4AF37]">Jericoacoara</span>
+            {t('seoTransfers.jijocaTitle', { defaultValue: 'Transfer Jijoca Jericoacoara' })}
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
             className="text-lg md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto font-light"
           >
-            Chegou em Jijoca de carro ou ônibus? Faça a travessia até a Vila em nossos veículos 4x4 credenciados com conforto e segurança.
+            {t('seoTransfers.jijocaSubtitle', { defaultValue: 'Chegou em Jijoca de carro ou ônibus? Faça a travessia até a Vila em nossos veículos 4x4 credenciados com conforto e segurança.' })}
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
             <Button
@@ -63,7 +65,7 @@ const TransferJijocaJeri = () => {
               size="lg"
               className="bg-[#D4AF37] hover:bg-[#C5A028] text-gray-900 font-bold px-8 py-6 text-lg rounded-full shadow-xl hover:scale-105 transition-all"
             >
-              Ver Opções e Preços
+              {t('seoTransfers.viewOptionsBtn', { defaultValue: 'Ver Opções e Preços' })}
             </Button>
           </motion.div>
         </div>

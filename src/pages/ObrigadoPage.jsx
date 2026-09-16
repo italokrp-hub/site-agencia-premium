@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { MessageCircle, Loader2, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { buildWhatsAppLink, WA_MESSAGES } from '@/utils/whatsapp';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 function getObrigadoMessage(searchParams) {
   const text = searchParams.get('text') || searchParams.get('msg');
@@ -38,6 +39,7 @@ function getObrigadoMessage(searchParams) {
 }
 
 const ObrigadoPage = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const customMessage = getObrigadoMessage(searchParams);
@@ -135,17 +137,17 @@ const ObrigadoPage = () => {
           {/* Main Title & Subtitle */}
           <div className="space-y-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              Redirecionando para o nosso WhatsApp em instantes...
+              {t('obrigado.title', { defaultValue: 'Redirecionando para o nosso WhatsApp em instantes...' })}
             </h1>
             <p className="text-sm sm:text-base text-white/70 font-light leading-relaxed">
-              Caso não abra automaticamente, clique no botão abaixo.
+              {t('obrigado.subtitle', { defaultValue: 'Caso não abra automaticamente, clique no botão abaixo.' })}
             </p>
           </div>
 
           {/* Indicator text */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-[#D4AF37] font-medium">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>Iniciando conversa segura no WhatsApp...</span>
+            <span>{t('obrigado.statusText', { defaultValue: 'Iniciando conversa segura no WhatsApp...' })}</span>
           </div>
 
           {/* Fallback Button */}
@@ -155,7 +157,7 @@ const ObrigadoPage = () => {
               className="inline-flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#25D366]/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              Clique aqui para abrir
+              {t('obrigado.manualBtn', { defaultValue: 'Clique aqui para abrir' })}
             </a>
 
             <Link
@@ -163,17 +165,17 @@ const ObrigadoPage = () => {
               className="inline-flex items-center justify-center gap-2 text-xs text-white/50 hover:text-white transition-colors pt-2"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Voltar para o site da agência
+              {t('obrigado.backHome', { defaultValue: 'Voltar para o site da agência' })}
             </Link>
           </div>
 
           {/* Trust Footer Badges */}
           <div className="pt-6 border-t border-white/10 w-full flex items-center justify-center gap-6 text-[11px] text-white/40">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" /> CNPJ & CADASTUR
+              <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" /> {t('obrigado.trustCnpj', { defaultValue: 'CNPJ & CADASTUR' })}
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#25D366]" /> Atendimento 24h
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#25D366]" /> {t('obrigado.trustSupport', { defaultValue: 'Atendimento 24h' })}
             </span>
           </div>
 
