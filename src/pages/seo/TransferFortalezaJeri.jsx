@@ -111,17 +111,29 @@ const TransferFortalezaJeri = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {/* Econômico */}
             <div className="bg-white rounded-3xl overflow-hidden shadow-md border-2 border-[#D4AF37] flex flex-col h-full transform hover:-translate-y-2 transition-all relative">
-              <div className="absolute top-0 right-0 bg-[#D4AF37] text-gray-900 font-bold px-4 py-1 rounded-bl-lg text-sm">
+              <div className="absolute top-0 right-0 bg-[#D4AF37] text-gray-900 font-bold px-4 py-1 rounded-bl-lg text-sm z-10">
                 Mais Buscado
               </div>
-              <div className="bg-gray-900 text-white p-6 text-center pt-8">
-                <h3 className="text-2xl font-bold">Transfer Econômico</h3>
-                <p className="opacity-90 text-sm mt-1">Ônibus/Van Regular</p>
-                <div className="mt-4">
+              <div className="relative h-44 overflow-hidden">
+                <img
+                  src={busTransfer?.image || "/images/onibus-transfer-jericoacoara-premium.webp"}
+                  alt="Transfer de Ônibus Jericoacoara Premium - Fortaleza para Jeri"
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4 text-white">
+                  <h3 className="text-2xl font-bold">Transfer Econômico</h3>
+                  <p className="opacity-90 text-xs font-medium">Ônibus/Van Regular</p>
+                </div>
+              </div>
+              <div className="bg-gray-900 text-white p-4 text-center">
+                <div>
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(busTransfer?.options?.shared?.oneWay)}</span>
                   <span className="text-sm opacity-80"> /pessoa (trecho)</span>
                 </div>
-                <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
+                <p className="text-xs text-white/70 mt-1">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
               <div className="p-8 flex-grow">
                 <ul className="space-y-4 mb-8">

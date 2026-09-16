@@ -8,7 +8,7 @@ export const transfersData = [
     title: 'Transfer de Ônibus/Van Regular (Opção Mais Econômica)',
     icon: Car,
     category: 'transfer',
-    image: '/images/transfer-4x4-dunas.webp',
+    image: '/images/onibus-transfer-jericoacoara-premium.webp',
     options: {
       shared: {
         available: true,
