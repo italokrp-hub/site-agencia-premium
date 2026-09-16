@@ -1,41 +1,47 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { LanguageProvider } from '@/i18n/LanguageContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Layout
+// Layout (Loaded synchronously for critical initial render)
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import { Toaster } from '@/components/ui/toaster';
 
-// New immersive sections
+// Above-the-fold critical homepage sections
 import ImmersiveHero from '@/components/sections/ImmersiveHero';
 import ExperienceSelector from '@/components/sections/ExperienceSelector';
 import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
-import ToursExplorer from '@/components/sections/ToursExplorer';
-import TransfersSection from '@/components/sections/TransfersSection';
-import ExploreJericoMap from '@/components/sections/ExploreJericoMap';
-import TravelPlanner from '@/components/sections/TravelPlanner';
-import PremiumExperiences from '@/components/sections/PremiumExperiences';
-import TrustSection from '@/components/sections/TrustSection';
-import TestimonialsSection from '@/components/sections/TestimonialsSection';
-import FAQSection from '@/components/sections/FAQSection';
-import FinalCTA from '@/components/sections/FinalCTA';
-import JeriDuneTrail from '@/components/effects/JeriDuneTrail';
 
-// Admin, Voucher & Conversion routes
-import Reservas from '@/pages/agencia/Reservas';
-import VoucherPage from '@/pages/VoucherPage';
-import ObrigadoPage from '@/pages/ObrigadoPage';
+// Below-the-fold homepage sections (Lazy loaded for Performance)
+const ToursExplorer = lazy(() => import('@/components/sections/ToursExplorer'));
+const TransfersSection = lazy(() => import('@/components/sections/TransfersSection'));
+const ExploreJericoMap = lazy(() => import('@/components/sections/ExploreJericoMap'));
+const TravelPlanner = lazy(() => import('@/components/sections/TravelPlanner'));
+const PremiumExperiences = lazy(() => import('@/components/sections/PremiumExperiences'));
+const TrustSection = lazy(() => import('@/components/sections/TrustSection'));
+const TestimonialsSection = lazy(() => import('@/components/sections/TestimonialsSection'));
+const FAQSection = lazy(() => import('@/components/sections/FAQSection'));
+const FinalCTA = lazy(() => import('@/components/sections/FinalCTA'));
+const JeriDuneTrail = lazy(() => import('@/components/effects/JeriDuneTrail'));
 
-// SEO Landing Pages
-import TransferFortalezaJeri from '@/pages/seo/TransferFortalezaJeri';
-import TransferAeroportoJeri from '@/pages/seo/TransferAeroportoJeri';
-import TransferJijocaJeri from '@/pages/seo/TransferJijocaJeri';
-import TransferPreaJeri from '@/pages/seo/TransferPreaJeri';
-import PasseiosJeri from '@/pages/seo/PasseiosJeri';
+// Secondary & Admin routes (Lazy loaded)
+const Reservas = lazy(() => import('@/pages/agencia/Reservas'));
+const VoucherPage = lazy(() => import('@/pages/VoucherPage'));
+const ObrigadoPage = lazy(() => import('@/pages/ObrigadoPage'));
+
+// SEO Landing Pages (Lazy loaded)
+const TransferFortalezaJeri = lazy(() => import('@/pages/seo/TransferFortalezaJeri'));
+const TransferAeroportoJeri = lazy(() => import('@/pages/seo/TransferAeroportoJeri'));
+const TransferJijocaJeri = lazy(() => import('@/pages/seo/TransferJijocaJeri'));
+const TransferPreaJeri = lazy(() => import('@/pages/seo/TransferPreaJeri'));
+const PasseiosJeri = lazy(() => import('@/pages/seo/PasseiosJeri'));
+
+function SectionFallback() {
+  return <div className="py-12 bg-white flex items-center justify-center min-h-[120px]" />;
+}
 
 function LandingPage() {
   return (
@@ -61,7 +67,7 @@ function LandingPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <main>
-          {/* 1. Immersive Hero */}
+          {/* 1. Immersive Hero (Critical - Instant Render) */}
           <ErrorBoundary>
             <ImmersiveHero />
           </ErrorBoundary>
@@ -78,55 +84,83 @@ function LandingPage() {
 
           {/* 4. Tours Explorer */}
           <ErrorBoundary>
-            <ToursExplorer />
+            <Suspense fallback={<SectionFallback />}>
+              <ToursExplorer />
+            </Suspense>
           </ErrorBoundary>
 
           {/* 5. Transfers Section */}
           <ErrorBoundary>
-            <TransfersSection />
+            <Suspense fallback={<SectionFallback />}>
+              <TransfersSection />
+            </Suspense>
           </ErrorBoundary>
 
           {/* 6. Explore Jericoacoara Map */}
           <ErrorBoundary>
-            <ExploreJericoMap />
+            <Suspense fallback={<SectionFallback />}>
+              <ExploreJericoMap />
+            </Suspense>
           </ErrorBoundary>
 
           {/* 7. Jeri Travel Planner */}
           <ErrorBoundary>
-            <TravelPlanner />
+            <Suspense fallback={<SectionFallback />}>
+              <TravelPlanner />
+            </Suspense>
           </ErrorBoundary>
 
           {/* 8. Premium Experiences */}
           <ErrorBoundary>
-            <PremiumExperiences />
+            <Suspense fallback={<SectionFallback />}>
+              <PremiumExperiences />
+            </Suspense>
           </ErrorBoundary>
 
-          {/* 7. Trust Section */}
+          {/* 9. Trust Section */}
           <ErrorBoundary>
-            <TrustSection />
+            <Suspense fallback={<SectionFallback />}>
+              <TrustSection />
+            </Suspense>
           </ErrorBoundary>
 
-          {/* 8. Testimonials */}
+          {/* 10. Testimonials */}
           <ErrorBoundary>
-            <TestimonialsSection />
+            <Suspense fallback={<SectionFallback />}>
+              <TestimonialsSection />
+            </Suspense>
           </ErrorBoundary>
 
-          {/* 9. FAQ */}
+          {/* 11. FAQ */}
           <ErrorBoundary>
-            <FAQSection />
+            <Suspense fallback={<SectionFallback />}>
+              <FAQSection />
+            </Suspense>
           </ErrorBoundary>
 
-          {/* 10. Final CTA */}
+          {/* 12. Final CTA */}
           <ErrorBoundary>
-            <FinalCTA />
+            <Suspense fallback={<SectionFallback />}>
+              <FinalCTA />
+            </Suspense>
           </ErrorBoundary>
         </main>
         <Footer />
-        <JeriDuneTrail />
+        <Suspense fallback={null}>
+          <JeriDuneTrail />
+        </Suspense>
         <WhatsAppFloat />
         <Toaster />
       </div>
     </>
+  );
+}
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-[#0F1A1C] flex items-center justify-center text-white">
+      <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    </div>
   );
 }
 
@@ -135,20 +169,22 @@ function App() {
     <ErrorBoundary>
       <LanguageProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/obrigado" element={<ObrigadoPage />} />
-            <Route path="/voucher/:code" element={<VoucherPage />} />
-            <Route path="/agencia/reservas" element={<Reservas />} />
-            <Route path="/reservas" element={<Reservas />} />
-            
-            {/* SEO Landing Pages */}
-            <Route path="/transfer-fortaleza-jericoacoara" element={<TransferFortalezaJeri />} />
-            <Route path="/transfer-aeroporto-jericoacoara" element={<TransferAeroportoJeri />} />
-            <Route path="/transfer-jijoca-jericoacoara" element={<TransferJijocaJeri />} />
-            <Route path="/transfer-prea-jericoacoara" element={<TransferPreaJeri />} />
-            <Route path="/passeios-jericoacoara" element={<PasseiosJeri />} />
-          </Routes>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/obrigado" element={<ObrigadoPage />} />
+              <Route path="/voucher/:code" element={<VoucherPage />} />
+              <Route path="/agencia/reservas" element={<Reservas />} />
+              <Route path="/reservas" element={<Reservas />} />
+              
+              {/* SEO Landing Pages */}
+              <Route path="/transfer-fortaleza-jericoacoara" element={<TransferFortalezaJeri />} />
+              <Route path="/transfer-aeroporto-jericoacoara" element={<TransferAeroportoJeri />} />
+              <Route path="/transfer-jijoca-jericoacoara" element={<TransferJijocaJeri />} />
+              <Route path="/transfer-prea-jericoacoara" element={<TransferPreaJeri />} />
+              <Route path="/passeios-jericoacoara" element={<PasseiosJeri />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </LanguageProvider>
     </ErrorBoundary>

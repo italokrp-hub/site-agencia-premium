@@ -140,7 +140,7 @@ function generateLlmsTxt(pages) {
     `- [${page.title}](${page.url}): ${page.description}`
   ).join('\n');
   
-  return `## Pages\n${pageEntries}`;
+  return `# Jericoacoara Premium - Agência de Turismo e Transfers\n\n## Pages\n${pageEntries}`;
 }
 
 function ensureDirectoryExists(dirPath) {

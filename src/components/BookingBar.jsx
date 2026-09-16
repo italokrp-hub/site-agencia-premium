@@ -69,7 +69,7 @@ export default function BookingBar({ onBook }) {
                 {t('bookingBar.serviceOrTour')}
               </span>
               <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
-                <SelectTrigger className="h-5 border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white shadow-none focus:ring-0 bg-transparent cursor-pointer truncate flex items-center justify-start text-left w-full">
+                <SelectTrigger aria-label="Selecionar rota ou trajeto" title="Selecionar rota" className="h-5 border-0 p-0 text-xs font-bold text-zinc-900 dark:text-white shadow-none focus:ring-0 bg-transparent cursor-pointer truncate flex items-center justify-start text-left w-full">
                   <SelectValue placeholder={t('bookingBar.selectService')} />
                 </SelectTrigger>
                 <SelectContent className="z-[150] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-xl max-h-64">
@@ -154,13 +154,15 @@ export default function BookingBar({ onBook }) {
             </div>
           </div>
 
-          {/* 4. Botão de Ação Flutuante */}
+          {/* 4. Botão de Ação Flutuante com Alto Contraste (WCAG AA) */}
           <div className="md:col-span-2 flex items-center justify-end">
             <Button
               onClick={handleSearch}
               id="btn-cotar-transfer"
               data-tracking="btn-cotar-transfer"
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold px-5 h-11 shadow-lg shadow-emerald-600/30 transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer text-sm"
+              aria-label="Cotar transfer ou passeio"
+              title="Cotar transfer ou passeio"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-full font-bold px-5 h-11 shadow-lg shadow-emerald-700/30 transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer text-sm"
             >
               <Search className="w-4 h-4 transition-transform group-hover:scale-110" />
               <span>{t('bookingBar.quoteBtn')}</span>
