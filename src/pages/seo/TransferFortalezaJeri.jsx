@@ -19,10 +19,9 @@ const TransferFortalezaJeri = () => {
   };
 
   const handleBook = (item, modality) => {
-    // Add default initial parameters to auto-select modality
-    setBookingItem({
-      ...item,
-      initialModality: modality
+    openWhatsApp({
+      servico: item?.id || item?.title || 'transfer-fortaleza',
+      modalidade: modality,
     });
   };
 
@@ -250,13 +249,6 @@ const TransferFortalezaJeri = () => {
         </div>
       </section>
 
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </SEOLayout>
   );
 };

@@ -60,19 +60,11 @@ const FeaturedExperiences = () => {
     setDrawerItem(item);
   };
 
-  // Called from cards or from the drawer — triggers BookingModal
+  // Called from cards or from the drawer — redirects to /obrigado
   const handleBook = (item) => {
     const raw = item?.raw || item;
     if (!raw) return;
-    const isShared = raw.options?.shared?.available && !raw.options?.private?.available;
-    setBookingItem({
-      ...raw,
-      selectedType: isShared ? 'Compartilhado' : 'Privativo',
-      selectedVehicleType:
-        raw.options?.private?.vehicles?.[0]?.type ||
-        raw.options?.private?.tiers?.[0]?.vehicle ||
-        'Buggy',
-    });
+    openWhatsApp({ servico: raw.id || raw.title });
     setDrawerItem(null);
   };
 
@@ -256,14 +248,6 @@ const FeaturedExperiences = () => {
         onClose={() => setDrawerItem(null)}
         onBook={handleBook}
       />
-
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </section>
   );
 };

@@ -18,9 +18,9 @@ const TransferAeroportoJeri = () => {
   };
 
   const handleBook = (item, modality) => {
-    setBookingItem({
-      ...item,
-      initialModality: modality
+    openWhatsApp({
+      servico: item?.id || item?.title || 'cruz',
+      modalidade: modality,
     });
   };
 
@@ -183,13 +183,6 @@ const TransferAeroportoJeri = () => {
         </div>
       </section>
 
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </SEOLayout>
   );
 };

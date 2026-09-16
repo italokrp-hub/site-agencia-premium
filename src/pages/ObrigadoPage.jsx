@@ -4,10 +4,43 @@ import { Helmet } from 'react-helmet';
 import { MessageCircle, Loader2, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { buildWhatsAppLink, WA_MESSAGES } from '@/utils/whatsapp';
 
+function getObrigadoMessage(searchParams) {
+  const text = searchParams.get('text') || searchParams.get('msg');
+  if (text) return text;
+
+  const servico = searchParams.get('servico') || searchParams.get('service') || searchParams.get('item');
+  if (servico) {
+    const lower = servico.toLowerCase();
+    if (lower.includes('leste')) {
+      return 'Olá! Gostaria de cotar/reservar o Passeio Lado Leste em Jericoacoara.';
+    }
+    if (lower.includes('oeste')) {
+      return 'Olá! Gostaria de cotar/reservar o Passeio Lado Oeste em Jericoacoara.';
+    }
+    if (lower.includes('transfer')) {
+      const data = searchParams.get('data') || searchParams.get('date');
+      const pax = searchParams.get('pax') || searchParams.get('passengers');
+      let msg = 'Olá! Gostaria de cotar o Transfer para Jericoacoara.';
+      if (data || pax) {
+        const details = [];
+        if (data) details.push(`Data: ${data}`);
+        if (pax) details.push(`${pax} passageiro(s)`);
+        msg += ` (${details.join(', ')})`;
+      }
+      return msg;
+    }
+
+    const formatName = servico.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return `Olá! Gostaria de cotar/reservar o ${formatName} em Jericoacoara.`;
+  }
+
+  return 'Olá! Gostaria de informações sobre transfers e passeios em Jericoacoara.';
+}
+
 const ObrigadoPage = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const customMessage = searchParams.get('text') || searchParams.get('msg') || WA_MESSAGES.generic;
+  const customMessage = getObrigadoMessage(searchParams);
 
   const targetWhatsAppUrl = buildWhatsAppLink(customMessage);
 

@@ -34,18 +34,9 @@ const ToursExplorer = () => {
   }, [activeFilter]);
 
   const handleBook = (tour) => {
-    if (tour.requireWhatsApp) {
-      openWhatsApp(`Olá! Gostaria de saber mais sobre: ${tour.title}`);
-      return;
-    }
-
     const raw = tour?.raw || tour;
-    const isShared = raw.options?.shared?.available && !raw.options?.private?.available;
-    setBookingItem({
-      ...raw,
-      selectedType: isShared ? 'Compartilhado' : 'Privativo',
-      selectedVehicleType: raw.options?.private?.vehicles?.[0]?.type || 'Buggy',
-    });
+    if (!raw) return;
+    openWhatsApp({ servico: raw.id || raw.title });
     setDrawerItem(null);
   };
 
@@ -259,14 +250,6 @@ const ToursExplorer = () => {
         onClose={() => setDrawerItem(null)}
         onBook={handleBook}
       />
-
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </section>
   );
 };

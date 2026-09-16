@@ -25,10 +25,10 @@ const PasseiosJeri = () => {
   };
 
   const handleBook = (item, modality, vehicleType) => {
-    setBookingItem({
-      ...item,
-      initialModality: modality,
-      initialVehicle: vehicleType
+    openWhatsApp({
+      servico: item?.id || item?.title || 'passeio',
+      modalidade: modality,
+      veiculo: vehicleType,
     });
   };
 
@@ -311,13 +311,6 @@ const PasseiosJeri = () => {
         </div>
       </section>
 
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </SEOLayout>
   );
 };

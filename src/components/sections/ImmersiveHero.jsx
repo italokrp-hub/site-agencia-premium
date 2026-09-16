@@ -13,10 +13,11 @@ const ImmersiveHero = () => {
   const { t } = useLanguage();
 
   const handleBookingBarSubmit = (rawItem, { date, passengers }) => {
-    setBookingItem({
-      ...rawItem,
-      initialDate: date,
-      initialPassengers: passengers,
+    const formattedDate = date ? (typeof date === 'string' ? date : date.toISOString().split('T')[0]) : '';
+    triggerWhatsApp({
+      servico: rawItem?.id || rawItem?.title || 'Transfer',
+      data: formattedDate,
+      pax: passengers,
     });
   };
 
@@ -165,15 +166,6 @@ const ImmersiveHero = () => {
           <ChevronDown className="w-5 h-5" />
         </motion.div>
       </motion.button>
-
-      {/* BookingModal trigger */}
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </section>
   );
 };

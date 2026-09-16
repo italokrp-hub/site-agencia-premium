@@ -18,9 +18,9 @@ const TransferPreaJeri = () => {
   };
 
   const handleBook = (item, modality) => {
-    setBookingItem({
-      ...item,
-      initialModality: modality
+    openWhatsApp({
+      servico: item?.id || item?.title || 'prea',
+      modalidade: modality,
     });
   };
 
@@ -148,13 +148,6 @@ const TransferPreaJeri = () => {
         </div>
       </section>
 
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </SEOLayout>
   );
 };

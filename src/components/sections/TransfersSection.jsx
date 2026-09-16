@@ -4,21 +4,19 @@ import { useInView } from 'framer-motion';
 import { ArrowRight, Car, Plane, MapPin, Moon, Info, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { transfersData, formatPrice } from '@/data/catalog';
-import BookingModal from '@/components/BookingModal';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp } from '@/utils/whatsapp';
 
 const TransfersSection = () => {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
-  const [bookingItem, setBookingItem] = useState(null);
   const [selectedType, setSelectedType] = useState({});
   const { t } = useLanguage();
 
   const handleBook = (transfer, type = 'Privativo') => {
-    setBookingItem({
-      ...transfer,
-      selectedType: type,
-      selectedTripType: 'roundTrip',
+    openWhatsApp({
+      servico: transfer.id || transfer.title,
+      modalidade: type,
     });
   };
 
@@ -180,14 +178,6 @@ const TransfersSection = () => {
           })}
         </div>
       </div>
-
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </section>
   );
 };
