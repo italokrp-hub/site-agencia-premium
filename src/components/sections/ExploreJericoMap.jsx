@@ -435,14 +435,6 @@ const ExploreJericoMap = () => {
           </motion.div>
         </div>
       </div>
-
-      {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={!!bookingItem}
-          onOpenChange={(open) => !open && setBookingItem(null)}
-        />
-      )}
     </section>
   );
 };
