@@ -37,7 +37,7 @@ const Hero = () => {
         <img 
           className="w-full h-full object-cover"
           alt="Praia de Jericoacoara ao pôr do sol com dunas"
-          src="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd"
+          src="/images/hero-dunas.webp"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
       </div>

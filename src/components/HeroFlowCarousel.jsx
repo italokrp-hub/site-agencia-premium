@@ -100,7 +100,7 @@ const SCENES = [
     id: 8,
     type: 'image',
     src: '/images/scenes/lagoa-paraiso.jpg',
-    fallbackSrc: 'https://images.unsplash.com/photo-1517347748150-029cea4cc0fd',
+    fallbackSrc: '/images/hero-dunas.webp',
     title: 'Diversas Opções de Roteiros',
     description: 'Conheça nossos passeios de UTV, Quadriciclo e opções compartilhadas ou privativas.',
     badge: 'Experiências Personalizadas',

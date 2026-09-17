@@ -72,7 +72,7 @@ function resolveTitle(item) {
 }
 
 function resolveImage(item) {
-  return item?.image || item?.raw?.image || 'https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=800&q=75';
+  return item?.image || item?.raw?.image || '/images/hero-dunas.webp';
 }
 
 function resolveIsWhatsAppOnly(item) {

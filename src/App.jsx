@@ -58,7 +58,7 @@ function LandingPage() {
         <meta property="og:url" content="https://jericoacoarapremium.com/" />
         <meta property="og:title" content="Jericoacoara Premium | Transfer Mais Barato & Agência Confiável" />
         <meta property="og:description" content="Reserve o transfer mais barato e econômico para Jericoacoara com segurança total, motoristas credenciados e reserva 100% garantida." />
-        <meta property="og:image" content="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1200&q=80" />
+        <meta property="og:image" content="https://jericoacoarapremium.com/images/hero-jeri-mobile.webp" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://jericoacoarapremium.com/" />

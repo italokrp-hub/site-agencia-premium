@@ -39,7 +39,7 @@ export const experienceStyles = [
     label: 'Romance',
     icon: '🌹',
     description: 'Lua de mel e momentos inesquecíveis a dois',
-    image: 'https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=800',
+    image: '/images/hero-dunas.webp',
     tags: ['privativo', 'buggy', 'pordosol'],
     relatedCatalogIds: ['tour-leste-private', 'tour-oeste-private'],
     color: 'from-rose-600 to-pink-700',
@@ -74,7 +74,7 @@ export const mapDestinations = [
     x: 50,
     y: 48,
     relatedCatalogIds: [],
-    image: 'https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=600',
+    image: '/images/hero-dunas.webp',
   },
   {
     id: 'lagoa-paraiso',

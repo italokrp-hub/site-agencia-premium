@@ -48,13 +48,13 @@ const ImmersiveHero = () => {
             height="450"
           />
           <source
-            srcSet="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
-            type="image/jpeg"
+            srcSet="/images/hero-dunas.webp"
+            type="image/webp"
             width="1920"
             height="1080"
           />
           <img
-            src="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
+            src="/images/hero-dunas.webp"
             alt="Jericoacoara — dunas ao pôr do sol"
             className="w-full h-full object-cover object-center"
             loading="eager"

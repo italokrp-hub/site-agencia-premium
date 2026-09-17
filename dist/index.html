@@ -15,21 +15,26 @@
 				border-width: 0;
 			}
 		</style>
-		<!-- Google Tag Manager -->
-		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-		j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-		'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-		})(window,document,'script','dataLayer','GTM-PRVR3DK9');</script>
-		<!-- End Google Tag Manager -->
-		<!-- Google tag (gtag.js) -->
-		<script defer src="https://www.googletagmanager.com/gtag/js?id=AW-18434748779"></script>
-		<script defer>
-		  window.dataLayer = window.dataLayer || [];
-		  function gtag(){dataLayer.push(arguments);}
-		  gtag('js', new Date());
-
-		  gtag('config', 'AW-18434748779');
+		<!-- Deferred Analytics & Tag Manager (Prevents TBT Main Thread Blocking) -->
+		<script>
+			window.addEventListener('load', function() {
+				setTimeout(function() {
+					// Google Tag Manager
+					(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+					new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+					j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+					'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+					})(window,document,'script','dataLayer','GTM-PRVR3DK9');
+					
+					// Google tag (gtag.js)
+					var g = d.createElement('script'); g.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18434748779'; g.async = true;
+					d.head.appendChild(g);
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
+					gtag('config', 'AW-18434748779');
+				}, 2000);
+			});
 		</script>
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -41,9 +46,6 @@
 		<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 		<link rel="canonical" href="https://jericoacoarapremium.com/" />
 		
-		<!-- Preconnect and DNS-Prefetch for External CDNs -->
-		<link rel="preconnect" href="https://images.unsplash.com" crossorigin />
-		<link rel="dns-prefetch" href="https://images.unsplash.com" />
 		<!-- Google Fonts preconnect for Inter font -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -155,7 +157,7 @@
 			]
 		}
 		</script>
-		<script type="module" crossorigin src="/assets/index-CuOBnkZF.js"></script>
+		<script type="module" crossorigin src="/assets/index-Bmk5y4X5.js"></script>
 		<link rel="stylesheet" crossorigin href="/assets/index-CQfEgmhP.css">
 	</head>
 	<body>
