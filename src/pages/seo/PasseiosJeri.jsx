@@ -46,7 +46,7 @@ const PasseiosJeri = () => {
           <img 
             className="w-full h-full object-cover"
             alt="Passeios em Jericoacoara Lagoa do Paraíso"
-            src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg"
+            src="/images/tours/passeio-leste.webp"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-teal-900/90 via-teal-900/60 to-transparent" />
         </div>

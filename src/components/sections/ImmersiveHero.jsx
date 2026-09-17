@@ -44,10 +44,14 @@ const ImmersiveHero = () => {
             srcSet="/images/hero-jeri-mobile.webp"
             type="image/webp"
             media="(max-width: 768px)"
+            width="800"
+            height="450"
           />
           <source
             srcSet="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
             type="image/jpeg"
+            width="1920"
+            height="1080"
           />
           <img
             src="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
@@ -56,8 +60,8 @@ const ImmersiveHero = () => {
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            width="1920"
-            height="1080"
+            width="800"
+            height="450"
           />
         </picture>
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />

@@ -99,7 +99,7 @@ const Header = () => {
           >
             <a href="#home" onClick={(e) => { e.preventDefault(); handleNavClick('#home'); }}>
               <img 
-                src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/494a72a51bf12600f9dbf641b2fc783a.png"
+                src="/images/logo.webp"
                 alt="Jericoacoara Premium - Agência de Viagens Premium"
                 width="64"
                 height="64"

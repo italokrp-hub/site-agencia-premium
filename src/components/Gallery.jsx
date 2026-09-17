@@ -9,42 +9,42 @@ const images = [
     title: 'Lagoa do Paraíso',
     description: 'Águas cristalinas e redes famosas sobre a água',
     location: 'Jericoacoara - CE',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/2536918860cd6edd74fcd3911758044f.webp'
+    image: '/images/tours/passeio-leste.webp'
   },
   {
     id: 2,
     title: 'Pôr do Sol nas Dunas',
     description: 'Espetáculo único com vista panorâmica do mar',
     location: 'Duna do Pôr do Sol',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/a7043af71d371c32ff636c4b232c1e39.jpg'
+    image: '/images/hero-jeri-mobile.webp'
   },
   {
     id: 3,
     title: 'Pedra Furada',
     description: 'O maior cartão postal de Jericoacoara',
     location: 'Litoral Leste',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/f8733608a68a1e9be0ca6091bca8494d.jpg'
+    image: '/images/tours/passeio-leste.webp'
   },
   {
     id: 4,
     title: 'Passeio de Buggy',
     description: 'Adrenalina e aventura pelas trilhas do Parque Nacional',
     location: 'Dunas e Lagoas',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/e9f92fc3e94dec8860f06293a32de6c1.jpg'
+    image: '/images/tours/passeio-oeste.webp'
   },
   {
     id: 5,
     title: 'Tatajuba e Lagoa de Tatajuba',
     description: 'Esquibunda, tirolesa e gastronomia pé na areia',
     location: 'Litoral Oeste',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/0376391c7db96ffaf93689b92c2eeb11.webp'
+    image: '/images/tours/passeio-oeste.webp'
   },
   {
     id: 6,
     title: 'Praia Principal de Jeri',
     description: 'Vibe tropical, bons restaurantes e ventos perfeitos',
     location: 'Vila de Jericoacoara',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/c41e7ba1c6dcdd06e4d8c07e14a1e531.jpg'
+    image: '/images/experiences/familia.webp'
   }
 ];
 

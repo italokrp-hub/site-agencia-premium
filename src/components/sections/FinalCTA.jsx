@@ -29,7 +29,7 @@ const FinalCTA = () => {
     <section id="reservar" className="relative py-24 md:py-36 overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img
-          src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg"
+          src="/images/tours/passeio-oeste.webp"
           alt="Jericoacoara — Lagoa da Tatajuba"
           className="w-full h-full object-cover"
           loading="lazy"

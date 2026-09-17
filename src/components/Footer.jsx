@@ -27,7 +27,7 @@ const Footer = () => {
           {/* About */}
           <div>
             <img 
-              src="https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/494a72a51bf12600f9dbf641b2fc783a.png"
+              src="/images/logo.webp"
               alt="Jericoacoara Premium"
               width="180"
               height="64"

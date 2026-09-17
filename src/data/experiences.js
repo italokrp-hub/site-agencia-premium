@@ -9,7 +9,7 @@ export const experienceStyles = [
     label: 'Aventura',
     icon: '🏄',
     description: 'Dunas, buggy, trilhas e adrenalina pura',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/tours/passeio-leste.webp',
     tags: ['buggy', 'quadriciclo', 'utv'],
     relatedCatalogIds: ['tour-leste-private', 'tour-oeste-private', 'tour-utv'],
     color: 'from-amber-600 to-orange-700',
@@ -19,7 +19,7 @@ export const experienceStyles = [
     label: 'Relaxamento',
     icon: '🌅',
     description: 'Lagoas cristalinas, pôr do sol e paz',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    image: '/images/tours/passeio-oeste.webp',
     tags: ['compartilhado', 'jardineira'],
     relatedCatalogIds: ['tour-leste-shared', 'tour-oeste-shared'],
     color: 'from-cyan-600 to-teal-700',
@@ -49,7 +49,7 @@ export const experienceStyles = [
     label: 'Família',
     icon: '👨‍👩‍👧',
     description: 'Conforto e segurança para toda a família',
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/c41e7ba1c6dcdd06e4d8c07e14a1e531.jpg',
+    image: '/images/experiences/familia.webp',
     tags: ['sw4', 'jardineira', 'compartilhado'],
     relatedCatalogIds: ['tour-leste-shared', 'tour-oeste-shared', 'fortaleza', 'jijoca'],
     color: 'from-emerald-600 to-teal-700',
@@ -83,7 +83,7 @@ export const mapDestinations = [
     x: 70,
     y: 55,
     relatedCatalogIds: ['tour-leste-private', 'tour-leste-shared'],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/tours/passeio-leste.webp',
   },
   {
     id: 'buraco-azul',
@@ -92,7 +92,7 @@ export const mapDestinations = [
     x: 75,
     y: 45,
     relatedCatalogIds: ['tour-leste-private', 'tour-leste-shared'],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/tours/passeio-leste.webp',
   },
   {
     id: 'lagoa-tatajuba',
@@ -101,7 +101,7 @@ export const mapDestinations = [
     x: 25,
     y: 40,
     relatedCatalogIds: ['tour-oeste-private', 'tour-oeste-shared'],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/3643652f8af5660a1eb0f16e7bd78113.jpg',
+    image: '/images/tours/passeio-oeste.webp',
   },
   {
     id: 'arvore-preguica',
@@ -110,7 +110,7 @@ export const mapDestinations = [
     x: 60,
     y: 35,
     relatedCatalogIds: ['tour-leste-private', 'tour-leste-shared'],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/60e44b9dea0091329faa9886903a5733.jpg',
+    image: '/images/tours/passeio-leste.webp',
   },
   {
     id: 'prea',
@@ -119,7 +119,7 @@ export const mapDestinations = [
     x: 82,
     y: 60,
     relatedCatalogIds: ['prea'],
-    image: 'https://horizons-cdn.hostinger.com/67b0df74-75a2-46e8-8af4-a8cc83829ca5/c41e7ba1c6dcdd06e4d8c07e14a1e531.jpg',
+    image: '/images/experiences/familia.webp',
   },
 ];
 
