@@ -140,6 +140,7 @@ const FeaturedExperiences = () => {
                     alt={displayTitle}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
@@ -194,15 +195,15 @@ const FeaturedExperiences = () => {
                   {/* Price + CTAs */}
                   <div className="mt-auto pt-4 border-t border-gray-100">
                     {isWhatsAppOnly ? (
-                      <p className="text-[#D4AF37] font-bold text-base">{t('featured.onConsult')}</p>
+                      <p className="text-amber-800 font-bold text-base">{t('featured.onConsult')}</p>
                     ) : startPrice ? (
                       <div>
-                        <span className="text-xs text-gray-400">{t('featured.from')}</span>
+                        <span className="text-xs text-gray-600">{t('featured.from')}</span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-xl font-extrabold text-[#2C7A7B]">
                             {formatPrice(startPrice)}
                           </span>
-                          <span className="text-xs text-gray-400">{priceLabel}</span>
+                          <span className="text-xs text-gray-600">{priceLabel}</span>
                         </div>
                       </div>
                     ) : null}

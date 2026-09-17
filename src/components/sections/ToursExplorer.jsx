@@ -135,6 +135,7 @@ const ToursExplorer = () => {
                     alt={displayTitle}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
@@ -153,7 +154,7 @@ const ToursExplorer = () => {
                       </span>
                     )}
                     {isSharedOnly && (
-                      <span className="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      <span className="bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                         {t('tours.shared')}
                       </span>
                     )}
@@ -205,13 +206,13 @@ const ToursExplorer = () => {
                   {/* Price & Actions */}
                   <div className="mt-auto pt-4 border-t border-gray-100">
                     {isPremium ? (
-                      <p className="text-[#D4AF37] font-bold text-base mb-3">{t('featured.onConsult')}</p>
+                      <p className="text-amber-800 font-bold text-base mb-3">{t('featured.onConsult')}</p>
                     ) : startPrice ? (
                       <div className="mb-3">
-                        <span className="text-xs text-gray-400 block">{t('tours.from')}</span>
+                        <span className="text-xs text-gray-600 block">{t('tours.from')}</span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-xl font-extrabold text-[#2C7A7B]">{formatPrice(startPrice)}</span>
-                          <span className="text-xs text-gray-400">{priceLabel}</span>
+                          <span className="text-xs text-gray-600">{priceLabel}</span>
                         </div>
                       </div>
                     ) : null}

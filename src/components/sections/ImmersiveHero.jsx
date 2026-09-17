@@ -39,16 +39,27 @@ const ImmersiveHero = () => {
     <section id="home" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
-          alt="Jericoacoara — dunas ao pôr do sol"
-          className="w-full h-full object-cover object-center"
-          loading="eager"
-          fetchPriority="high"
-          decoding="async"
-          width="1920"
-          height="1080"
-        />
+        <picture>
+          <source
+            srcSet="/images/hero-jeri-mobile.webp"
+            type="image/webp"
+            media="(max-width: 768px)"
+          />
+          <source
+            srcSet="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
+            type="image/jpeg"
+          />
+          <img
+            src="https://images.unsplash.com/photo-1517347748150-029cea4cc0fd?w=1920&q=80"
+            alt="Jericoacoara — dunas ao pôr do sol"
+            className="w-full h-full object-cover object-center"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            width="1920"
+            height="1080"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
       </div>

@@ -238,7 +238,7 @@ const TravelPlanner = () => {
           {/* Progress Bar (Visible in steps 1..4) */}
           {step <= totalSteps && (
             <div className="mb-8">
-              <div className="flex items-center justify-between text-xs font-bold text-gray-400 mb-2">
+              <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-2">
                 <span>
                   {t('planner.stepCount', { step, totalSteps, defaultValue: `Etapa ${step} de ${totalSteps}` })}
                 </span>
