@@ -12,7 +12,7 @@ export const translations = {
     },
     hero: {
       badge: '🏆 Agência #1 de Jericoacoara',
-      title: 'Experiências Excepcionais em Jericoacoara',
+      title: 'Experiências Excepcionais em',
       subtitle: 'Transfer, Passeios e Serviços Exclusivos',
       description: 'Conforto, segurança e atendimento personalizado para tornar sua viagem inesquecível',
       titleHighlight: 'Sua Experiência Inesquecível',
@@ -503,7 +503,7 @@ export const translations = {
     },
     hero: {
       badge: '🏆 #1 Travel Agency in Jericoacoara',
-      title: 'Exceptional Experiences in Jericoacoara',
+      title: 'Exceptional Experiences in',
       subtitle: 'Transfers, Tours & Exclusive VIP Services',
       description: 'Comfort, safety, and personalized assistance to make your trip truly unforgettable',
       titleHighlight: 'Your Unforgettable Experience',
@@ -990,7 +990,7 @@ export const translations = {
     },
     hero: {
       badge: '🏆 Agencia #1 en Jericoacoara',
-      title: 'Experiencias Excepcionales en Jericoacoara',
+      title: 'Experiencias Excepcionales en',
       subtitle: 'Transfers, Tours y Servicios Exclusivos',
       description: 'Confort, seguridad y atención personalizada para hacer tu viaje verdaderamente inolvidable',
       titleHighlight: 'Tu Experiencia Inolvidable',
