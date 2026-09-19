@@ -8,6 +8,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import PromoModal from '@/components/PromoModal';
 import { Toaster } from '@/components/ui/toaster';
 
 // Above-the-fold critical homepage sections
@@ -169,6 +170,7 @@ function App() {
     <ErrorBoundary>
       <LanguageProvider>
         <BrowserRouter>
+          <PromoModal />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
