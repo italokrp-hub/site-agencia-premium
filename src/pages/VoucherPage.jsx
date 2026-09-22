@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import html2pdf from 'html2pdf.js';
 import {
   Printer,
   MessageCircle,
@@ -20,7 +21,9 @@ import {
   Building,
   QrCode,
   Copy,
-  XCircle
+  XCircle,
+  Download,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
@@ -374,6 +377,32 @@ export default function VoucherPage() {
     };
   }, [booking?.payment_status, booking?.status, formattedCode]);
 
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    const cardElement = document.querySelector('.print-card');
+    if (!cardElement) return;
+
+    setDownloadingPdf(true);
+    try {
+      const filename = `Voucher_${booking?.code || formattedCode}.pdf`;
+      const opt = {
+        margin: [4, 4, 4, 4],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(cardElement).save();
+    } catch (err) {
+      console.error('Erro ao gerar PDF:', err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -484,11 +513,20 @@ export default function VoucherPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <button
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+            className="inline-flex items-center gap-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60"
+          >
+            {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {downloadingPdf ? 'Baixando PDF...' : 'Baixar Voucher (PDF)'}
+          </button>
+
+          <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            Baixar / Imprimir Voucher (PDF)
+            Imprimir
           </button>
 
           <a
