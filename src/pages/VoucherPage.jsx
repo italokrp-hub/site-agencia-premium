@@ -175,6 +175,33 @@ export default function VoucherPage() {
             const amountPaid = Number(b.amount_paid ?? (isDeposit ? priceFinal / 2 : (b.payment_status === 'pago_integral' ? priceFinal : 0)));
 
             if (isMounted) {
+              const parseItem = (it) => {
+                const isTransfer = (it.category || b.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
+                const rawTrecho = it.trecho || b.trecho || (isTransfer ? 'ida_e_volta' : 'privativo');
+                const isRoundTrip = rawTrecho === 'ida_e_volta' || Boolean(it.return_pickup_location || it.return_dropoff_location || it.date_end || b.date_end);
+                const timeStart = it.time_start || it.time || b.time || b.time_start || '11:00';
+                const timeEnd = it.time_end || b.time_end || timeStart;
+
+                return {
+                  title: it.title || it.service_name || b.service_name || 'Transfer Privativo 4x4 · Preá / Jeri',
+                  service_type: it.category || 'transfer',
+                  vehicle: it.vehicle_type || b.vehicle_type || 'SW4 / Buggy',
+                  modality: isRoundTrip ? 'Ida e Volta' : (rawTrecho === 'ida' ? 'Apenas Ida' : (rawTrecho === 'volta' ? 'Apenas Volta' : 'Privativo Exclusivo')),
+                  trecho: rawTrecho,
+                  isRoundTrip: isRoundTrip,
+                  date: it.date_start || b.date || new Date().toISOString().split('T')[0],
+                  time: timeStart,
+                  date_end: it.date_end || b.date_end || null,
+                  time_end: timeEnd,
+                  pickup_location: it.pickup_location || b.pickup_location || 'Estacionamento PREÁ',
+                  dropoff_location: it.dropoff_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
+                  return_pickup_location: it.return_pickup_location || it.dropoff_location || b.return_pickup_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
+                  return_dropoff_location: it.return_dropoff_location || it.pickup_location || b.return_dropoff_location || b.pickup_location || 'Estacionamento PREÁ',
+                  pax: Number(it.pax_adults || b.pax_adults || 2),
+                  unit_price: Number(it.price_total || priceFinal),
+                };
+              };
+
               setBooking({
                 code: b.reservation_code || formattedCode,
                 created_at: b.created_at,
@@ -189,27 +216,7 @@ export default function VoucherPage() {
                 remaining_balance: Math.max(0, priceFinal - amountPaid),
                 pickup_location: b.pickup_location || 'A combinar',
                 notes: b.notes || '',
-                items: items.length > 0 ? items.map((it) => ({
-                  title: it.title || it.service_name || 'Serviço Jericoacoara',
-                  service_type: it.category || 'passeio',
-                  vehicle: it.vehicle_type || 'SW4 / Buggy',
-                  modality: it.trecho || 'privativo',
-                  date: it.date_start || b.date || new Date().toISOString().split('T')[0],
-                  time: '11:30',
-                  pax: Number(it.pax_adults || b.pax_adults || 1),
-                  unit_price: Number(it.price_total || priceFinal),
-                })) : [
-                  {
-                    title: 'Serviço Jericoacoara Premium',
-                    service_type: 'passeio',
-                    vehicle: 'SW4 / Buggy',
-                    modality: 'privativo',
-                    date: b.date || new Date().toISOString().split('T')[0],
-                    time: '11:30',
-                    pax: Number(b.pax_adults || 1),
-                    unit_price: priceFinal,
-                  }
-                ],
+                items: items.length > 0 ? items.map(parseItem) : [parseItem({})],
               });
               setLoading(false);
               return;
@@ -229,15 +236,17 @@ export default function VoucherPage() {
             reservation_code,
             created_at,
             date,
+            time,
             pax_adults,
             pickup_location,
+            dropoff_location,
             price_gross,
             price_final,
             payment_method,
             payment_status,
             reservation_status,
             agency_customers (name, whatsapp, email),
-            agency_reservation_items (title, service_name, vehicle_type, category, date_start, pax_adults, price_total)
+            agency_reservation_items (title, service_name, vehicle_type, category, trecho, date_start, time_start, date_end, time_end, pax_adults, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location)
           `)
           .or(`reservation_code.eq.${formattedCode},code.eq.${formattedCode}`)
           .maybeSingle();
@@ -248,6 +257,33 @@ export default function VoucherPage() {
           const priceFinal = Number(data.price_final || 0);
           const isDeposit = data.payment_status === 'sinal_pago';
           const amountPaid = isDeposit ? priceFinal / 2 : (data.payment_status === 'pago_integral' ? priceFinal : 0);
+
+          const parseItem = (it) => {
+            const isTransfer = (it.category || data.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
+            const rawTrecho = it.trecho || data.trecho || (isTransfer ? 'ida_e_volta' : 'privativo');
+            const isRoundTrip = rawTrecho === 'ida_e_volta' || Boolean(it.return_pickup_location || it.return_dropoff_location || it.date_end || data.date_end);
+            const timeStart = it.time_start || it.time || data.time || data.time_start || '11:00';
+            const timeEnd = it.time_end || data.time_end || timeStart;
+
+            return {
+              title: it.title || it.service_name || data.service_name || 'Transfer Privativo 4x4 · Preá / Jeri',
+              service_type: it.category || 'transfer',
+              vehicle: it.vehicle_type || data.vehicle_type || 'SW4 / Buggy',
+              modality: isRoundTrip ? 'Ida e Volta' : (rawTrecho === 'ida' ? 'Apenas Ida' : (rawTrecho === 'volta' ? 'Apenas Volta' : 'Privativo Exclusivo')),
+              trecho: rawTrecho,
+              isRoundTrip: isRoundTrip,
+              date: it.date_start || data.date || new Date().toISOString().split('T')[0],
+              time: timeStart,
+              date_end: it.date_end || data.date_end || null,
+              time_end: timeEnd,
+              pickup_location: it.pickup_location || data.pickup_location || 'Estacionamento PREÁ',
+              dropoff_location: it.dropoff_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
+              return_pickup_location: it.return_pickup_location || it.dropoff_location || data.return_pickup_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
+              return_dropoff_location: it.return_dropoff_location || it.pickup_location || data.return_dropoff_location || data.pickup_location || 'Estacionamento PREÁ',
+              pax: Number(it.pax_adults || data.pax_adults || 2),
+              unit_price: Number(it.price_total || priceFinal),
+            };
+          };
 
           setBooking({
             code: data.reservation_code || formattedCode,
@@ -262,27 +298,7 @@ export default function VoucherPage() {
             amount_paid: amountPaid,
             remaining_balance: Math.max(0, priceFinal - amountPaid),
             pickup_location: data.pickup_location || 'A combinar',
-            items: items.length > 0 ? items.map((it) => ({
-              title: it.title || it.service_name || 'Serviço Jericoacoara',
-              service_type: it.category || 'passeio',
-              vehicle: it.vehicle_type || 'SW4 / Buggy',
-              modality: 'privativo',
-              date: it.date_start || data.date || new Date().toISOString().split('T')[0],
-              time: '11:30',
-              pax: Number(it.pax_adults || data.pax_adults || 1),
-              unit_price: Number(it.price_total || priceFinal),
-            })) : [
-              {
-                title: 'Serviço Jericoacoara Premium',
-                service_type: 'passeio',
-                vehicle: 'SW4 / Buggy',
-                modality: 'privativo',
-                date: data.date || new Date().toISOString().split('T')[0],
-                time: '11:30',
-                pax: Number(data.pax_adults || 1),
-                unit_price: priceFinal,
-              }
-            ],
+            items: items.length > 0 ? items.map(parseItem) : [parseItem({})],
           });
           setLoading(false);
           return;
@@ -573,48 +589,113 @@ export default function VoucherPage() {
 
             <div className="bg-[#2C7A7B]/5 p-4 rounded-xl border border-[#2C7A7B]/20 mb-4">
               <h4 className="font-extrabold text-base sm:text-lg text-gray-900 mb-1">
-                {mainItem.title || 'Transfer ou Passeio Jericoacoara Premium'}
+                {mainItem.title || 'Transfer Privativo 4x4 · Preá / Jeri'}
               </h4>
               <p className="text-xs text-[#2C7A7B] font-bold">
-                Modalidade: {formatModalityLabel(mainItem)}
+                Modalidade: {mainItem.isRoundTrip ? 'Transfer Ida e Volta (Privativo Exclusivo)' : formatModalityLabel(mainItem)}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <Calendar className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-xs text-gray-400 block font-medium">Data & Horário de Saída</span>
-                  <span className="font-bold text-gray-900">
-                    {mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {mainItem.time || '11:30'}h
-                  </span>
+            {mainItem.isRoundTrip ? (
+              <div className="space-y-4">
+                {/* 🟢 TRECHO DE IDA */}
+                <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-emerald-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse" /> 🟢 TRECHO DE IDA
+                    </span>
+                    <span className="text-xs font-extrabold text-gray-900">
+                      {mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {mainItem.time || '11:00'}h
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-emerald-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
+                      <span className="font-bold text-gray-900">{mainItem.pickup_location || booking.pickup_location || 'Estacionamento PREÁ'}</span>
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-emerald-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
+                      <span className="font-bold text-gray-900">{mainItem.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <MapPin className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-xs text-gray-400 block font-medium">Local de Embarque</span>
-                  <span className="font-bold text-gray-900">{booking.pickup_location || 'A combinar com o motorista'}</span>
+                {/* 🔵 TRECHO DE VOLTA */}
+                <div className="bg-cyan-50/70 border border-cyan-200 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-cyan-200 pb-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-cyan-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-cyan-600 animate-pulse" /> 🔵 TRECHO DE VOLTA
+                    </span>
+                    <span className="text-xs font-extrabold text-gray-900">
+                      {mainItem.date_end ? new Date(mainItem.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : (mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar com a agência')} às {mainItem.time_end || mainItem.time || '11:00'}h
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-cyan-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
+                      <span className="font-bold text-gray-900">{mainItem.return_pickup_location || mainItem.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-lg border border-cyan-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
+                      <span className="font-bold text-gray-900">{mainItem.return_dropoff_location || mainItem.pickup_location || 'Estacionamento PREÁ'}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <Users className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-xs text-gray-400 block font-medium">Passageiros (PAX)</span>
-                  <span className="font-bold text-gray-900">{mainItem.pax || 1} pessoa(s)</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                  <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <Users className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-xs text-gray-400 block font-medium">Passageiros (PAX)</span>
+                      <span className="font-bold text-gray-900">{mainItem.pax || 2} pessoa(s)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <Car className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-xs text-gray-400 block font-medium">Veículo / Modalidade</span>
+                      <span className="font-bold text-gray-900">{mainItem.vehicle || 'Privativo Exclusivo (4x4)'}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <Calendar className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs text-gray-400 block font-medium">Data & Horário de Saída</span>
+                    <span className="font-bold text-gray-900">
+                      {mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {mainItem.time || '11:00'}h
+                    </span>
+                  </div>
+                </div>
 
-              <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <Car className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-xs text-gray-400 block font-medium">Veículo / Modalidade</span>
-                  <span className="font-bold text-gray-900">{formatModalityLabel(mainItem)}</span>
+                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <MapPin className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs text-gray-400 block font-medium">Local de Embarque</span>
+                    <span className="font-bold text-gray-900">{mainItem.pickup_location || booking.pickup_location || 'A combinar com o motorista'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <Users className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs text-gray-400 block font-medium">Passageiros (PAX)</span>
+                    <span className="font-bold text-gray-900">{mainItem.pax || 2} pessoa(s)</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <Car className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs text-gray-400 block font-medium">Veículo / Modalidade</span>
+                    <span className="font-bold text-gray-900">{formatModalityLabel(mainItem)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {booking.notes && (
               <div className="mt-3 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
