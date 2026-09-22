@@ -394,53 +394,51 @@ export default function VoucherPage() {
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
-          windowWidth: 800,
+          windowWidth: 794,
           onclone: (clonedDoc) => {
             const card = clonedDoc.querySelector('.print-card');
             if (card) {
-              card.style.width = '760px';
-              card.style.maxWidth = '760px';
-              card.style.minWidth = '760px';
+              card.style.width = '750px';
+              card.style.maxWidth = '750px';
+              card.style.minWidth = '750px';
               card.style.margin = '0 auto';
               card.style.boxSizing = 'border-box';
-              card.style.borderRadius = '8px';
+              card.style.borderRadius = '0px';
               card.style.boxShadow = 'none';
             }
 
             const style = clonedDoc.createElement('style');
             style.textContent = `
               .no-print { display: none !important; }
-              .print-card { width: 760px !important; max-width: 760px !important; min-width: 760px !important; font-size: 11px !important; color: #1e293b !important; }
-              .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 12px 18px !important; }
+              .print-card { width: 750px !important; max-width: 750px !important; min-width: 750px !important; font-size: 10.5px !important; color: #1e293b !important; }
+              .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 10px 16px !important; }
               .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
               .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
               .print-card .flex-col.sm\\:flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
               .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
               .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
-              .print-card .space-y-6 > * + * { margin-top: 8px !important; }
-              .print-card .space-y-4 > * + * { margin-top: 6px !important; }
+              .print-card .space-y-6 > * + * { margin-top: 6px !important; }
+              .print-card .space-y-4 > * + * { margin-top: 5px !important; }
               .print-card .space-y-3 > * + * { margin-top: 4px !important; }
               .print-card .space-y-2 > * + * { margin-top: 3px !important; }
-              .print-card .mb-6 { margin-bottom: 6px !important; }
-              .print-card .mb-4 { margin-bottom: 5px !important; }
-              .print-card .mb-3 { margin-bottom: 4px !important; }
-              .print-card .py-4, .print-card .py-5 { padding-top: 6px !important; padding-bottom: 6px !important; }
-              .print-card h4 { font-size: 14px !important; margin: 0 !important; }
-              .print-card h3 { font-size: 11px !important; margin-bottom: 4px !important; }
-              .print-card .text-2xl { font-size: 18px !important; }
-              .print-card .text-xl { font-size: 15px !important; }
-              .print-card .text-lg { font-size: 13px !important; }
-              .print-card .text-base { font-size: 12px !important; }
-              .print-card .text-sm { font-size: 11px !important; }
-              .print-card .text-xs { font-size: 10px !important; }
-              .print-card .text-\\[10px\\] { font-size: 9px !important; }
+              .print-card .mb-6, .print-card .mb-4, .print-card .mb-3 { margin-bottom: 4px !important; }
+              .print-card .py-4, .print-card .py-5 { padding-top: 5px !important; padding-bottom: 5px !important; }
+              .print-card h4 { font-size: 13px !important; margin: 0 !important; }
+              .print-card h3 { font-size: 10.5px !important; margin-bottom: 4px !important; }
+              .print-card .text-2xl { font-size: 17px !important; }
+              .print-card .text-xl { font-size: 14px !important; }
+              .print-card .text-lg { font-size: 12.5px !important; }
+              .print-card .text-base { font-size: 11.5px !important; }
+              .print-card .text-sm { font-size: 10.5px !important; }
+              .print-card .text-xs { font-size: 9.5px !important; }
+              .print-card .text-\\[10px\\] { font-size: 8.5px !important; }
               .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
             `;
             clonedDoc.head.appendChild(style);
           }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
+        pagebreak: { mode: 'none' }
       };
 
       await html2pdf().set(opt).from(cardElement).save();
@@ -547,15 +545,15 @@ export default function VoucherPage() {
           @page { size: A4 portrait; margin: 4mm; }
           body { background: white !important; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
-          .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; font-size: 11px !important; }
-          .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 12px 16px !important; }
+          .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; font-size: 10.5px !important; }
+          .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 10px 14px !important; }
           .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
           .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
           .print-card .flex-col.sm\\:flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
           .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
           .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
-          .print-card .space-y-6 > * + * { margin-top: 8px !important; }
-          .print-card .space-y-4 > * + * { margin-top: 6px !important; }
+          .print-card .space-y-6 > * + * { margin-top: 6px !important; }
+          .print-card .space-y-4 > * + * { margin-top: 5px !important; }
           .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
         }
       `}</style>
@@ -604,40 +602,40 @@ export default function VoucherPage() {
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden print-card">
         
         {/* Header Branding */}
-        <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-[#1e4e4f] text-white p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-800">
+        <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-[#1e4e4f] text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-800">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[#D4AF37] font-extrabold tracking-wider text-xl">JERICOACOARA</span>
               <span className="bg-[#D4AF37] text-gray-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">PREMIUM</span>
             </div>
-            <p className="text-xs text-gray-300 font-medium tracking-wide">VOUCHER OFICIAL DE RESERVA E EMBARQUE</p>
+            <p className="text-[11px] text-gray-300 font-medium tracking-wide">VOUCHER OFICIAL DE RESERVA E EMBARQUE</p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl border border-white/20 sm:text-right">
-            <p className="text-[10px] uppercase text-gray-300 font-bold tracking-widest">CÓDIGO LOCALIZADOR</p>
-            <p className="font-mono text-2xl font-black text-[#D4AF37] tracking-wider">{booking.code}</p>
+          <div className="bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/20 sm:text-right">
+            <p className="text-[9px] uppercase text-gray-300 font-bold tracking-widest">CÓDIGO LOCALIZADOR</p>
+            <p className="font-mono text-xl sm:text-2xl font-black text-[#D4AF37] tracking-wider">{booking.code}</p>
           </div>
         </div>
 
         {/* Status Bar */}
-        <div className="bg-slate-50 px-6 py-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-slate-50 px-5 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
             {statusBadge}
           </div>
-          <p className="text-xs text-gray-500 font-medium">
+          <p className="text-[11px] text-gray-500 font-medium">
             Emissão: {new Date(booking.created_at || Date.now()).toLocaleDateString('pt-BR')} às {new Date(booking.created_at || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
 
         {/* Caixa de Instrução Operacional: Validação e Ativação do Voucher */}
-        <div className="bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-b border-emerald-200/80 px-6 py-5 no-print">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <h4 className="text-sm font-extrabold text-emerald-950 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-b border-emerald-200/80 px-5 py-3.5 no-print">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="space-y-0.5">
+              <h4 className="text-xs font-extrabold text-emerald-950 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 Validação e Ativação do Voucher
               </h4>
-              <p className="text-xs text-gray-700 leading-relaxed max-w-xl">
+              <p className="text-[11px] text-gray-700 leading-relaxed max-w-xl">
                 Para validar o seu voucher e receber o contato do seu guia/motorista, envie o comprovante de pagamento no nosso WhatsApp oficial.
               </p>
             </div>
@@ -645,149 +643,152 @@ export default function VoucherPage() {
               href={whatsappProofUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-3.5 h-3.5" />
               Enviar Comprovante no WhatsApp
             </a>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8 space-y-6">
+        <div className="p-4 sm:p-5 space-y-4">
           
           {/* Section 1: Customer Details */}
-          <div className="border border-gray-200 rounded-xl p-4 sm:p-5 bg-gray-50/50">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <User className="w-4 h-4 text-[#2C7A7B]" />
+          <div className="border border-gray-200 rounded-xl p-3.5 bg-gray-50/50">
+            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Dados do Titular da Reserva
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div>
-                <span className="text-xs text-gray-400 block font-medium">Nome Completo</span>
+                <span className="text-[10px] text-gray-400 block font-medium">Nome Completo</span>
                 <span className="font-bold text-gray-900">{booking.client_name}</span>
               </div>
               <div>
-                <span className="text-xs text-gray-400 block font-medium">Telefone / WhatsApp</span>
+                <span className="text-[10px] text-gray-400 block font-medium">Telefone / WhatsApp</span>
                 <span className="font-semibold text-gray-800">{booking.client_phone || '(88) 98846-3182'}</span>
               </div>
               <div>
-                <span className="text-xs text-gray-400 block font-medium">E-mail</span>
+                <span className="text-[10px] text-gray-400 block font-medium">E-mail</span>
                 <span className="font-semibold text-gray-800">{booking.client_email || 'Não informado'}</span>
               </div>
             </div>
           </div>
 
           {/* Section 2: Service Details */}
-          <div className="border border-gray-200 rounded-xl p-4 sm:p-5">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-[#2C7A7B]" />
+          <div className="border border-gray-200 rounded-xl p-3.5">
+            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Resumo do Serviço Contratado
             </h3>
 
-            <div className="bg-[#2C7A7B]/5 p-4 rounded-xl border border-[#2C7A7B]/20 mb-4">
-              <h4 className="font-extrabold text-base sm:text-lg text-gray-900 mb-1">
+            <div className="bg-[#2C7A7B]/5 p-3 rounded-lg border border-[#2C7A7B]/20 mb-3">
+              <h4 className="font-extrabold text-sm sm:text-base text-gray-900 mb-0.5">
                 {mainItem.title || 'Transfer Privativo 4x4 · Preá / Jeri'}
               </h4>
-              <p className="text-xs text-[#2C7A7B] font-bold">
+              <p className="text-[11px] text-[#2C7A7B] font-bold">
                 Modalidade: {mainItem.isRoundTrip ? 'Transfer Ida e Volta (Privativo Exclusivo)' : formatModalityLabel(mainItem)}
               </p>
             </div>
 
             {mainItem.isRoundTrip ? (
-              <div className="space-y-4">
-                {/* 🟢 TRECHO DE IDA */}
-                <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-emerald-800">
-                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse" /> 🟢 TRECHO DE IDA
-                    </span>
-                    <span className="text-xs font-extrabold text-gray-900">
-                      {mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {mainItem.time || '11:00'}h
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-white/80 p-2.5 rounded-lg border border-emerald-100">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
-                      <span className="font-bold text-gray-900">{mainItem.pickup_location || booking.pickup_location || 'Estacionamento PREÁ'}</span>
+              <div className="space-y-3">
+                {/* Trechos Ida e Volta dispostos em Grid de 2 colunas lado a lado no A4 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* 🟢 TRECHO DE IDA */}
+                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5">
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                        <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" /> 🟢 TRECHO DE IDA
+                      </span>
+                      <span className="text-[11px] font-extrabold text-gray-900">
+                        {mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {mainItem.time || '11:00'}h
+                      </span>
                     </div>
-                    <div className="bg-white/80 p-2.5 rounded-lg border border-emerald-100">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
-                      <span className="font-bold text-gray-900">{mainItem.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                    <div className="space-y-1.5 text-xs">
+                      <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
+                        <span className="font-bold text-gray-900">{mainItem.pickup_location || booking.pickup_location || 'Estacionamento PREÁ'}</span>
+                      </div>
+                      <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
+                        <span className="font-bold text-gray-900">{mainItem.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 🔵 TRECHO DE VOLTA */}
+                  <div className="bg-cyan-50/70 border border-cyan-200 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between border-b border-cyan-200 pb-1.5">
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-cyan-800">
+                        <span className="h-2 w-2 rounded-full bg-cyan-600 animate-pulse" /> 🔵 TRECHO DE VOLTA
+                      </span>
+                      <span className="text-[11px] font-extrabold text-gray-900">
+                        {mainItem.date_end ? new Date(mainItem.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : (mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar')} às {mainItem.time_end || mainItem.time || '11:00'}h
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 text-xs">
+                      <div className="bg-white/80 p-2 rounded-lg border border-cyan-100">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
+                        <span className="font-bold text-gray-900">{mainItem.return_pickup_location || mainItem.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                      </div>
+                      <div className="bg-white/80 p-2 rounded-lg border border-cyan-100">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
+                        <span className="font-bold text-gray-900">{mainItem.return_dropoff_location || mainItem.pickup_location || 'Estacionamento PREÁ'}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 🔵 TRECHO DE VOLTA */}
-                <div className="bg-cyan-50/70 border border-cyan-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between border-b border-cyan-200 pb-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-cyan-800">
-                      <span className="h-2.5 w-2.5 rounded-full bg-cyan-600 animate-pulse" /> 🔵 TRECHO DE VOLTA
-                    </span>
-                    <span className="text-xs font-extrabold text-gray-900">
-                      {mainItem.date_end ? new Date(mainItem.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : (mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar com a agência')} às {mainItem.time_end || mainItem.time || '11:00'}h
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-white/80 p-2.5 rounded-lg border border-cyan-100">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
-                      <span className="font-bold text-gray-900">{mainItem.return_pickup_location || mainItem.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
-                    </div>
-                    <div className="bg-white/80 p-2.5 rounded-lg border border-cyan-100">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
-                      <span className="font-bold text-gray-900">{mainItem.return_dropoff_location || mainItem.pickup_location || 'Estacionamento PREÁ'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-                  <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <Users className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <Users className="w-4 h-4 text-[#2C7A7B] shrink-0" />
                     <div>
-                      <span className="text-xs text-gray-400 block font-medium">Passageiros (PAX)</span>
+                      <span className="text-[9px] text-gray-400 block font-medium uppercase">Passageiros (PAX)</span>
                       <span className="font-bold text-gray-900">{mainItem.pax || 2} pessoa(s)</span>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <Car className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                  <div className="flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <Car className="w-4 h-4 text-[#2C7A7B] shrink-0" />
                     <div>
-                      <span className="text-xs text-gray-400 block font-medium">Veículo / Modalidade</span>
+                      <span className="text-[9px] text-gray-400 block font-medium uppercase">Veículo / Modalidade</span>
                       <span className="font-bold text-gray-900">{mainItem.vehicle || 'Privativo Exclusivo (4x4)'}</span>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <Calendar className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  <Calendar className="w-4 h-4 text-[#2C7A7B] shrink-0" />
                   <div>
-                    <span className="text-xs text-gray-400 block font-medium">Data & Horário de Saída</span>
+                    <span className="text-[9px] text-gray-400 block font-medium uppercase">Data & Horário de Saída</span>
                     <span className="font-bold text-gray-900">
                       {mainItem.date ? new Date(mainItem.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {mainItem.time || '11:00'}h
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <MapPin className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                <div className="flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  <MapPin className="w-4 h-4 text-[#2C7A7B] shrink-0" />
                   <div>
-                    <span className="text-xs text-gray-400 block font-medium">Local de Embarque</span>
+                    <span className="text-[9px] text-gray-400 block font-medium uppercase">Local de Embarque</span>
                     <span className="font-bold text-gray-900">{mainItem.pickup_location || booking.pickup_location || 'A combinar com o motorista'}</span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <Users className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                <div className="flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  <Users className="w-4 h-4 text-[#2C7A7B] shrink-0" />
                   <div>
-                    <span className="text-xs text-gray-400 block font-medium">Passageiros (PAX)</span>
+                    <span className="text-[9px] text-gray-400 block font-medium uppercase">Passageiros (PAX)</span>
                     <span className="font-bold text-gray-900">{mainItem.pax || 2} pessoa(s)</span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <Car className="w-5 h-5 text-[#2C7A7B] shrink-0 mt-0.5" />
+                <div className="flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  <Car className="w-4 h-4 text-[#2C7A7B] shrink-0" />
                   <div>
-                    <span className="text-xs text-gray-400 block font-medium">Veículo / Modalidade</span>
+                    <span className="text-[9px] text-gray-400 block font-medium uppercase">Veículo / Modalidade</span>
                     <span className="font-bold text-gray-900">{formatModalityLabel(mainItem)}</span>
                   </div>
                 </div>
@@ -795,73 +796,76 @@ export default function VoucherPage() {
             )}
 
             {booking.notes && (
-              <div className="mt-3 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <div className="mt-2 text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
                 <strong className="text-gray-700">Observações adicionais:</strong> {booking.notes}
               </div>
             )}
           </div>
 
           {/* Section 3: Financial Summary */}
-          <div className="border border-gray-200 rounded-xl p-4 sm:p-5 bg-slate-50/70">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4 text-[#2C7A7B]" />
+          <div className="border border-gray-200 rounded-xl p-3.5 bg-slate-50/70">
+            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <CreditCard className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Resumo Financeiro da Reserva
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-              <div className="bg-white p-3.5 rounded-xl border border-gray-200">
-                <span className="text-xs text-gray-400 font-semibold uppercase block">Valor Total do Serviço</span>
-                <span className="text-lg font-black text-gray-900">{formatPrice(booking.amount_total)}</span>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-white p-2.5 rounded-lg border border-gray-200">
+                <span className="text-[9px] text-gray-400 font-semibold uppercase block">Valor Total</span>
+                <span className="text-base sm:text-lg font-black text-gray-900">{formatPrice(booking.amount_total)}</span>
               </div>
 
-              <div className="bg-white p-3.5 rounded-xl border border-emerald-200">
-                <span className="text-xs text-emerald-600 font-semibold uppercase block">Valor Pago (Garantia)</span>
-                <span className="text-lg font-black text-emerald-600">{formatPrice(booking.amount_paid)}</span>
+              <div className="bg-white p-2.5 rounded-lg border border-emerald-200">
+                <span className="text-[9px] text-emerald-600 font-semibold uppercase block">Valor Pago (Sinal)</span>
+                <span className="text-base sm:text-lg font-black text-emerald-600">{formatPrice(booking.amount_paid)}</span>
               </div>
 
-              <div className="bg-white p-3.5 rounded-xl border border-amber-200">
-                <span className="text-xs text-amber-700 font-semibold uppercase block">Saldo a Pagar no Embarque</span>
-                <span className="text-lg font-black text-amber-800">{formatPrice(booking.remaining_balance)}</span>
+              <div className="bg-white p-2.5 rounded-lg border border-amber-200">
+                <span className="text-[9px] text-amber-700 font-semibold uppercase block">Saldo no Embarque</span>
+                <span className="text-base sm:text-lg font-black text-amber-800">{formatPrice(booking.remaining_balance)}</span>
               </div>
             </div>
 
             {isDeposit && booking.remaining_balance > 0 && (
-              <p className="mt-3 text-xs text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                O saldo restante de <strong>{formatPrice(booking.remaining_balance)}</strong> deve ser quitado no momento do embarque diretamente com o motorista credenciado (PIX ou Dinheiro).
+              <p className="mt-2 text-[11px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                O saldo restante de <strong>{formatPrice(booking.remaining_balance)}</strong> deve ser quitado no momento do embarque diretamente com o motorista (PIX ou Dinheiro).
               </p>
             )}
           </div>
 
           {/* Section 4: Boarding Guidelines & Rules */}
-          <div className="border border-gray-200 rounded-xl p-4 sm:p-5 space-y-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#2C7A7B]" />
+          <div className="border border-gray-200 rounded-xl p-3 space-y-1.5">
+            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Recomendações Importantes de Embarque
             </h3>
 
-            <ul className="text-xs text-gray-600 space-y-2 leading-relaxed list-disc pl-4">
-              <li>
-                <strong>Apresentação do Voucher:</strong> Apresente este voucher (digital na tela do celular ou impresso) ao motorista no início do atendimento.
-              </li>
-              <li>
-                <strong>Pontualidade:</strong> Esteja pronto no ponto de embarque indicado com 10 a 15 minutos de antecedência em relação ao horário agendado.
-              </li>
-              <li>
-                <strong>Taxa de Turismo (Jericoacoara):</strong> A Taxa de Turismo Sustentável de Jericoacoara é um tributo municipal do ecossistema local pago antecipadamente pelo visitante. Tenha a taxa gerada em mãos.
-              </li>
-              <li>
-                <strong>Suporte 24h & Reagendamentos:</strong> Para alterações de horário, atraso de voos ou suporte emergencial, entre em contato imediatamente com nossa central oficial de atendimento via WhatsApp: <strong>(88) 98846-3182</strong>.
-              </li>
-            </ul>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-gray-600 leading-tight">
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#2C7A7B] font-bold">1.</span>
+                <p><strong>Apresentação:</strong> Apresente este voucher (digital ou impresso) ao motorista no embarque.</p>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#2C7A7B] font-bold">2.</span>
+                <p><strong>Pontualidade:</strong> Esteja pronto no ponto indicado com 15 minutos de antecedência.</p>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#2C7A7B] font-bold">3.</span>
+                <p><strong>Taxa de Turismo:</strong> Mantenha a Taxa de Turismo Sustentável de Jericoacoara paga em mãos.</p>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-[#2C7A7B] font-bold">4.</span>
+                <p><strong>Suporte 24h:</strong> Reagendamentos ou suporte via WhatsApp: <strong>(88) 98846-3182</strong>.</p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Footer info */}
-        <div className="bg-gray-900 text-gray-400 p-5 text-center text-xs space-y-1">
+        <div className="bg-gray-900 text-gray-400 py-3 px-4 text-center text-[10px] space-y-0.5">
           <p className="font-bold text-white">Jericoacoara Premium | Agência Licenciada & Transportes Credenciados</p>
           <p>CNPJ & CADASTUR Ativos · Atendimento 24 horas: +55 (88) 98846-3182</p>
-          <p className="text-[10px] text-gray-500 pt-1">https://jericoacoarapremium.com/voucher/{booking.code}</p>
         </div>
       </div>
       
