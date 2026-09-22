@@ -387,11 +387,35 @@ export default function VoucherPage() {
     try {
       const filename = `Voucher_${booking?.code || formattedCode}.pdf`;
       const opt = {
-        margin: [4, 4, 4, 4],
+        margin: [3, 3, 3, 3],
         filename: filename,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          onclone: (doc) => {
+            const style = doc.createElement('style');
+            style.textContent = `
+              .no-print { display: none !important; }
+              .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; border-radius: 8px !important; }
+              .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
+              .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
+              .print-card .space-y-6 > * + * { margin-top: 8px !important; }
+              .print-card .space-y-4 > * + * { margin-top: 6px !important; }
+              .print-card .space-y-3 > * + * { margin-top: 4px !important; }
+              .print-card .space-y-2 > * + * { margin-top: 3px !important; }
+              .print-card .mb-6 { margin-bottom: 6px !important; }
+              .print-card .mb-4 { margin-bottom: 5px !important; }
+              .print-card .mb-3 { margin-bottom: 4px !important; }
+              .print-card .py-4, .print-card .py-5 { padding-top: 6px !important; padding-bottom: 6px !important; }
+              .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
+            `;
+            doc.head.appendChild(style);
+          }
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
       await html2pdf().set(opt).from(cardElement).save();
@@ -495,9 +519,15 @@ export default function VoucherPage() {
     <div className="min-h-screen bg-slate-100 text-gray-900 py-6 sm:py-10 px-3 sm:px-6 print:bg-white print:p-0">
       <style>{`
         @media print {
-          body { background: white !important; color: black !important; }
+          @page { size: A4 portrait; margin: 4mm; }
+          body { background: white !important; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
-          .print-card { box-shadow: none !important; border: 1px solid #ddd !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+          .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; font-size: 11px !important; }
+          .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
+          .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
+          .print-card .space-y-6 > * + * { margin-top: 8px !important; }
+          .print-card .space-y-4 > * + * { margin-top: 6px !important; }
+          .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
         }
       `}</style>
 
