@@ -394,11 +394,27 @@ export default function VoucherPage() {
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
-          onclone: (doc) => {
-            const style = doc.createElement('style');
+          windowWidth: 800,
+          onclone: (clonedDoc) => {
+            const card = clonedDoc.querySelector('.print-card');
+            if (card) {
+              card.style.width = '760px';
+              card.style.maxWidth = '760px';
+              card.style.minWidth = '760px';
+              card.style.margin = '0 auto';
+              card.style.boxSizing = 'border-box';
+              card.style.borderRadius = '8px';
+              card.style.boxShadow = 'none';
+            }
+
+            const style = clonedDoc.createElement('style');
             style.textContent = `
               .no-print { display: none !important; }
-              .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; border-radius: 8px !important; }
+              .print-card { width: 760px !important; max-width: 760px !important; min-width: 760px !important; font-size: 11px !important; color: #1e293b !important; }
+              .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 12px 18px !important; }
+              .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
+              .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+              .print-card .flex-col.sm\\:flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
               .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
               .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
               .print-card .space-y-6 > * + * { margin-top: 8px !important; }
@@ -409,13 +425,22 @@ export default function VoucherPage() {
               .print-card .mb-4 { margin-bottom: 5px !important; }
               .print-card .mb-3 { margin-bottom: 4px !important; }
               .print-card .py-4, .print-card .py-5 { padding-top: 6px !important; padding-bottom: 6px !important; }
+              .print-card h4 { font-size: 14px !important; margin: 0 !important; }
+              .print-card h3 { font-size: 11px !important; margin-bottom: 4px !important; }
+              .print-card .text-2xl { font-size: 18px !important; }
+              .print-card .text-xl { font-size: 15px !important; }
+              .print-card .text-lg { font-size: 13px !important; }
+              .print-card .text-base { font-size: 12px !important; }
+              .print-card .text-sm { font-size: 11px !important; }
+              .print-card .text-xs { font-size: 10px !important; }
+              .print-card .text-\\[10px\\] { font-size: 9px !important; }
               .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
             `;
-            doc.head.appendChild(style);
+            clonedDoc.head.appendChild(style);
           }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        pagebreak: { mode: 'avoid-all' }
       };
 
       await html2pdf().set(opt).from(cardElement).save();
@@ -523,6 +548,10 @@ export default function VoucherPage() {
           body { background: white !important; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
           .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; font-size: 11px !important; }
+          .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 12px 16px !important; }
+          .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
+          .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+          .print-card .flex-col.sm\\:flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
           .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
           .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
           .print-card .space-y-6 > * + * { margin-top: 8px !important; }
