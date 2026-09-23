@@ -387,14 +387,37 @@ export default function VoucherPage() {
             const resStatus = data.booking.reservation_status || data.booking.status;
             
             if (status === 'pago_integral' || status === 'sinal_pago' || resStatus === 'confirmada' || resStatus === 'concluida') {
-              // Pagamento confirmado!
-              setBooking((prev) => ({
-                ...prev,
-                status: resStatus || 'confirmada',
-                payment_status: status || 'sinal_pago',
-                amount_paid: status === 'sinal_pago' ? prev.amount_total / 2 : prev.amount_total,
-                remaining_balance: status === 'sinal_pago' ? prev.amount_total / 2 : 0,
-              }));
+              const apiPaid = typeof data.booking.amount_paid === 'number' ? data.booking.amount_paid : null;
+              const apiRemaining = typeof data.booking.remaining_balance === 'number' ? data.booking.remaining_balance : null;
+              const statusLower = (status || '').toLowerCase();
+              const isSinal = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
+              const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
+
+              setBooking((prev) => {
+                const total = prev ? prev.amount_total : (data.booking.price_final || data.booking.amount_total || 0);
+                let paid = prev ? prev.amount_paid : 0;
+
+                if (apiPaid !== null && apiPaid > 0) {
+                  paid = apiPaid;
+                } else if (isSinal) {
+                  paid = total * 0.5;
+                } else if (isQuitado) {
+                  paid = total;
+                } else if (prev && typeof prev.amount_paid === 'number' && prev.amount_paid > 0) {
+                  paid = prev.amount_paid;
+                }
+
+                paid = Math.min(total, Math.max(0, paid));
+                const remaining = apiRemaining !== null ? apiRemaining : Math.max(0, total - paid);
+
+                return {
+                  ...prev,
+                  status: resStatus || prev?.status || 'confirmada',
+                  payment_status: status || prev?.payment_status || 'sinal_pago',
+                  amount_paid: paid,
+                  remaining_balance: remaining,
+                };
+              });
               setIsPixModalOpen(false);
               clearInterval(interval);
             }
