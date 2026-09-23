@@ -1,36 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, MessageCircle } from 'lucide-react';
-import { buildWhatsAppLink } from '@/utils/whatsapp';
 
-const STORAGE_KEY = 'promo_mes_do_cliente_dismissed_v1';
-const START_DATE = new Date('2026-09-18T00:00:00');
-const END_DATE = new Date('2026-09-21T00:00:00'); // Expira em 21/09/2026 00:00
+const STORAGE_KEY = 'has_seen_reveillon_promo_2027';
+const DELAY_MS = 2500; // 2.5s de delay para otimização dos Core Web Vitals (FCP/LCP/CLS)
+
+const WHATSAPP_CONVERSION_URL =
+  'https://wa.me/5588988463182?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20de%20R%C3%A9veillon%202027%20no%20site%20e%20quero%20garantir%20uma%20cota%C3%A7%C3%A3o%20com%2010%25%20OFF%20no%20Pix.%20Somos%20em%20[__]%20pessoas.';
 
 export default function PromoModal() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const checkCampaignActive = useCallback(() => {
-    // Permite override via URL query param (?promo=true) para testes em desenvolvimento
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('promo') === 'true') return true;
-    }
-
-    const now = new Date();
-    return now >= START_DATE && now < END_DATE;
-  }, []);
-
   const handleClose = useCallback(() => {
     setIsOpen(false);
     try {
-      sessionStorage.setItem(STORAGE_KEY, 'true');
       localStorage.setItem(STORAGE_KEY, 'true');
+      sessionStorage.setItem(STORAGE_KEY, 'true');
     } catch (e) {
-      console.warn('Não foi possível salvar o estado do modal promocional no storage.', e);
+      console.warn('Não foi possível salvar o estado do modal no localStorage.', e);
     }
   }, []);
 
-  // Listener para fechar com tecla Esc
+  // Listener para fechar com a tecla Esc
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -45,94 +35,60 @@ export default function PromoModal() {
     };
   }, [isOpen, handleClose]);
 
-  // Gerenciador de exibição (Timer 3s ou Scroll 20%)
+  // Exibição com delay de 2,5s após o carregamento da página
   useEffect(() => {
-    // 1. Verifica data da campanha
-    if (!checkCampaignActive()) return;
-
-    // 2. Controle de frequência: verifica se já foi fechado nesta sessão
-    try {
-      const isDismissedSession = sessionStorage.getItem(STORAGE_KEY);
-      const isDismissedLocal = localStorage.getItem(STORAGE_KEY);
-      if (isDismissedSession === 'true' || isDismissedLocal === 'true') {
-        return;
+    // Permite override via URL query param (?promo=true) para testes em desenvolvimento
+    let forceShow = false;
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('promo') === 'true') {
+        forceShow = true;
       }
-    } catch (e) {
-      // Ignora falhas no acesso ao storage
     }
 
-    let timerId = null;
-    let hasTriggered = false;
-
-    const triggerOpen = () => {
-      if (!hasTriggered) {
-        hasTriggered = true;
-        setIsOpen(true);
-        cleanup();
+    if (!forceShow) {
+      try {
+        const isDismissedLocal = localStorage.getItem(STORAGE_KEY);
+        const isDismissedSession = sessionStorage.getItem(STORAGE_KEY);
+        if (isDismissedLocal === 'true' || isDismissedSession === 'true') {
+          return;
+        }
+      } catch (e) {
+        // Ignora falhas no acesso ao storage
       }
-    };
+    }
 
-    // Gatilho 1: Permanência de 3 segundos
-    timerId = setTimeout(() => {
-      triggerOpen();
-    }, 3000);
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, DELAY_MS);
 
-    // Gatilho 2: Rolar 20% da página
-    const handleScroll = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (scrollHeight > 0 && (scrollTop / scrollHeight) >= 0.20) {
-        triggerOpen();
-      }
-    };
+    return () => clearTimeout(timer);
+  }, []);
 
-    const cleanup = () => {
-      if (timerId) clearTimeout(timerId);
-      window.removeEventListener('scroll', handleScroll);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      cleanup();
-    };
-  }, [checkCampaignActive]);
-
-  const handleCtaClick = (e) => {
-    e.preventDefault();
-
-    // Rastreamento de conversão (Google Tag / GTM)
+  const handleCtaClick = () => {
+    // Rastreamento de conversão (Google Tag / GTM / Meta Pixel)
     if (typeof window.gtag === 'function') {
       window.gtag('event', 'generate_lead', {
         event_category: 'Promocao',
-        event_label: 'Mes do Cliente 10 OFF',
+        event_label: 'Reveillon 2027 10 OFF',
       });
     }
 
     if (window.dataLayer && Array.isArray(window.dataLayer)) {
       window.dataLayer.push({
         event: 'lead_whatsapp_promo',
-        origem: 'modal_mes_do_cliente',
+        origem: 'modal_reveillon_2027',
       });
     }
 
-    // Rastreamento de conversão (Meta Pixel)
     if (typeof window.fbq === 'function') {
       window.fbq('track', 'Lead', {
-        content_name: 'Mes do Cliente 10 OFF',
+        content_name: 'Reveillon 2027 10 OFF',
         content_category: 'Promocao',
       });
     }
 
-    // Mensagem pré-definida codificada
-    const message = 'Olá! Vi a promoção de 10% OFF do Mês do Cliente no site e quero garantir minha reserva para 2026.';
-    const whatsappUrl = buildWhatsAppLink(message);
-
-    // Salva o fechamento no storage ao converter
     handleClose();
-
-    // Redireciona em nova aba
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
   if (!isOpen) return null;
@@ -143,46 +99,56 @@ export default function PromoModal() {
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Promoção Mês do Cliente - 10% OFF no PIX"
+      aria-label="Promoção Pacote Réveillon 2027 em Jericoacoara"
     >
       <div
         className="relative max-w-[360px] sm:max-w-[420px] w-full bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-amber-500/30 flex flex-col max-h-[90vh] sm:max-h-[85vh] my-auto animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Botão de Fechar ("X") com área de toque mínima de 44x44px */}
+        {/* Botão de Fechar ("X") com área de toque mínima de 44x44px e alto contraste */}
         <button
           type="button"
           onClick={handleClose}
-          aria-label="Fechar modal de promoção"
-          className="absolute top-3 right-3 z-20 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-black/60 hover:bg-black/85 text-white shadow-lg backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+          aria-label="Fechar modal de promoção Réveillon 2027"
+          className="absolute top-3 right-3 z-20 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-black/70 hover:bg-black/90 text-white shadow-xl backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer border border-white/20"
         >
           <X className="w-6 h-6 stroke-[2.5]" />
         </button>
 
-        {/* Arte Promocional Vertical (Format 9:16) */}
-        <div className="relative w-full overflow-hidden flex-1 flex items-center justify-center bg-slate-950 min-h-0 select-none">
+        {/* Flyer promocional clicável com redirecionamento para WhatsApp */}
+        <a
+          href={WHATSAPP_CONVERSION_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleCtaClick}
+          aria-label="Garantir vaga no 1º Lote do Réveillon 2027 em Jericoacoara via WhatsApp"
+          className="relative w-full overflow-hidden flex-1 flex items-center justify-center bg-slate-950 min-h-0 select-none group cursor-pointer"
+        >
           <img
-            src="/images/promo-mes-do-cliente.jpg"
-            alt="Promoção Especial Mês do Cliente - 10% OFF no PIX para Transfers Executivos e Passeios Privativos em Jericoacoara"
-            className="w-full h-full object-contain max-h-[calc(85vh-76px)] sm:max-h-[calc(85vh-84px)]"
+            src="/images/promo-reveillon-2027.webp"
+            alt="Pacote Réveillon 2027 em Jericoacoara - 10% OFF no PIX - Jericoacoara Premium"
+            className="w-full h-full object-contain max-h-[calc(85vh-76px)] sm:max-h-[calc(85vh-84px)] transition-transform duration-300 group-hover:scale-[1.01]"
             loading="eager"
           />
-        </div>
+        </a>
 
-        {/* Botão de Ação Principal (CTA para WhatsApp) */}
+        {/* Botão CTA em destaque abaixo da imagem */}
         <div className="p-3.5 sm:p-4 bg-slate-900 border-t border-slate-800 shrink-0">
-          <button
-            type="button"
+          <a
+            href={WHATSAPP_CONVERSION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={handleCtaClick}
-            className="w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 hover:from-emerald-400 hover:to-emerald-500 text-white font-extrabold text-xs sm:text-sm py-3.5 px-4 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-98 tracking-wide cursor-pointer"
+            className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm py-3.5 px-4 rounded-xl shadow-lg hover:shadow-amber-500/25 transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-98 tracking-wide cursor-pointer uppercase"
           >
             <MessageCircle className="w-5 h-5 fill-current shrink-0" />
-            <span className="uppercase tracking-wider drop-shadow-sm">
-              APROVEITAR 10% OFF NO WHATSAPP
+            <span className="tracking-wider drop-shadow-sm text-center">
+              Garantir Vaga no 1º Lote via WhatsApp
             </span>
-          </button>
+          </a>
         </div>
       </div>
     </div>
   );
 }
+
