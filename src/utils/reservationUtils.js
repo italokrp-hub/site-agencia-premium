@@ -158,7 +158,7 @@ export function formatModalityLabel(item = {}) {
     return 'Jardineira 4x4 (Compartilhado)';
   }
 
-  if (vehicle.includes('buggy')) return `Buggy 4x4 (${isShared ? 'Compartilhado' : 'Privativo Exclusivo'})`;
+  if (vehicle.includes('buggy')) return `Buggy (${isShared ? 'Compartilhado' : 'Privativo Exclusivo'})`;
   if (vehicle.includes('quadri')) return `Quadriciclo (${isShared ? 'Compartilhado' : 'Privativo'})`;
   if (vehicle.includes('sw4') || vehicle.includes('hilux')) return `SW4 / Hilux 4x4 (${isShared ? 'Compartilhado' : 'Privativo Exclusivo'})`;
   if (vehicle.includes('onibus') || vehicle.includes('van')) return `Van / Ônibus (${isShared ? 'Compartilhado' : 'Privativo'})`;

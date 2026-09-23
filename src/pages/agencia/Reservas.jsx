@@ -93,7 +93,7 @@ export default function Reservas() {
   // Helper de ícone de veículo
   const getVehicleLabel = (vehicle) => {
     const v = (vehicle || '').toLowerCase();
-    if (v.includes('buggy')) return 'Buggy (4x4 Exclusivo)';
+    if (v.includes('buggy')) return 'Buggy (Privativo Exclusivo)';
     if (v.includes('quadri')) return 'Quadriciclo';
     if (v.includes('sw4') || v.includes('hilux')) return 'SW4 / Hilux 4x4';
     if (v.includes('jardineira')) return 'Jardineira (Pau de Arara)';
