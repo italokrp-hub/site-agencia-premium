@@ -174,8 +174,23 @@ export default function VoucherPage() {
             const cust = b.agency_customers || {};
             const items = Array.isArray(b.agency_reservation_items) ? b.agency_reservation_items : [];
             const priceFinal = Number(b.price_final || b.amount_total || 0);
-            const isDeposit = b.payment_status === 'sinal_pago';
-            const amountPaid = Number(b.amount_paid ?? (isDeposit ? priceFinal / 2 : (b.payment_status === 'pago_integral' ? priceFinal : 0)));
+
+            const paidSum = Array.isArray(b.agency_payments)
+              ? b.agency_payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+              : 0;
+
+            const statusLower = (b.payment_status || '').toLowerCase();
+            const isSinal = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
+            const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
+
+            let amountPaid = typeof b.amount_paid === 'number' ? b.amount_paid : (paidSum > 0 ? paidSum : 0);
+            if (amountPaid === 0) {
+              if (isSinal) amountPaid = priceFinal * 0.5;
+              else if (isQuitado) amountPaid = priceFinal;
+            }
+
+            amountPaid = Math.min(priceFinal, Math.max(0, amountPaid));
+            const remainingBalance = Math.max(0, priceFinal - amountPaid);
 
             if (isMounted) {
               const parseItem = (it) => {
@@ -216,7 +231,7 @@ export default function VoucherPage() {
                 payment_method: b.payment_method || 'pix',
                 amount_total: priceFinal,
                 amount_paid: amountPaid,
-                remaining_balance: Math.max(0, priceFinal - amountPaid),
+                remaining_balance: remainingBalance,
                 pickup_location: b.pickup_location || 'A combinar',
                 notes: b.notes || '',
                 items: items.length > 0 ? items.map(parseItem) : [parseItem({})],
@@ -249,17 +264,34 @@ export default function VoucherPage() {
             payment_status,
             reservation_status,
             agency_customers (name, whatsapp, email),
-            agency_reservation_items (title, service_name, vehicle_type, category, trecho, date_start, time_start, date_end, time_end, pax_adults, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location)
+            agency_reservation_items (title, service_name, vehicle_type, category, trecho, date_start, time_start, date_end, time_end, pax_adults, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location),
+            agency_payments (amount)
           `)
-          .or(`reservation_code.eq.${formattedCode},code.eq.${formattedCode}`)
+          .or(`reservation_code.ilike.${formattedCode},code.ilike.${formattedCode}`)
+          .limit(1)
           .maybeSingle();
 
         if (data && isMounted) {
           const cust = data.agency_customers || {};
           const items = data.agency_reservation_items || [];
           const priceFinal = Number(data.price_final || 0);
-          const isDeposit = data.payment_status === 'sinal_pago';
-          const amountPaid = isDeposit ? priceFinal / 2 : (data.payment_status === 'pago_integral' ? priceFinal : 0);
+
+          const paidSum = Array.isArray(data.agency_payments)
+            ? data.agency_payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+            : 0;
+
+          const statusLower = (data.payment_status || '').toLowerCase();
+          const isSinal = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
+          const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
+
+          let amountPaid = paidSum;
+          if (paidSum === 0) {
+            if (isSinal) amountPaid = priceFinal * 0.5;
+            else if (isQuitado) amountPaid = priceFinal;
+          }
+
+          amountPaid = Math.min(priceFinal, Math.max(0, amountPaid));
+          const remainingBalance = Math.max(0, priceFinal - amountPaid);
 
           const parseItem = (it) => {
             const isTransfer = (it.category || data.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
@@ -299,7 +331,7 @@ export default function VoucherPage() {
             payment_method: data.payment_method || 'pix',
             amount_total: priceFinal,
             amount_paid: amountPaid,
-            remaining_balance: Math.max(0, priceFinal - amountPaid),
+            remaining_balance: remainingBalance,
             pickup_location: data.pickup_location || 'A combinar',
             items: items.length > 0 ? items.map(parseItem) : [parseItem({})],
           });
@@ -826,8 +858,8 @@ export default function VoucherPage() {
               </div>
             </div>
 
-            {isDeposit && booking.remaining_balance > 0 && (
-              <p className="mt-2 text-[11px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
+            {Number(booking.remaining_balance) > 0 && (
+              <p className="mt-2 text-[11px] text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 O saldo restante de <strong>{formatPrice(booking.remaining_balance)}</strong> deve ser quitado no momento do embarque diretamente com o motorista (PIX ou Dinheiro).
               </p>

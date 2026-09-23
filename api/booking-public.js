@@ -59,11 +59,15 @@ export default async function handler(req, res) {
       const { code } = req.query;
       if (!code) return res.status(400).json({ error: 'Reservation code is required' });
 
-      // 1. Busca tolerante da reserva principal
+      // 1. Busca tolerante da reserva principal com pagamentos vinculados
       const { data: booking, error: bErr } = await supabase
         .from('agency_reservations')
-        .select('*')
-        .eq('reservation_code', code)
+        .select(`
+          *,
+          agency_payments ( amount )
+        `)
+        .ilike('reservation_code', code.trim())
+        .limit(1)
         .maybeSingle();
 
       if (bErr) {
@@ -100,10 +104,36 @@ export default async function handler(req, res) {
         if (itemsData && itemsData.length > 0) items = itemsData;
       }
 
+      // Cálculo financeiro estrito
+      const paidSum = Array.isArray(booking.agency_payments)
+        ? booking.agency_payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+        : 0;
+
+      const priceFinal = Number(booking.price_final || booking.price_gross || 0);
+      const statusLower = (booking.payment_status || '').toLowerCase();
+      const isSinalStatus = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
+      const isQuitadoStatus = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
+
+      let amountPaid = paidSum;
+      if (paidSum === 0) {
+        if (isSinalStatus) {
+          amountPaid = priceFinal * 0.5;
+        } else if (isQuitadoStatus) {
+          amountPaid = priceFinal;
+        } else {
+          amountPaid = 0;
+        }
+      }
+
+      amountPaid = Math.min(priceFinal, Math.max(0, amountPaid));
+      const remainingBalance = Math.max(0, priceFinal - amountPaid);
+
       return res.status(200).json({
         success: true,
         booking: {
           ...booking,
+          amount_paid: amountPaid,
+          remaining_balance: remainingBalance,
           agency_customers: customer,
           agency_reservation_items: items,
         },
