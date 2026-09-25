@@ -47,18 +47,7 @@ const ObrigadoPage = () => {
   const targetWhatsAppUrl = buildWhatsAppLink(customMessage);
 
   useEffect(() => {
-    let redirected = false;
-    let tagFired = false;
-    let timerFinished = false;
-
-    const executeRedirect = () => {
-      if (!redirected && tagFired && timerFinished) {
-        redirected = true;
-        window.location.href = targetWhatsAppUrl;
-      }
-    };
-
-    // 1. Disparar evento de conversão do Google Ads de forma segura
+    // 1. Disparar manualmente o evento de page_view e conversão para a gtag global (Google Ads / Analytics)
     if (typeof window !== 'undefined') {
       window.dataLayer = window.dataLayer || [];
       if (typeof window.gtag !== 'function') {
@@ -66,40 +55,27 @@ const ObrigadoPage = () => {
           window.dataLayer.push(arguments);
         };
       }
-      try {
-        window.gtag('event', 'conversion', {
-          send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9',
-          event_callback: () => {
-            console.log('[Google Ads] Tag de conversão disparada (callback recebido)');
-            tagFired = true;
-            executeRedirect();
-          }
-        });
-      } catch (err) {
-        console.error('[Google Ads] Erro ao disparar tag de conversão:', err);
-        tagFired = true; // Continua o fluxo mesmo com erro
-      }
-    } else {
-      tagFired = true;
+
+      // Page view manual para rastreamento da SPA na rota /obrigado
+      window.gtag('event', 'page_view', {
+        page_path: '/obrigado',
+        page_location: window.location.href,
+        page_title: document.title || 'Redirecionando para o Atendimento | Jericoacoara Premium'
+      });
+
+      // Evento de conversão específico do Google Ads
+      window.gtag('event', 'conversion', {
+        send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9'
+      });
     }
 
-    // 2. Timer visual para garantir que a mensagem apareça por pelo menos 2s
-    const displayTimer = setTimeout(() => {
-      timerFinished = true;
-      executeRedirect();
-    }, 2000);
-
-    // 3. Fallback de segurança absoluto (2.5s): se o callback do GA falhar, força o redirect
-    const safetyTimer = setTimeout(() => {
-      if (!redirected) {
-        redirected = true;
-        window.location.href = targetWhatsAppUrl;
-      }
-    }, 2500);
+    // 2. Atraso seguro (1200ms, entre 1000ms e 1500ms) garantindo conclusão das requisições antes do redirect
+    const redirectTimer = setTimeout(() => {
+      window.location.href = targetWhatsAppUrl;
+    }, 1200);
 
     return () => {
-      clearTimeout(displayTimer);
-      clearTimeout(safetyTimer);
+      clearTimeout(redirectTimer);
     };
   }, [targetWhatsAppUrl]);
 
@@ -144,10 +120,15 @@ const ObrigadoPage = () => {
             </p>
           </div>
 
-          {/* Indicator text */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-[#D4AF37] font-medium">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>{t('obrigado.statusText', { defaultValue: 'Iniciando conversa segura no WhatsApp...' })}</span>
+          {/* Progress Bar & Status Indicator */}
+          <div className="w-full space-y-3">
+            <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-gradient-to-r from-[#D4AF37] to-[#25D366] h-full animate-pulse w-full" />
+            </div>
+            <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-[#D4AF37] font-medium">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>{t('obrigado.statusText', { defaultValue: 'Iniciando conversa segura no WhatsApp...' })}</span>
+            </div>
           </div>
 
           {/* Fallback Button */}
