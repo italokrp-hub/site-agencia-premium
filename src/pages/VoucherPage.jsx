@@ -596,20 +596,20 @@ export default function VoucherPage() {
     try {
       const filename = `Voucher_${booking?.code || formattedCode}.pdf`;
       const opt = {
-        margin: [3, 3, 3, 3],
+        margin: [2, 2, 2, 2],
         filename: filename,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
-          windowWidth: 794,
+          windowWidth: 800,
           onclone: (clonedDoc) => {
             const card = clonedDoc.querySelector('.print-card');
             if (card) {
-              card.style.width = '750px';
-              card.style.maxWidth = '750px';
-              card.style.minWidth = '750px';
+              card.style.width = '780px';
+              card.style.maxWidth = '780px';
+              card.style.minWidth = '780px';
               card.style.margin = '0 auto';
               card.style.boxSizing = 'border-box';
               card.style.borderRadius = '0px';
@@ -619,28 +619,27 @@ export default function VoucherPage() {
             const style = clonedDoc.createElement('style');
             style.textContent = `
               .no-print { display: none !important; }
-              .print-card { width: 750px !important; max-width: 750px !important; min-width: 750px !important; font-size: 10.5px !important; color: #1e293b !important; }
-              .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 10px 16px !important; }
-              .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
-              .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+              .print-card { width: 780px !important; max-width: 780px !important; min-width: 780px !important; font-size: 11.5px !important; color: #1e293b !important; }
+              .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 12px 18px !important; }
+              .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important; }
+              .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
               .print-card .flex-col.sm\\:flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
-              .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
-              .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
-              .print-card .space-y-6 > * + * { margin-top: 6px !important; }
-              .print-card .space-y-4 > * + * { margin-top: 5px !important; }
-              .print-card .space-y-3 > * + * { margin-top: 4px !important; }
-              .print-card .space-y-2 > * + * { margin-top: 3px !important; }
-              .print-card .mb-6, .print-card .mb-4, .print-card .mb-3 { margin-bottom: 4px !important; }
-              .print-card .py-4, .print-card .py-5 { padding-top: 5px !important; padding-bottom: 5px !important; }
-              .print-card h4 { font-size: 13px !important; margin: 0 !important; }
-              .print-card h3 { font-size: 10.5px !important; margin-bottom: 4px !important; }
-              .print-card .text-2xl { font-size: 17px !important; }
-              .print-card .text-xl { font-size: 14px !important; }
-              .print-card .text-lg { font-size: 12.5px !important; }
-              .print-card .text-base { font-size: 11.5px !important; }
-              .print-card .text-sm { font-size: 10.5px !important; }
-              .print-card .text-xs { font-size: 9.5px !important; }
-              .print-card .text-\\[10px\\] { font-size: 8.5px !important; }
+              .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 12px 16px !important; }
+              .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 10px 14px !important; }
+              .print-card .space-y-6 > * + * { margin-top: 8px !important; }
+              .print-card .space-y-4 > * + * { margin-top: 6px !important; }
+              .print-card .space-y-3 > * + * { margin-top: 5px !important; }
+              .print-card .space-y-2.5 > * + * { margin-top: 4px !important; }
+              .print-card .space-y-2 > * + * { margin-top: 4px !important; }
+              .print-card h4 { font-size: 16px !important; margin: 0 !important; font-weight: 800 !important; }
+              .print-card h3 { font-size: 11.5px !important; margin-bottom: 5px !important; }
+              .print-card .text-2xl { font-size: 20px !important; }
+              .print-card .text-xl { font-size: 17px !important; }
+              .print-card .text-lg { font-size: 15px !important; }
+              .print-card .text-base { font-size: 13.5px !important; }
+              .print-card .text-sm { font-size: 12px !important; }
+              .print-card .text-xs { font-size: 11px !important; }
+              .print-card .text-\\[10px\\] { font-size: 9.5px !important; }
               .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
             `;
             clonedDoc.head.appendChild(style);
@@ -748,30 +747,28 @@ export default function VoucherPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-gray-900 py-6 sm:py-10 px-3 sm:px-6 print:bg-white print:p-0">
+    <div className="min-h-screen bg-slate-100 text-gray-900 py-2 sm:py-6 px-1.5 sm:px-4 print:bg-white print:p-0">
       <style>{`
         @media print {
-          @page { size: A4 portrait; margin: 4mm; }
+          @page { size: A4 portrait; margin: 3mm; }
           body { background: white !important; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
-          .print-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; font-size: 10.5px !important; }
-          .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 10px 14px !important; }
+          .print-card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; font-size: 11.5px !important; }
+          .print-card .bg-gradient-to-r { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 12px 16px !important; }
           .print-card .sm\\:grid-cols-3, .print-card .grid-cols-1.sm\\:grid-cols-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
           .print-card .sm\\:grid-cols-2, .print-card .grid-cols-1.sm\\:grid-cols-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
           .print-card .flex-col.sm\\:flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
           .print-card .p-6, .print-card .p-8, .print-card .sm\\:p-8, .print-card .sm\\:p-6 { padding: 10px 14px !important; }
-          .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 10px !important; }
-          .print-card .space-y-6 > * + * { margin-top: 6px !important; }
-          .print-card .space-y-4 > * + * { margin-top: 5px !important; }
+          .print-card .p-4, .print-card .p-5, .print-card .sm\\:p-5 { padding: 8px 12px !important; }
           .print-card section, .print-card div { page-break-inside: avoid !important; break-inside: avoid !important; }
         }
       `}</style>
 
       {/* Top Controls Bar (No Print) */}
-      <div className="max-w-3xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-3 no-print">
+      <div className="max-w-3xl mx-auto mb-3 sm:mb-6 flex flex-wrap items-center justify-between gap-2.5 no-print">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-[#2C7A7B] transition-colors"
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-700 hover:text-[#2C7A7B] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar ao Site
@@ -781,7 +778,7 @@ export default function VoucherPage() {
           <button
             onClick={handleDownloadPdf}
             disabled={downloadingPdf}
-            className="inline-flex items-center gap-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60"
+            className="inline-flex items-center gap-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60"
           >
             {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             {downloadingPdf ? 'Baixando PDF...' : 'Baixar Voucher (PDF)'}
@@ -789,7 +786,7 @@ export default function VoucherPage() {
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             Imprimir
@@ -799,7 +796,7 @@ export default function VoucherPage() {
             href={whatsappSupportUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
           >
             <MessageCircle className="w-4 h-4" />
             Suporte WhatsApp
@@ -808,37 +805,37 @@ export default function VoucherPage() {
       </div>
 
       {/* Main Voucher Printable Container */}
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden print-card">
+      <div className="w-full max-w-3xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 overflow-hidden print-card break-words">
         
         {/* Header Branding */}
-        <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-[#1e4e4f] text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-800">
+        <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-[#1e4e4f] text-white p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-gray-800">
           <div>
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[#D4AF37] font-extrabold tracking-wider text-xl">JERICOACOARA</span>
+              <span className="text-[#D4AF37] font-extrabold tracking-wider text-lg sm:text-2xl">JERICOACOARA</span>
               <span className="bg-[#D4AF37] text-gray-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">PREMIUM</span>
             </div>
-            <p className="text-[11px] text-gray-300 font-medium tracking-wide">VOUCHER OFICIAL DE RESERVA E EMBARQUE</p>
+            <p className="text-[10px] sm:text-xs text-gray-300 font-medium tracking-wide">VOUCHER OFICIAL DE RESERVA E EMBARQUE</p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/20 sm:text-right">
-            <p className="text-[9px] uppercase text-gray-300 font-bold tracking-widest">CÓDIGO LOCALIZADOR</p>
-            <p className="font-mono text-xl sm:text-2xl font-black text-[#D4AF37] tracking-wider">{booking.code}</p>
+          <div className="bg-white/10 backdrop-blur-sm px-3.5 py-1.5 sm:py-2 rounded-xl border border-white/20 sm:text-right">
+            <p className="text-[9px] sm:text-[10px] uppercase text-gray-300 font-bold tracking-widest">CÓDIGO LOCALIZADOR</p>
+            <p className="font-mono text-lg sm:text-2xl font-black text-[#D4AF37] tracking-wider">{booking.code}</p>
           </div>
         </div>
 
         {/* Status Bar */}
-        <div className="bg-slate-50 px-5 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="bg-slate-50 px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
             {statusBadge}
           </div>
-          <p className="text-[11px] text-gray-500 font-medium">
+          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">
             Emissão: {new Date(booking.created_at || Date.now()).toLocaleDateString('pt-BR')} às {new Date(booking.created_at || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
 
         {/* Caixa de Instrução Operacional: Validação e Ativação do Voucher */}
-        <div className="bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-b border-emerald-200/80 px-5 py-3.5 no-print">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-b border-emerald-200/80 px-3.5 sm:px-5 py-2.5 sm:py-3.5 no-print">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
             <div className="space-y-0.5">
               <h4 className="text-xs font-extrabold text-emerald-950 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -852,7 +849,7 @@ export default function VoucherPage() {
               href={whatsappProofUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               Enviar Comprovante no WhatsApp
@@ -860,26 +857,26 @@ export default function VoucherPage() {
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 space-y-4">
+        <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
           
           {/* Section 1: Customer Details */}
-          <div className="border border-gray-200 rounded-xl p-3.5 bg-gray-50/50">
-            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="border border-gray-200 rounded-xl p-3 sm:p-3.5 bg-gray-50/50">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Dados do Titular da Reserva
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
               <div>
-                <span className="text-[10px] text-gray-400 block font-medium">Nome Completo</span>
-                <span className="font-bold text-gray-900">{booking.client_name}</span>
+                <span className="text-[10px] sm:text-xs text-gray-400 block font-semibold uppercase">Nome Completo</span>
+                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{booking.client_name}</span>
               </div>
               <div>
-                <span className="text-[10px] text-gray-400 block font-medium">Telefone / WhatsApp</span>
-                <span className="font-semibold text-gray-800">{booking.client_phone || '(88) 98846-3182'}</span>
+                <span className="text-[10px] sm:text-xs text-gray-400 block font-semibold uppercase">Telefone / WhatsApp</span>
+                <span className="font-bold text-xs sm:text-sm text-gray-800">{booking.client_phone || '(88) 98846-3182'}</span>
               </div>
               <div>
-                <span className="text-[10px] text-gray-400 block font-medium">E-mail</span>
-                <span className="font-semibold text-gray-800">
+                <span className="text-[10px] sm:text-xs text-gray-400 block font-semibold uppercase">E-mail</span>
+                <span className="font-bold text-xs sm:text-sm text-gray-800">
                   {booking.client_email && booking.client_email.trim() !== '' && !booking.client_email.toLowerCase().includes('example.com')
                     ? booking.client_email
                     : 'Não informado'}
@@ -889,14 +886,14 @@ export default function VoucherPage() {
           </div>
 
           {/* Section 2: Service Details */}
-          <div className="border border-gray-200 rounded-xl p-3.5 space-y-3">
-            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
+          <div className="border border-gray-200 rounded-xl p-3 sm:p-3.5 space-y-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-[#2C7A7B]" />
                 Resumo do(s) Serviço(s) Contratado(s)
               </span>
               {booking.items?.length > 1 && (
-                <span className="bg-[#2C7A7B]/10 text-[#2C7A7B] text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                <span className="bg-[#2C7A7B]/10 text-[#2C7A7B] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
                   Pacote com {booking.items.length} Serviços
                 </span>
               )}
@@ -921,19 +918,19 @@ export default function VoucherPage() {
                 return (
                   <div key={idx} className="bg-white rounded-xl border border-gray-200 p-3 space-y-2.5">
                     {/* Header do Serviço */}
-                    <div className="bg-[#2C7A7B]/5 p-2.5 rounded-lg border border-[#2C7A7B]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div className="bg-[#2C7A7B]/5 p-2.5 sm:p-3 rounded-lg border border-[#2C7A7B]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                       <div>
                         {booking.items.length > 1 && (
-                          <span className="text-[10px] font-black uppercase text-[#2C7A7B] tracking-wider block">
+                          <span className="text-[11px] font-black uppercase text-[#2C7A7B] tracking-wider block mb-0.5">
                             SERVIÇO {idx + 1} DE {booking.items.length} · {formattedDate} ÀS {item.time || '09:30'}H
                           </span>
                         )}
-                        <h4 className="font-extrabold text-sm sm:text-base text-gray-900">
+                        <h4 className="font-extrabold text-base sm:text-lg text-gray-900 leading-tight">
                           {item.service_name || item.title || item.name || 'Passeio Jericoacoara'}
                         </h4>
                       </div>
                       <div className="sm:text-right">
-                        <p className="text-[11px] text-[#2C7A7B] font-bold">
+                        <p className="text-xs text-[#2C7A7B] font-bold">
                           Modalidade: {modalityLabel}
                         </p>
                       </div>
@@ -948,18 +945,18 @@ export default function VoucherPage() {
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800">
                                 <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" /> 🟢 TRECHO DE IDA
                               </span>
-                              <span className="text-[11px] font-extrabold text-gray-900">
+                              <span className="text-xs font-extrabold text-gray-900">
                                 {item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {item.time || '11:00'}h
                               </span>
                             </div>
                             <div className="space-y-1 text-xs">
                               <div className="bg-white/80 p-1.5 rounded-lg border border-emerald-100">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
-                                <span className="font-bold text-gray-900">{item.pickup_location || booking.pickup_location || 'Estacionamento PREÁ'}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || booking.pickup_location || 'Estacionamento PREÁ'}</span>
                               </div>
                               <div className="bg-white/80 p-1.5 rounded-lg border border-emerald-100">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
-                                <span className="font-bold text-gray-900">{item.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
                               </div>
                             </div>
                           </div>
@@ -970,18 +967,18 @@ export default function VoucherPage() {
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-cyan-800">
                                 <span className="h-2 w-2 rounded-full bg-cyan-600 animate-pulse" /> 🔵 TRECHO DE VOLTA
                               </span>
-                              <span className="text-[11px] font-extrabold text-gray-900">
+                              <span className="text-xs font-extrabold text-gray-900">
                                 {item.date_end ? new Date(item.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : (item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar')} às {item.time_end || item.time || '11:00'}h
                               </span>
                             </div>
                             <div className="space-y-1 text-xs">
                               <div className="bg-white/80 p-1.5 rounded-lg border border-cyan-100">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
-                                <span className="font-bold text-gray-900">{item.return_pickup_location || item.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_pickup_location || item.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
                               </div>
                               <div className="bg-white/80 p-1.5 rounded-lg border border-cyan-100">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
-                                <span className="font-bold text-gray-900">{item.return_dropoff_location || item.pickup_location || 'Estacionamento PREÁ'}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_dropoff_location || item.pickup_location || 'Estacionamento PREÁ'}</span>
                               </div>
                             </div>
                           </div>
@@ -991,15 +988,15 @@ export default function VoucherPage() {
                           <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                             <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                             <div>
-                              <span className="text-[9px] text-gray-400 block font-medium uppercase">Passageiros (PAX)</span>
-                              <span className="font-bold text-gray-900">{paxLabel}</span>
+                              <span className="text-[10px] text-gray-400 block font-semibold uppercase">Passageiros (PAX)</span>
+                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{paxLabel}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                             <Car className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                             <div>
-                              <span className="text-[9px] text-gray-400 block font-medium uppercase">Veículo / Modalidade</span>
-                              <span className="font-bold text-gray-900">{item.vehicle || 'Privativo Exclusivo (4x4)'}</span>
+                              <span className="text-[10px] text-gray-400 block font-semibold uppercase">Veículo / Modalidade</span>
+                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.vehicle || 'Privativo Exclusivo (4x4)'}</span>
                             </div>
                           </div>
                         </div>
@@ -1009,8 +1006,8 @@ export default function VoucherPage() {
                         <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                           <Calendar className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
-                            <span className="text-[9px] text-gray-400 block font-medium uppercase">Data & Horário de Saída</span>
-                            <span className="font-bold text-gray-900">
+                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Data & Horário de Saída</span>
+                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">
                               {formattedDate} às {item.time || '09:30'}h
                             </span>
                           </div>
@@ -1019,31 +1016,31 @@ export default function VoucherPage() {
                         <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                           <MapPin className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
-                            <span className="text-[9px] text-gray-400 block font-medium uppercase">Local de Embarque</span>
-                            <span className="font-bold text-gray-900">{item.pickup_location || booking.pickup_location || 'A combinar com o motorista'}</span>
+                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Local de Embarque</span>
+                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || booking.pickup_location || 'A combinar com o motorista'}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                           <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
-                            <span className="text-[9px] text-gray-400 block font-medium uppercase">Passageiros (PAX)</span>
-                            <span className="font-bold text-gray-900">{paxLabel}</span>
+                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Passageiros (PAX)</span>
+                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{paxLabel}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                           <Car className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
-                            <span className="text-[9px] text-gray-400 block font-medium uppercase">Veículo / Modalidade</span>
-                            <span className="font-bold text-gray-900">{modalityLabel}</span>
+                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Veículo / Modalidade</span>
+                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{modalityLabel}</span>
                           </div>
                         </div>
                       </div>
                     )}
 
                     {item.notes && (
-                      <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                      <div className="text-[11px] sm:text-xs text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
                         <strong className="text-gray-700">Observação do item:</strong> {item.notes}
                       </div>
                     )}
@@ -1060,31 +1057,31 @@ export default function VoucherPage() {
           </div>
 
           {/* Section 3: Financial Summary */}
-          <div className="border border-gray-200 rounded-xl p-3.5 bg-slate-50/70">
-            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+          <div className="border border-gray-200 rounded-xl p-3 sm:p-3.5 bg-slate-50/70">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
               <CreditCard className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Resumo Financeiro da Reserva
             </h3>
 
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-white p-2.5 rounded-lg border border-gray-200">
-                <span className="text-[9px] text-gray-400 font-semibold uppercase block">Valor Total</span>
-                <span className="text-base sm:text-lg font-black text-gray-900">{formatPrice(booking.amount_total)}</span>
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 text-center">
+              <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-gray-200">
+                <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase block">Valor Total</span>
+                <span className="text-base sm:text-xl font-black text-gray-900">{formatPrice(booking.amount_total)}</span>
               </div>
 
-              <div className="bg-white p-2.5 rounded-lg border border-emerald-200">
-                <span className="text-[9px] text-emerald-600 font-semibold uppercase block">Valor Pago (Sinal)</span>
-                <span className="text-base sm:text-lg font-black text-emerald-600">{formatPrice(booking.amount_paid)}</span>
+              <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-emerald-200">
+                <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold uppercase block">Valor Pago (Sinal)</span>
+                <span className="text-base sm:text-xl font-black text-emerald-600">{formatPrice(booking.amount_paid)}</span>
               </div>
 
-              <div className="bg-white p-2.5 rounded-lg border border-amber-200">
-                <span className="text-[9px] text-amber-700 font-semibold uppercase block">Saldo no Embarque</span>
-                <span className="text-base sm:text-lg font-black text-amber-800">{formatPrice(booking.remaining_balance)}</span>
+              <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-amber-200">
+                <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold uppercase block">Saldo no Embarque</span>
+                <span className="text-base sm:text-xl font-black text-amber-800">{formatPrice(booking.remaining_balance)}</span>
               </div>
             </div>
 
             {Number(booking.remaining_balance) > 0 && (
-              <p className="mt-2 text-[11px] text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
+              <p className="mt-2 text-xs text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 O saldo restante de <strong>{formatPrice(booking.remaining_balance)}</strong> deve ser quitado no momento do embarque diretamente com o motorista (PIX ou Dinheiro).
               </p>
@@ -1093,12 +1090,12 @@ export default function VoucherPage() {
 
           {/* Section 4: Boarding Guidelines & Rules */}
           <div className="border border-gray-200 rounded-xl p-3 space-y-1.5">
-            <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-[#2C7A7B]" />
               Recomendações Importantes de Embarque
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-gray-600 leading-tight">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-700 leading-snug">
               <div className="flex items-start gap-1.5">
                 <span className="text-[#2C7A7B] font-bold">1.</span>
                 <p><strong>Apresentação:</strong> Apresente este voucher (digital ou impresso) ao motorista no embarque.</p>
