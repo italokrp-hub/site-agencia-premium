@@ -99,7 +99,7 @@ export default async function handler(req, res) {
       if (booking.id) {
         const { data: itemsData } = await supabase
           .from('agency_reservation_items')
-          .select('category, service_name, vehicle_type, trecho, date_start, time_start, date_end, time_end, pax_adults, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes')
+          .select('title, service_name, category, subcategory, vehicle_type, trecho, date_start, time_start, date_end, time_end, pax_adults, pax_children, unit_price, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes')
           .eq('reservation_id', booking.id);
         if (itemsData && itemsData.length > 0) items = itemsData;
       }

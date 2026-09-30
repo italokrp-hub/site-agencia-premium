@@ -115,45 +115,6 @@ const DEMO_VOUCHERS = {
       },
     ],
   },
-  'JP-2026-000009': {
-    code: 'JP-2026-000009',
-    created_at: new Date().toISOString(),
-    client_name: 'Christian Müller',
-    client_phone: '(88) 98846-3182',
-    client_email: 'christian.muller@example.com',
-    status: 'confirmada',
-    payment_status: 'sinal_pago',
-    payment_method: 'pix',
-    amount_total: 1050.0,
-    amount_paid: 525.0,
-    remaining_balance: 525.0,
-    pickup_location: 'Pousada em Jericoacoara',
-    notes: 'Pacote Especial Jardineira Privativa (Leste e Oeste)',
-    items: [
-      {
-        title: 'Jardineira Privativa · Oeste',
-        service_type: 'passeio',
-        modality: 'privativo',
-        vehicle: 'jardineira',
-        date: '2026-10-01',
-        time: '09:30',
-        pax: 4,
-        unit_price: 550.0,
-        pickup_location: 'Pousada em Jericoacoara',
-      },
-      {
-        title: 'Jardineira Privativa · Leste',
-        service_type: 'passeio',
-        modality: 'privativo',
-        vehicle: 'jardineira',
-        date: '2026-10-02',
-        time: '09:30',
-        pax: 4,
-        unit_price: 500.0,
-        pickup_location: 'Pousada em Jericoacoara',
-      },
-    ],
-  },
 };
 
 export default function VoucherPage() {
@@ -203,7 +164,7 @@ export default function VoucherPage() {
         }
       }
 
-      // 3. Tentar buscar da API local (/api/booking-public) com cache-busting
+      // 2. Tentar buscar da API local (/api/booking-public) com cache-busting
       try {
         const res = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`).catch(() => null);
         if (res && res.ok) {
@@ -241,6 +202,8 @@ export default function VoucherPage() {
                 const timeStart = it.time_start || it.time || b.time || b.time_start || '09:30';
                 const timeEnd = it.time_end || b.time_end || timeStart;
 
+                const paxCount = Number(it.pax_adults ?? it.pax ?? b.pax_adults ?? 2) + Number(it.pax_children || 0);
+
                 return {
                   title: itemTitle,
                   service_type: it.category || b.service_type || 'passeio',
@@ -256,18 +219,21 @@ export default function VoucherPage() {
                   dropoff_location: it.dropoff_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
                   return_pickup_location: it.return_pickup_location || it.dropoff_location || b.return_pickup_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
                   return_dropoff_location: it.return_dropoff_location || it.pickup_location || b.return_dropoff_location || b.pickup_location || 'Estacionamento PREÁ',
-                  pax: Number(it.pax_adults || it.pax || b.pax_adults || 2),
+                  pax: paxCount > 0 ? paxCount : 2,
                   unit_price: Number(it.price_total || it.unit_price || priceFinal),
                   notes: it.notes || null,
                 };
               };
+
+              const rawEmail = cust.email || b.client_email || '';
+              const cleanEmail = (rawEmail && !rawEmail.toLowerCase().includes('example.com')) ? rawEmail : '';
 
               setBooking({
                 code: b.reservation_code || formattedCode,
                 created_at: b.created_at,
                 client_name: cust.name || b.client_name || 'Cliente',
                 client_phone: cust.whatsapp || cust.phone || b.client_phone || '',
-                client_email: cust.email || b.client_email || '',
+                client_email: cleanEmail,
                 status: b.reservation_status || b.status || 'pendente',
                 payment_status: b.payment_status || 'pendente',
                 payment_method: b.payment_method || 'pix',
@@ -287,7 +253,7 @@ export default function VoucherPage() {
         // ignore
       }
 
-      // 4. Consulta de Fallback ao Supabase
+      // 3. Consulta de Fallback ao Supabase
       try {
         const { data, error: dbErr } = await supabase
           .from('agency_reservations')
@@ -306,7 +272,7 @@ export default function VoucherPage() {
             payment_status,
             reservation_status,
             agency_customers (name, whatsapp, email),
-            agency_reservation_items (title, service_name, vehicle_type, category, trecho, date_start, time_start, date_end, time_end, pax_adults, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes),
+            agency_reservation_items (title, service_name, vehicle_type, category, trecho, date_start, time_start, date_end, time_end, pax_adults, pax_children, price_total, unit_price, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes),
             agency_payments (amount)
           `)
           .or(`reservation_code.ilike.${formattedCode},code.ilike.${formattedCode}`)
@@ -344,6 +310,8 @@ export default function VoucherPage() {
             const timeStart = it.time_start || it.time || data.time || data.time_start || '09:30';
             const timeEnd = it.time_end || data.time_end || timeStart;
 
+            const paxCount = Number(it.pax_adults ?? it.pax ?? data.pax_adults ?? 2) + Number(it.pax_children || 0);
+
             return {
               title: itemTitle,
               service_type: it.category || data.service_type || 'passeio',
@@ -359,18 +327,21 @@ export default function VoucherPage() {
               dropoff_location: it.dropoff_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
               return_pickup_location: it.return_pickup_location || it.dropoff_location || data.return_pickup_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
               return_dropoff_location: it.return_dropoff_location || it.pickup_location || data.return_dropoff_location || data.pickup_location || 'Estacionamento PREÁ',
-              pax: Number(it.pax_adults || it.pax || data.pax_adults || 2),
+              pax: paxCount > 0 ? paxCount : 2,
               unit_price: Number(it.price_total || it.unit_price || priceFinal),
               notes: it.notes || null,
             };
           };
+
+          const rawEmail = cust.email || '';
+          const cleanEmail = (rawEmail && !rawEmail.toLowerCase().includes('example.com')) ? rawEmail : '';
 
           setBooking({
             code: data.reservation_code || formattedCode,
             created_at: data.created_at,
             client_name: cust.name || 'Cliente',
             client_phone: cust.whatsapp || '',
-            client_email: cust.email || '',
+            client_email: cleanEmail,
             status: data.reservation_status || 'pendente',
             payment_status: data.payment_status || 'pendente',
             payment_method: data.payment_method || 'pix',
@@ -387,7 +358,16 @@ export default function VoucherPage() {
         // ignore
       }
 
-      // 5. Se o código não for localizado no banco nem no localStorage, definir erro explícito (SEM MOCKS)
+      // 4. Fallback para códigos demonstrativos pré-definidos (apenas se não encontrado na API nem no Supabase)
+      if (DEMO_VOUCHERS[formattedCode]) {
+        if (isMounted) {
+          setBooking(DEMO_VOUCHERS[formattedCode]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 5. Se o código não for localizado no banco nem no localStorage nem no demo, definir erro
       if (isMounted) {
         setBooking(null);
         setError('Reserva não encontrada no sistema.');
@@ -770,7 +750,11 @@ export default function VoucherPage() {
               </div>
               <div>
                 <span className="text-[10px] text-gray-400 block font-medium">E-mail</span>
-                <span className="font-semibold text-gray-800">{booking.client_email || 'Não informado'}</span>
+                <span className="font-semibold text-gray-800">
+                  {booking.client_email && booking.client_email.trim() !== '' && !booking.client_email.toLowerCase().includes('example.com')
+                    ? booking.client_email
+                    : 'Não informado'}
+                </span>
               </div>
             </div>
           </div>
