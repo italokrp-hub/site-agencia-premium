@@ -195,17 +195,20 @@ export default function VoucherPage() {
 
             if (isMounted) {
               const parseItem = (it) => {
-                const itemTitle = it.title || it.service_name || b.service_name || 'Serviço Jericoacoara';
+                const itemTitle = it.service_name || it.title || it.name || b.service_name || b.title || 'Passeio Jericoacoara';
                 const isTransfer = (it.category || b.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
                 const rawTrecho = it.trecho || it.modality || b.trecho || (isTransfer ? 'ida_e_volta' : 'privativo');
                 const isRoundTrip = rawTrecho === 'ida_e_volta' || Boolean(it.return_pickup_location || it.return_dropoff_location || it.date_end || b.date_end);
                 const timeStart = it.time_start || it.time || b.time || b.time_start || '09:30';
                 const timeEnd = it.time_end || b.time_end || timeStart;
 
-                const paxCount = Number(it.pax_adults ?? it.pax ?? b.pax_adults ?? 2) + Number(it.pax_children || 0);
+                const paxAdults = Number(it.pax_adults ?? b.pax_adults ?? 0);
+                const paxChildren = Number(it.pax_children ?? b.pax_children ?? 0);
+                const paxTotal = paxAdults + paxChildren;
 
                 return {
                   title: itemTitle,
+                  service_name: it.service_name || itemTitle,
                   service_type: it.category || b.service_type || 'passeio',
                   vehicle: it.vehicle_type || it.vehicle || b.vehicle_type || 'Jardineira',
                   modality: it.modality || rawTrecho,
@@ -219,7 +222,9 @@ export default function VoucherPage() {
                   dropoff_location: it.dropoff_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
                   return_pickup_location: it.return_pickup_location || it.dropoff_location || b.return_pickup_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
                   return_dropoff_location: it.return_dropoff_location || it.pickup_location || b.return_dropoff_location || b.pickup_location || 'Estacionamento PREÁ',
-                  pax: paxCount > 0 ? paxCount : 2,
+                  pax: paxTotal > 0 ? paxTotal : Number(it.pax || b.pax || 1),
+                  pax_adults: paxAdults,
+                  pax_children: paxChildren,
                   unit_price: Number(it.price_total || it.unit_price || priceFinal),
                   notes: it.notes || null,
                 };
@@ -303,17 +308,20 @@ export default function VoucherPage() {
           const remainingBalance = Math.max(0, priceFinal - amountPaid);
 
           const parseItem = (it) => {
-            const itemTitle = it.title || it.service_name || data.service_name || 'Serviço Jericoacoara';
+            const itemTitle = it.service_name || it.title || it.name || data.service_name || data.title || 'Passeio Jericoacoara';
             const isTransfer = (it.category || data.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
             const rawTrecho = it.trecho || it.modality || data.trecho || (isTransfer ? 'ida_e_volta' : 'privativo');
             const isRoundTrip = rawTrecho === 'ida_e_volta' || Boolean(it.return_pickup_location || it.return_dropoff_location || it.date_end || data.date_end);
             const timeStart = it.time_start || it.time || data.time || data.time_start || '09:30';
             const timeEnd = it.time_end || data.time_end || timeStart;
 
-            const paxCount = Number(it.pax_adults ?? it.pax ?? data.pax_adults ?? 2) + Number(it.pax_children || 0);
+            const paxAdults = Number(it.pax_adults ?? data.pax_adults ?? 0);
+            const paxChildren = Number(it.pax_children ?? data.pax_children ?? 0);
+            const paxTotal = paxAdults + paxChildren;
 
             return {
               title: itemTitle,
+              service_name: it.service_name || itemTitle,
               service_type: it.category || data.service_type || 'passeio',
               vehicle: it.vehicle_type || it.vehicle || data.vehicle_type || 'Jardineira',
               modality: it.modality || rawTrecho,
@@ -327,7 +335,9 @@ export default function VoucherPage() {
               dropoff_location: it.dropoff_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
               return_pickup_location: it.return_pickup_location || it.dropoff_location || data.return_pickup_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
               return_dropoff_location: it.return_dropoff_location || it.pickup_location || data.return_dropoff_location || data.pickup_location || 'Estacionamento PREÁ',
-              pax: paxCount > 0 ? paxCount : 2,
+              pax: paxTotal > 0 ? paxTotal : Number(it.pax || data.pax || 1),
+              pax_adults: paxAdults,
+              pax_children: paxChildren,
               unit_price: Number(it.price_total || it.unit_price || priceFinal),
               notes: it.notes || null,
             };
@@ -780,6 +790,15 @@ export default function VoucherPage() {
                   ? 'Transfer Ida e Volta (Privativo Exclusivo)' 
                   : formatModalityLabel(item);
 
+                const adults = Number(item.pax_adults || 0);
+                const children = Number(item.pax_children || 0);
+                let paxLabel = `${item.pax || 1} pessoa(s)`;
+                if (adults > 0 && children > 0) {
+                  paxLabel = `${adults} adulto(s), ${children} criança(s)`;
+                } else if (adults + children > 0) {
+                  paxLabel = `${adults + children} pessoa(s)`;
+                }
+
                 return (
                   <div key={idx} className="bg-white rounded-xl border border-gray-200 p-3 space-y-2.5">
                     {/* Header do Serviço */}
@@ -787,11 +806,11 @@ export default function VoucherPage() {
                       <div>
                         {booking.items.length > 1 && (
                           <span className="text-[10px] font-black uppercase text-[#2C7A7B] tracking-wider block">
-                            Serviço {idx + 1} de {booking.items.length} · {formattedDate} às {item.time || '09:30'}h
+                            SERVIÇO {idx + 1} DE {booking.items.length} · {formattedDate} ÀS {item.time || '09:30'}H
                           </span>
                         )}
                         <h4 className="font-extrabold text-sm sm:text-base text-gray-900">
-                          {item.title || 'Serviço Jericoacoara'}
+                          {item.service_name || item.title || item.name || 'Passeio Jericoacoara'}
                         </h4>
                       </div>
                       <div className="sm:text-right">
@@ -854,7 +873,7 @@ export default function VoucherPage() {
                             <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                             <div>
                               <span className="text-[9px] text-gray-400 block font-medium uppercase">Passageiros (PAX)</span>
-                              <span className="font-bold text-gray-900">{item.pax || 2} pessoa(s)</span>
+                              <span className="font-bold text-gray-900">{paxLabel}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
@@ -890,7 +909,7 @@ export default function VoucherPage() {
                           <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
                             <span className="text-[9px] text-gray-400 block font-medium uppercase">Passageiros (PAX)</span>
-                            <span className="font-bold text-gray-900">{item.pax || 2} pessoa(s)</span>
+                            <span className="font-bold text-gray-900">{paxLabel}</span>
                           </div>
                         </div>
 

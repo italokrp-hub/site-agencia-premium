@@ -100,7 +100,9 @@ export default async function handler(req, res) {
         const { data: itemsData } = await supabase
           .from('agency_reservation_items')
           .select('title, service_name, category, subcategory, vehicle_type, trecho, date_start, time_start, date_end, time_end, pax_adults, pax_children, unit_price, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes')
-          .eq('reservation_id', booking.id);
+          .eq('reservation_id', booking.id)
+          .order('date_start', { ascending: true })
+          .order('time_start', { ascending: true });
         if (itemsData && itemsData.length > 0) items = itemsData;
       }
 
@@ -165,7 +167,7 @@ export default async function handler(req, res) {
       rawItems = [
         {
           service_type: body.service_type || body.category || 'passeio',
-          title: body.title || body.service_name || 'Serviço Jericoacoara',
+          title: body.title || body.service_name || 'Passeio / Transfer Jericoacoara',
           vehicle: body.vehicle || body.vehicle_type || 'buggy',
           modality: body.modality || body.trecho || 'privativo',
           date: body.date || body.date_start || new Date().toISOString().split('T')[0],
@@ -248,7 +250,7 @@ export default async function handler(req, res) {
     // Valor integral do contrato: NUNCA deve ser sobrescrito pelo valor do sinal (amountPaid)
     const rawFullPrice = Number(body.fullTotal ?? body.price_gross ?? body.total_amount ?? mainItem.unit_price ?? 0);
     const fullPrice = rawFullPrice > 0 ? rawFullPrice : (amountPaid > 0 ? amountPaid * 2 : 0);
-    const serviceTitle = mainItem.title || mainItem.service_name || body.title || body.service_name || 'Serviço Jericoacoara';
+    const serviceTitle = mainItem.service_name || mainItem.title || mainItem.name || body.title || body.service_name || 'Passeio / Transfer Jericoacoara';
 
     let dbInsertError = null;
 

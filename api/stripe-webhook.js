@@ -199,7 +199,7 @@ export default async function handler(req, res) {
             {
               reservation_id: reservationId,
               category: metadata.category || 'passeio',
-              service_name: metadata.serviceId || 'Serviço Jericoacoara',
+              service_name: metadata.serviceId || metadata.title || metadata.service_name || 'Passeio / Transfer Jericoacoara',
               vehicle_type: metadata.vehicle || 'buggy',
               trecho: metadata.optionType === 'shared' ? 'compartilhado' : 'privativo',
               date_start: serviceDate,

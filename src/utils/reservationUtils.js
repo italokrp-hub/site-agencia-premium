@@ -5,7 +5,7 @@
  * @returns {string} Nome formatado do serviço ou resumo do pacote
  */
 export function getReservationServiceName(reservation) {
-  if (!reservation) return 'Serviço Jericoacoara';
+  if (!reservation) return 'Passeio / Transfer Jericoacoara';
 
   const items = reservation.items || reservation.agency_reservation_items || [];
   
@@ -24,7 +24,7 @@ export function getReservationServiceName(reservation) {
 
   if (items.length === 1) {
     const singleItem = items[0];
-    return singleItem.title || singleItem.service_name || 'Serviço Jericoacoara';
+    return singleItem.service_name || singleItem.title || singleItem.name || 'Passeio / Transfer Jericoacoara';
   }
 
   // Pacotes com múltiplos itens
