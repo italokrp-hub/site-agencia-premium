@@ -147,22 +147,51 @@ export function formatModalityLabel(item = {}) {
   const vehicle = (item.vehicle || item.vehicle_type || '').toLowerCase();
   const modality = (item.modality || item.trecho || '').toLowerCase();
 
-  const isJijoca = title.includes('jijoca') || title.includes('estacionamento');
-  const isShared = modality.includes('compartilhad') || modality.includes('shared') || vehicle.includes('jardineira') || vehicle.includes('pau de arara');
+  // Verifica indicadores explícitos de Privativo vs Compartilhado
+  const isExplicitPrivativo = 
+    modality.includes('privat') || 
+    modality.includes('exclusiv') || 
+    title.includes('privat') || 
+    title.includes('exclusiv');
 
-  if (isJijoca && isShared) {
-    return 'Jardineira 4x4 (Compartilhado)';
+  const isExplicitShared = 
+    modality.includes('compartilhad') || 
+    modality.includes('shared') || 
+    title.includes('compartilhad') || 
+    title.includes('shared');
+
+  let isShared = false;
+  if (isExplicitPrivativo) {
+    isShared = false;
+  } else if (isExplicitShared) {
+    isShared = true;
+  } else {
+    // Fallback se não for explicitamente privativo: transfer de Jijoca por padrão é compartilhado
+    const isJijoca = title.includes('jijoca') || title.includes('estacionamento');
+    if (isJijoca || modality.includes('compartilhad')) {
+      isShared = true;
+    }
   }
 
-  if (vehicle.includes('jardineira') && isShared) {
-    return 'Jardineira 4x4 (Compartilhado)';
+  if (vehicle.includes('jardineira') || title.includes('jardineira')) {
+    return isShared ? 'Jardineira 4x4 (Compartilhado)' : 'Jardineira 4x4 (Privativo Exclusivo)';
   }
 
-  if (vehicle.includes('buggy')) return `Buggy (${isShared ? 'Compartilhado' : 'Privativo Exclusivo'})`;
-  if (vehicle.includes('quadri')) return `Quadriciclo (${isShared ? 'Compartilhado' : 'Privativo'})`;
-  if (vehicle.includes('sw4') || vehicle.includes('hilux')) return `SW4 / Hilux 4x4 (${isShared ? 'Compartilhado' : 'Privativo Exclusivo'})`;
-  if (vehicle.includes('onibus') || vehicle.includes('van')) return `Van / Ônibus (${isShared ? 'Compartilhado' : 'Privativo'})`;
+  if (vehicle.includes('buggy') || title.includes('buggy')) {
+    return isShared ? 'Buggy (Compartilhado)' : 'Buggy (Privativo Exclusivo)';
+  }
 
-  if (isShared) return 'Jardineira 4x4 (Compartilhado)';
-  return 'Privativo Exclusivo';
+  if (vehicle.includes('quadri') || title.includes('quadri')) {
+    return isShared ? 'Quadriciclo (Compartilhado)' : 'Quadriciclo (Privativo Exclusivo)';
+  }
+
+  if (vehicle.includes('sw4') || vehicle.includes('hilux') || title.includes('sw4') || title.includes('hilux')) {
+    return isShared ? 'SW4 / Hilux 4x4 (Compartilhado)' : 'SW4 / Hilux 4x4 (Privativo Exclusivo)';
+  }
+
+  if (vehicle.includes('onibus') || vehicle.includes('van') || title.includes('van')) {
+    return isShared ? 'Van / Ônibus (Compartilhado)' : 'Van / Ônibus (Privativo Exclusivo)';
+  }
+
+  return isShared ? 'Compartilhado' : 'Privativo Exclusivo';
 }
