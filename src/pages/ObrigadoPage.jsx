@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { MessageCircle, Loader2, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, Loader2, ArrowLeft, ShieldCheck, CheckCircle2, Bug } from 'lucide-react';
 import { buildWhatsAppLink, WA_MESSAGES } from '@/utils/whatsapp';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -44,38 +44,59 @@ const ObrigadoPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const customMessage = getObrigadoMessage(searchParams);
 
+  const isDebugMode = location.search.includes('gtm_debug') || (typeof window !== 'undefined' && window.location.search.includes('gtm_debug'));
+
   const targetWhatsAppUrl = buildWhatsAppLink(customMessage);
 
   useEffect(() => {
-    // 1. Disparar manualmente o evento de page_view e conversão para a gtag global (Google Ads / Analytics)
-    if (typeof window !== 'undefined') {
-      window.dataLayer = window.dataLayer || [];
-      if (typeof window.gtag !== 'function') {
-        window.gtag = function () {
-          window.dataLayer.push(arguments);
-        };
-      }
+    let hasRedirected = false;
 
-      // Page view manual para rastreamento da SPA na rota /obrigado
+    const redirectToWhatsApp = () => {
+      if (hasRedirected) return;
+      hasRedirected = true;
+      if (!window.location.search.includes('gtm_debug')) {
+        window.location.href = targetWhatsAppUrl;
+      }
+    };
+
+    if (typeof window !== 'undefined' && window.gtag) {
+      // Dispara pageview
       window.gtag('event', 'page_view', {
         page_path: '/obrigado',
         page_location: window.location.href,
         page_title: document.title || 'Redirecionando para o Atendimento | Jericoacoara Premium'
       });
 
-      // Evento de conversão específico do Google Ads
+      // Dispara conversão com callback de redirecionamento seguro
       window.gtag('event', 'conversion', {
-        send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9'
+        send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9',
+        value: 1.0,
+        currency: 'BRL',
+        event_callback: () => {
+          if (!window.location.search.includes('gtm_debug')) {
+            redirectToWhatsApp();
+          }
+        },
+        event_timeout: 2000
       });
+    } else {
+      // Fallback se gtag estiver bloqueado por adblock
+      setTimeout(() => {
+        if (!window.location.search.includes('gtm_debug')) {
+          redirectToWhatsApp();
+        }
+      }, 1500);
     }
 
-    // 2. Atraso seguro (1200ms, entre 1000ms e 1500ms) garantindo conclusão das requisições antes do redirect
-    const redirectTimer = setTimeout(() => {
-      window.location.href = targetWhatsAppUrl;
-    }, 1200);
+    // Safety fallback timer caso window.gtag exista como stub mas o script do Google Tags seja bloqueado
+    const safetyTimer = setTimeout(() => {
+      if (!window.location.search.includes('gtm_debug')) {
+        redirectToWhatsApp();
+      }
+    }, 2500);
 
     return () => {
-      clearTimeout(redirectTimer);
+      clearTimeout(safetyTimer);
     };
   }, [targetWhatsAppUrl]);
 
@@ -100,12 +121,20 @@ const ObrigadoPage = () => {
             <span className="bg-[#D4AF37] text-gray-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">PREMIUM</span>
           </div>
 
+          {/* Modo de Depuração Banner */}
+          {isDebugMode && (
+            <div className="w-full p-4 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-sm font-semibold flex items-center justify-center gap-2.5 text-center shadow-lg">
+              <Bug className="w-5 h-5 text-amber-400 shrink-0" />
+              <span>Modo de Depuração ativo: clique no botão para testar o WhatsApp manualmente.</span>
+            </div>
+          )}
+
           {/* Spinner and Status Icon */}
           <div className="relative flex items-center justify-center my-2">
-            <div className="w-20 h-20 rounded-full border-2 border-white/10 border-t-[#25D366] animate-spin flex items-center justify-center" />
+            <div className={`w-20 h-20 rounded-full border-2 border-white/10 ${isDebugMode ? 'border-amber-400/50' : 'border-t-[#25D366] animate-spin'} flex items-center justify-center`} />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 bg-[#25D366]/20 rounded-full flex items-center justify-center border border-[#25D366]/40">
-                <MessageCircle className="w-6 h-6 text-[#25D366]" />
+              <div className={`w-12 h-12 ${isDebugMode ? 'bg-amber-400/20 border-amber-400/40' : 'bg-[#25D366]/20 border-[#25D366]/40'} rounded-full flex items-center justify-center border`}>
+                <MessageCircle className={`w-6 h-6 ${isDebugMode ? 'text-amber-400' : 'text-[#25D366]'}`} />
               </div>
             </div>
           </div>
@@ -113,7 +142,9 @@ const ObrigadoPage = () => {
           {/* Main Title & Subtitle */}
           <div className="space-y-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              {t('obrigado.title', { defaultValue: 'Redirecionando para o nosso WhatsApp em instantes...' })}
+              {isDebugMode
+                ? 'Modo de Teste do Google Tag Assistant'
+                : t('obrigado.title', { defaultValue: 'Redirecionando para o nosso WhatsApp em instantes...' })}
             </h1>
             <p className="text-sm sm:text-base text-white/70 font-light leading-relaxed">
               {t('obrigado.subtitle', { defaultValue: 'Caso não abra automaticamente, clique no botão abaixo.' })}
@@ -122,12 +153,18 @@ const ObrigadoPage = () => {
 
           {/* Progress Bar & Status Indicator */}
           <div className="w-full space-y-3">
-            <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-gradient-to-r from-[#D4AF37] to-[#25D366] h-full animate-pulse w-full" />
-            </div>
-            <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-[#D4AF37] font-medium">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>{t('obrigado.statusText', { defaultValue: 'Iniciando conversa segura no WhatsApp...' })}</span>
+            {!isDebugMode && (
+              <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-gradient-to-r from-[#D4AF37] to-[#25D366] h-full animate-pulse w-full" />
+              </div>
+            )}
+            <div className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium ${isDebugMode ? 'text-amber-300' : 'text-[#D4AF37]'}`}>
+              {!isDebugMode && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <span>
+                {isDebugMode
+                  ? 'Redirecionamento automático pausado para depuração.'
+                  : t('obrigado.statusText', { defaultValue: 'Iniciando conversa segura no WhatsApp...' })}
+              </span>
             </div>
           </div>
 
