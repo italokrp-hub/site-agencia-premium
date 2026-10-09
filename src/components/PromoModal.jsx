@@ -127,7 +127,7 @@ export default function PromoModal() {
           <img
             src="/images/promo-reveillon-2027.webp"
             alt="Pacote Réveillon 2027 em Jericoacoara - 10% OFF no PIX - Jericoacoara Premium"
-            className="w-full h-full object-contain max-h-[calc(85vh-76px)] sm:max-h-[calc(85vh-84px)] transition-transform duration-300 group-hover:scale-[1.01]"
+            className="w-full h-auto object-contain select-none pointer-events-none"
             loading="eager"
             decoding="async"
           />
