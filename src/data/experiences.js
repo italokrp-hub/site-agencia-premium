@@ -159,7 +159,7 @@ export const trustItems = [
 export const faqItems = [
   {
     question: 'Qual o transfer mais barato para Jericoacoara?',
-    answer: 'O transfer mais barato para Jericoacoara é a opção compartilhada de ônibus/van regular (a partir de R$ 175,00 por pessoa de Fortaleza) ou a jardineira compartilhada saindo de Jijoca (a partir de R$ 50,00 por pessoa). É a alternativa mais econômica com total segurança, ar-condicionado e suporte 24h.',
+    answer: 'O transfer mais barato para Jericoacoara é a opção compartilhada de ônibus/van regular (a partir de R$ 175,00 por pessoa de Fortaleza) ou a jardineira compartilhada saindo de Jijoca (a partir de R$ 60,00 por pessoa). É a alternativa mais econômica com total segurança, ar-condicionado e suporte 24h.',
   },
   {
     question: 'Como funciona o transfer compartilhado mais econômico?',

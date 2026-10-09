@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, CheckCircle, ShieldCheck, Map, Check, Shield } from 'lucide-react';
+import { MessageCircle, CheckCircle, ShieldCheck, Map, Check, Shield, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
@@ -126,12 +126,13 @@ const TransferJijocaJeri = () => {
                   <li className="flex items-start"><Check className="text-emerald-500 w-5 h-5 mr-3 mt-0.5 shrink-0" /> Viagem direta nas tradicionais Jardineiras 4x4 credenciadas.</li>
                 </ul>
               </div>
-              <div className="p-8 pt-0 mt-auto space-y-3">
-                <Button onClick={() => handleBook(jijocaTransfer, 'shared')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 text-lg relative">
+              <div className="p-8 pt-0 mt-auto flex flex-col items-center gap-2.5">
+                <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-medium px-3 py-1 rounded-full">
+                  <Tag className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Economize 5% pagando via PIX</span>
+                </div>
+                <Button onClick={() => handleBook(jijocaTransfer, 'shared')} variant="outline" className="w-full border-gray-800 text-gray-800 hover:bg-gray-50 h-12 text-base font-bold shadow-sm">
                   Reservar Compartilhado
-                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
-                    Economize 5% pagando via PIX
-                  </span>
                 </Button>
               </div>
             </div>
@@ -158,12 +159,13 @@ const TransferJijocaJeri = () => {
                   <li className="flex items-start"><Check className="text-emerald-500 w-5 h-5 mr-3 mt-0.5 shrink-0" /> Suporte VIP via WhatsApp durante todo o trajeto.</li>
                 </ul>
               </div>
-              <div className="p-8 pt-0 mt-auto space-y-3">
-                <Button onClick={() => handleBook(jijocaTransfer, 'private')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 h-12 text-lg text-white relative">
+              <div className="p-8 pt-0 mt-auto flex flex-col items-center gap-2.5">
+                <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-medium px-3 py-1 rounded-full">
+                  <Tag className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Economize 5% pagando via PIX</span>
+                </div>
+                <Button onClick={() => handleBook(jijocaTransfer, 'private')} className="w-full bg-[#2C7A7B] hover:bg-teal-700 h-12 text-base font-bold text-white shadow-sm">
                   Reservar Privativo
-                  <span className="absolute -top-3 right-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-200">
-                    Economize 5% pagando via PIX
-                  </span>
                 </Button>
               </div>
             </div>

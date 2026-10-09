@@ -63,7 +63,7 @@ export const transfersData = [
     image: '/images/transfer-4x4-dunas.webp',
     nightFee: 20, // Acréscimo se horário >= 18:00
     options: {
-      shared: { available: true, oneWay: 50, roundTrip: 100, perPerson: true },
+      shared: { available: true, oneWay: 60, roundTrip: 120, perPerson: true },
       private: {
         available: true,
         tiers: [

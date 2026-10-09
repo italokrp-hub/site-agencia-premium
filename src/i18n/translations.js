@@ -283,7 +283,7 @@ export const translations = {
       items: [
         {
           question: 'Qual o transfer mais barato para Jericoacoara?',
-          answer: 'O transfer mais barato para Jericoacoara é a opção compartilhada de ônibus/van regular (a partir de R$ 175,00 por pessoa de Fortaleza) ou a jardineira compartilhada saindo de Jijoca (a partir de R$ 50,00 por pessoa). É a alternativa mais econômica com total segurança, ar-condicionado e suporte 24h.',
+          answer: 'O transfer mais barato para Jericoacoara é a opção compartilhada de ônibus/van regular (a partir de R$ 175,00 por pessoa de Fortaleza) ou a jardineira compartilhada saindo de Jijoca (a partir de R$ 60,00 por pessoa). É a alternativa mais econômica com total segurança, ar-condicionado e suporte 24h.',
         },
         {
           question: 'Como funciona o transfer compartilhado mais econômico?',
@@ -774,7 +774,7 @@ export const translations = {
       items: [
         {
           question: 'What is the cheapest transfer to Jericoacoara?',
-          answer: 'The most budget-friendly transfer to Jericoacoara is the shared bus/van option from Fortaleza Airport (starting at BRL 175 per person) or the shared open truck (Jardineira) from Jijoca (starting at BRL 50 per person). It is safe, air-conditioned, and backed by 24/7 support.',
+          answer: 'The most budget-friendly transfer to Jericoacoara is the shared bus/van option from Fortaleza Airport (starting at BRL 175 per person) or the shared open truck (Jardineira) from Jijoca (starting at BRL 60 per person). It is safe, air-conditioned, and backed by 24/7 support.',
         },
         {
           question: 'How does the shared transfer work?',
@@ -1261,7 +1261,7 @@ export const translations = {
       items: [
         {
           question: '¿Cuál es el transfer más económico a Jericoacoara?',
-          answer: 'El transfer más económico a Jericoacoara es el compartido en autobús/van desde el Aeropuerto de Fortaleza (a partir de R$ 175 por persona) o la jardineira compartida desde Jijoca (a partir de R$ 50 por persona).',
+          answer: 'El transfer más económico a Jericoacoara es el compartido en autobús/van desde el Aeropuerto de Fortaleza (a partir de R$ 175 por persona) o la jardineira compartida desde Jijoca (a partir de R$ 60 por persona).',
         },
         {
           question: '¿Cómo funciona el transfer compartido?',
