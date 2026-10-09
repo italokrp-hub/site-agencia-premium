@@ -5,7 +5,7 @@ const STORAGE_KEY = 'has_seen_reveillon_promo_2027';
 const DELAY_MS = 2500; // 2.5s de delay para otimização dos Core Web Vitals (FCP/LCP/CLS)
 
 const WHATSAPP_CONVERSION_URL =
-  'https://wa.me/5588988463182?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20de%20R%C3%A9veillon%202027%20no%20site%20e%20quero%20garantir%20uma%20cota%C3%A7%C3%A3o%20com%2010%25%20OFF%20no%20Pix.%20Somos%20em%20[__]%20pessoas.';
+  'https://wa.me/5588988463182?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20de%20R%C3%A9veillon%20no%20site%20e%20quero%20garantir%20minha%20reserva%20do%201%C2%BA%20Lote.%20Somos%20em%20[__]%20pessoas.';
 
 export default function PromoModal() {
   const [isOpen, setIsOpen] = useState(false);
