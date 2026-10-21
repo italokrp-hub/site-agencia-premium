@@ -9,7 +9,7 @@ import {
   CreditCard,
   Copy,
   CheckCheck,
-  CalendarIcon,
+  Calendar as CalendarIcon,
   Clock,
   Moon,
   Tag,
@@ -24,6 +24,15 @@ import {
   FileText,
   CheckCircle2,
   ExternalLink,
+  ShieldCheck,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  AlertCircle,
+  Sparkles,
+  Plane,
+  MapPin,
+  Users,
 } from 'lucide-react';
 import {
   Dialog,
@@ -57,15 +66,78 @@ import { sendBookingToHotelOps } from '@/services/hotelopsIntegration';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { openWhatsApp } from '@/utils/whatsapp';
 
-function formatPhone(value) {
-  return value;
+// Validação real de dígitos verificadores do CPF brasileiro (Algoritmo Mod 11)
+export function isValidCPF(cpf) {
+  if (!cpf) return false;
+  const clean = cpf.replace(/\D/g, '');
+  if (clean.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(clean)) return false; // Elimina sequências repetidas como 111.111.111-11
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(clean.charAt(i), 10) * (10 - i);
+  }
+  let rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(clean.charAt(9), 10)) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(clean.charAt(i), 10) * (11 - i);
+  }
+  rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(clean.charAt(10), 10)) return false;
+
+  return true;
 }
+
+// Máscara de CPF brasileiro 000.000.000-00
+export function maskCPF(value) {
+  const clean = value.replace(/\D/g, '').slice(0, 11);
+  if (clean.length <= 3) return clean;
+  if (clean.length <= 6) return `${clean.slice(0, 3)}.${clean.slice(3)}`;
+  if (clean.length <= 9) return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6)}`;
+  return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6, 9)}-${clean.slice(9)}`;
+}
+
+// Formatação inteligente de telefone conforme DDI
+export function maskPhone(value, ddi = '+55') {
+  if (ddi === '+55') {
+    const clean = value.replace(/\D/g, '').slice(0, 11);
+    if (clean.length <= 2) return clean ? `(${clean}` : '';
+    if (clean.length <= 6) return `(${clean.slice(0, 2)}) ${clean.slice(2)}`;
+    if (clean.length <= 10) return `(${clean.slice(0, 2)}) ${clean.slice(2, 6)}-${clean.slice(6)}`;
+    return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7)}`;
+  }
+  return value.replace(/[^\d\s\-\(\)]/g, '').slice(0, 20);
+}
+
+// Lista de DDIs mais frequentes
+export const DDI_OPTIONS = [
+  { code: '+55', country: 'Brasil', flag: '🇧🇷' },
+  { code: '+1', country: 'Estados Unidos / Canadá', flag: '🇺🇸' },
+  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+  { code: '+34', country: 'Espanha', flag: '🇪🇸' },
+  { code: '+33', country: 'França', flag: '🇫🇷' },
+  { code: '+49', country: 'Alemanha', flag: '🇩🇪' },
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+  { code: '+56', country: 'Chile', flag: '🇨🇱' },
+  { code: '+598', country: 'Uruguai', flag: '🇺🇾' },
+  { code: '+44', country: 'Reino Unido', flag: '🇬🇧' },
+  { code: '+39', country: 'Itália', flag: '🇮🇹' },
+  { code: '+57', country: 'Colômbia', flag: '🇨🇴' },
+  { code: '+52', country: 'México', flag: '🇲🇽' },
+];
 
 const initialForm = {
   name: '',
+  ddi: '+55',
   whatsapp: '',
   email: '',
+  isForeigner: false,
   cpf: '',
+  passport: '',
   date: undefined,
   returnDate: undefined,
   time: '12:00',
@@ -85,16 +157,20 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const isPortuguese = language === 'pt';
 
   const [internalItem, setInternalItem] = useState(null);
-  
+
   useEffect(() => {
     if (item && (!internalItem || internalItem.id !== item.id)) {
       setInternalItem(item);
     }
   }, [item]);
 
+  // Stepper principal: 1: Serviço & Veículo, 2: Identificação & Embarque, 3: Pagamento Seguro
+  const [wizardStep, setWizardStep] = useState(1);
+  // Status modal pós-wizard: 'wizard' | 'pix' | 'success'
+  const [stepStatus, setStepStatus] = useState('wizard');
+
   const [form, setForm] = useState(initialForm);
   const [paymentMode, setPaymentMode] = useState('50'); // '50' | '100'
-  const [step, setStep] = useState('form');
   const [loading, setLoading] = useState(false);
   const [loadingPix, setLoadingPix] = useState(false);
   const [pixData, setPixData] = useState(null);
@@ -106,38 +182,14 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [emailInput, setEmailInput] = useState('');
   const [emailStatus, setEmailStatus] = useState(''); // 'idle', 'sending', 'sent', 'error'
 
-  // Polling para pagamento aprovado
-  useEffect(() => {
-    let interval;
-    if (step === 'pix' && createdReservationCode) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/booking-public?code=${createdReservationCode}`);
-          const data = await res.json();
-          if (data && data.success && data.booking) {
-            const status = data.booking.payment_status;
-            if (status === 'pago_integral' || status === 'sinal_pago') {
-              setStep('success');
-            }
-          }
-        } catch (e) {
-          console.error('[Polling] Erro na consulta de status:', e);
-        }
-      }, 4000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [step, createdReservationCode]);
-
-  // Seleção de Locale para date-fns conforme idioma
+  // Locale de datas
   const dateFnsLocale = useMemo(() => {
     if (language === 'en') return enUS;
     if (language === 'es') return es;
     return ptBR;
   }, [language]);
 
-  // Identifica se o item é um Transfer
+  // Identificação do item Transfer vs Passeio
   const transferItem = useMemo(() => {
     if (!internalItem) return null;
     if (internalItem.category === 'transfer' && internalItem.options) return internalItem;
@@ -147,7 +199,6 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return null;
   }, [internalItem]);
 
-  // Identifica se o item é um Passeio (Tour)
   const tourItem = useMemo(() => {
     if (!internalItem) return null;
     if (internalItem.category === 'tour' && internalItem.options) return internalItem;
@@ -157,41 +208,70 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return null;
   }, [internalItem]);
 
-  const serviceTitle = useMemo(() => {
-    const itemObj = transferItem || tourItem || internalItem;
-    const rawTitle = itemObj?.title || 'Serviço';
-    if (!itemObj?.id) return rawTitle;
-    const res = t(`catalog.${itemObj.id}`, { defaultValue: rawTitle });
-    return (res && typeof res === 'string' && !res.startsWith('catalog.')) ? res : rawTitle;
-  }, [transferItem, tourItem, internalItem, t]);
-
   const isTransfer = Boolean(transferItem || internalItem?.category === 'transfer');
   const isTour = Boolean(tourItem || internalItem?.category === 'tour');
   const isRoundTrip = isTransfer && form.tripType === 'roundTrip';
 
+  const serviceTitle = useMemo(() => {
+    const itemObj = transferItem || tourItem || internalItem;
+    const rawTitle = itemObj?.title || 'Serviço Jericoacoara';
+    if (!itemObj?.id) return rawTitle;
+    const res = t(`catalog.${itemObj.id}`, { defaultValue: rawTitle });
+    return res && typeof res === 'string' && !res.startsWith('catalog.') ? res : rawTitle;
+  }, [transferItem, tourItem, internalItem, t]);
+
+  // Pré-preenchimento ao alterar o item recebido
   useEffect(() => {
     if (transferItem) {
       const sharedAvailable = transferItem.options?.shared?.available;
       const privateAvailable = transferItem.options?.private?.available !== false;
-      const initialType = (internalItem?.selectedType === 'Compartilhado' || !privateAvailable) && sharedAvailable ? 'shared' : 'private';
+      const initialType =
+        (internalItem?.selectedType === 'Compartilhado' || !privateAvailable) && sharedAvailable
+          ? 'shared'
+          : 'private';
       const initialTrip = internalItem?.selectedTripType || 'roundTrip';
+
       setForm((prev) => ({
         ...prev,
         optionType: initialType,
         tripType: initialTrip,
+        date: internalItem?.initialDate || prev.date || addDays(new Date(), 1),
+        returnDate: internalItem?.initialReturnDate || prev.returnDate || addDays(new Date(), 4),
+        passengers: internalItem?.initialPassengers || prev.passengers || 2,
+        pickup: internalItem?.initialPickup || prev.pickup,
       }));
     } else if (tourItem) {
       const sharedAvailable = tourItem.options?.shared?.available;
-      const initialType = internalItem?.selectedType === 'Compartilhado' && sharedAvailable ? 'shared' : 'private';
-      const defaultVehicle = internalItem?.selectedVehicleType || tourItem.options?.private?.vehicles?.[0]?.type || 'Buggy';
+      const initialType =
+        internalItem?.selectedType === 'Compartilhado' && sharedAvailable ? 'shared' : 'private';
+      const defaultVehicle =
+        internalItem?.selectedVehicleType ||
+        tourItem.options?.private?.vehicles?.[0]?.type ||
+        'Buggy';
+
       setForm((prev) => ({
         ...prev,
         optionType: initialType,
         selectedVehicleType: defaultVehicle,
+        date: internalItem?.initialDate || prev.date || addDays(new Date(), 1),
+        passengers: internalItem?.initialPassengers || prev.passengers || 2,
+        pickup: internalItem?.initialPickup || prev.pickup,
       }));
     }
   }, [transferItem, tourItem, internalItem]);
 
+  // Se o idioma for internacional, pré-ativa turista estrangeiro
+  useEffect(() => {
+    if (language === 'en' || language === 'es') {
+      setForm((prev) => ({
+        ...prev,
+        isForeigner: true,
+        ddi: language === 'en' ? '+1' : '+34',
+      }));
+    }
+  }, [language]);
+
+  // Cálculos financeiros
   const transferPriceInfo = useMemo(() => {
     if (transferItem) {
       return calculateTransferPrice({
@@ -254,43 +334,90 @@ export default function BookingModal({ item, open, onOpenChange }) {
     return Math.round(fullTotal * 0.95 * 100) / 100;
   }, [transferPriceInfo, tourPriceInfo, fullTotal]);
 
-  const isDeposit = isPortuguese && paymentMode === '50';
+  const isDeposit = paymentMode === '50';
   const chargeTotal = useMemo(() => (isDeposit ? fullTotal / 2 : fullTotal), [fullTotal, isDeposit]);
   const chargePixTotal = useMemo(() => (isDeposit ? fullPixTotal / 2 : fullPixTotal), [fullPixTotal, isDeposit]);
   const remainingBalance = useMemo(() => (isDeposit ? fullTotal / 2 : 0), [fullTotal, isDeposit]);
 
+  // Polling para pagamento Pix aprovado
+  useEffect(() => {
+    let interval;
+    if (stepStatus === 'pix' && createdReservationCode) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/booking-public?code=${createdReservationCode}`);
+          const data = await res.json();
+          if (data && data.success && data.booking) {
+            const status = data.booking.payment_status;
+            if (status === 'pago_integral' || status === 'sinal_pago') {
+              setStepStatus('success');
+            }
+          }
+        } catch (e) {
+          console.error('[Polling] Erro na consulta de status:', e);
+        }
+      }, 4000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [stepStatus, createdReservationCode]);
+
+  // Validações do Stepper
+  const isStep1Valid = useMemo(() => {
+    if (!form.date) return false;
+    if (isRoundTrip && !form.returnDate) return false;
+    if (form.passengers < 1) return false;
+    return true;
+  }, [form.date, isRoundTrip, form.returnDate, form.passengers]);
+
+  const isCpfValid = useMemo(() => {
+    if (form.isForeigner) return true;
+    return isValidCPF(form.cpf);
+  }, [form.isForeigner, form.cpf]);
+
+  const isStep2Valid = useMemo(() => {
+    if (!form.name.trim() || form.name.trim().length < 3) return false;
+    const cleanPhone = form.whatsapp.replace(/\D/g, '');
+    if (cleanPhone.length < 8) return false;
+    if (form.email && (!form.email.includes('@') || !form.email.includes('.'))) return false;
+    if (form.isForeigner) {
+      if (!form.passport.trim() || form.passport.trim().length < 4) return false;
+    } else {
+      if (!isCpfValid) return false;
+    }
+    if (!form.pickup.trim() || form.pickup.trim().length < 2) return false;
+    return true;
+  }, [form.name, form.whatsapp, form.email, form.isForeigner, form.passport, isCpfValid, form.pickup]);
+
+  // Handlers de Formulário
   const handleChange = useCallback((field) => (e) => {
+    let val = e.target.value;
     if (field === 'passengers') {
-      const val = parseInt(e.target.value, 10);
-      setForm((prev) => ({ ...prev, passengers: isNaN(val) || val < 1 ? 1 : val }));
+      const parsed = parseInt(val, 10);
+      setForm((prev) => ({ ...prev, passengers: isNaN(parsed) || parsed < 1 ? 1 : parsed }));
       return;
     }
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    if (field === 'cpf') {
+      val = maskCPF(val);
+    } else if (field === 'whatsapp') {
+      val = maskPhone(val, form.ddi);
+    }
+    setForm((prev) => ({ ...prev, [field]: val }));
+  }, [form.ddi]);
+
+  const handleDdiChange = useCallback((newDdi) => {
+    setForm((prev) => ({
+      ...prev,
+      ddi: newDdi,
+      whatsapp: maskPhone(prev.whatsapp, newDdi),
+    }));
   }, []);
-
-  const handleDateSelect = useCallback((date) => {
-    setForm((prev) => ({ ...prev, date }));
-    setIsCalendarOpen(false);
-  }, []);
-
-  const handleReturnDateSelect = useCallback((date) => {
-    setForm((prev) => ({ ...prev, returnDate: date }));
-    setIsReturnCalendarOpen(false);
-  }, []);
-
-  const isFormValid = Boolean(
-    form.name.trim() &&
-    form.whatsapp.trim().length >= 7 &&
-    form.date &&
-    form.pickup.trim() !== '' &&
-    (!isRoundTrip || form.returnDate)
-  );
-
-  const hasSentToHotelOpsRef = useRef(false);
 
   const resetModal = useCallback(() => {
     setForm(initialForm);
-    setStep('form');
+    setWizardStep(1);
+    setStepStatus('wizard');
     setPixData(null);
     setError(null);
     setCopied(false);
@@ -300,53 +427,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setIsReturnCalendarOpen(false);
     setPaymentMode('50');
     setCreatedReservationCode(null);
-    hasSentToHotelOpsRef.current = false;
   }, []);
-
-  const saveBookingToStorage = useCallback((paymentMethodName = 'Pix', existingCode = null) => {
-    const code = existingCode || `JRI-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const isDeposit = isPortuguese && paymentMode === '50';
-    const isPix = (paymentMethodName || '').toLowerCase().includes('pix');
-    const amountPaid = isDeposit ? (isPix ? chargePixTotal : chargeTotal) : (isPix ? fullPixTotal : fullTotal);
-    const remaining = isDeposit ? remainingBalance : 0;
-
-    const bookingObj = {
-      code,
-      created_at: new Date().toISOString(),
-      client_name: form.name || 'Cliente Jericoacoara Premium',
-      client_phone: form.whatsapp || '',
-      client_email: form.email || '',
-      status: 'pendente',
-      reservation_status: 'pendente',
-      payment_status: 'pendente',
-      payment_method: isPix ? 'pix' : 'cartao',
-      amount_total: fullTotal,
-      amount_paid: amountPaid,
-      remaining_balance: remaining,
-      pickup_location: form.pickup || 'Ponto informado no formulário',
-      notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
-      items: [
-        {
-          title: serviceTitle,
-          service_type: isTransfer ? 'transfer' : 'passeio',
-          modality: form.optionType,
-          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 / Buggy',
-          date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
-          time: form.time || '11:30',
-          pax: form.passengers || 1,
-          unit_price: fullTotal,
-        },
-      ],
-    };
-
-    try {
-      localStorage.setItem(`jeri_last_booking_${code}`, JSON.stringify(bookingObj));
-    } catch (e) {
-      console.warn('[BookingModal] Erro ao salvar voucher em localStorage:', e);
-    }
-    setCreatedReservationCode(code);
-    return code;
-  }, [form, fullTotal, fullPixTotal, chargeTotal, chargePixTotal, remainingBalance, isDeposit, isPortuguese, paymentMode, serviceTitle, isTransfer, selectedTier, tourPriceInfo]);
 
   const handleOpenChange = useCallback(
     (isOpen) => {
@@ -356,7 +437,56 @@ export default function BookingModal({ item, open, onOpenChange }) {
     [onOpenChange, resetModal]
   );
 
+  // Armazenamento local e código da reserva
+  const saveBookingToStorage = useCallback(
+    (paymentMethodName = 'Pix', existingCode = null) => {
+      const code = existingCode || `JRI-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const isPix = (paymentMethodName || '').toLowerCase().includes('pix');
+      const amountPaid = isDeposit ? (isPix ? chargePixTotal : chargeTotal) : (isPix ? fullPixTotal : fullTotal);
+      const remaining = isDeposit ? remainingBalance : 0;
+      const fullPhone = `${form.ddi} ${form.whatsapp}`.trim();
 
+      const bookingObj = {
+        code,
+        created_at: new Date().toISOString(),
+        client_name: form.name || 'Cliente Jericoacoara Premium',
+        client_phone: fullPhone,
+        client_email: form.email || '',
+        document: form.isForeigner ? form.passport : form.cpf,
+        is_foreigner: form.isForeigner,
+        status: 'pendente',
+        reservation_status: 'pendente',
+        payment_status: 'pendente',
+        payment_method: isPix ? 'pix' : 'cartao',
+        amount_total: fullTotal,
+        amount_paid: amountPaid,
+        remaining_balance: remaining,
+        pickup_location: form.pickup || 'Ponto informado no formulário',
+        notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
+        items: [
+          {
+            title: serviceTitle,
+            service_type: isTransfer ? 'transfer' : 'passeio',
+            modality: form.optionType,
+            vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 / Buggy',
+            date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
+            time: form.time || '11:30',
+            pax: form.passengers || 1,
+            unit_price: fullTotal,
+          },
+        ],
+      };
+
+      try {
+        localStorage.setItem(`jeri_last_booking_${code}`, JSON.stringify(bookingObj));
+      } catch (e) {
+        console.warn('[BookingModal] Erro ao salvar voucher em localStorage:', e);
+      }
+      setCreatedReservationCode(code);
+      return code;
+    },
+    [form, isDeposit, chargePixTotal, chargeTotal, fullPixTotal, fullTotal, remainingBalance, serviceTitle, isTransfer, selectedTier, tourPriceInfo]
+  );
 
   const triggerHotelOpsSync = useCallback(
     async (paymentMethodName, codeOverride = null) => {
@@ -368,57 +498,47 @@ export default function BookingModal({ item, open, onOpenChange }) {
         fullPixTotal,
         chargeTotal: paymentMethodName === 'Pix' ? chargePixTotal : chargeTotal,
         chargePixTotal,
-        remainingBalance: isPortuguese ? remainingBalance : 0,
-        paymentMode: isPortuguese ? paymentMode : '100',
+        remainingBalance: isDeposit ? remainingBalance : 0,
+        paymentMode,
         paymentMethod: paymentMethodName,
         vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-        isWhatsAppOnly: !isPortuguese || isWhatsAppOnly,
+        isWhatsAppOnly: isWhatsAppOnly,
         paymentStatus: 'pendente',
         reservationStatus: 'pendente',
       };
 
       try {
-        const res = await sendBookingToHotelOps(form, itemInfo, paymentInfo);
-        console.log('[BookingModal] Reserva persistida com sucesso no Supabase:', res);
-        return res;
-      } catch (e) {
-        console.error('Erro na sincronização de reserva:', e);
-        return { success: false, error: e };
+        await sendBookingToHotelOps(form, itemInfo, paymentInfo);
+      } catch (err) {
+        console.error('[BookingModal] Erro na sincronização:', err);
       }
     },
-    [
-      createdReservationCode,
-      form,
-      internalItem,
-      serviceTitle,
-      isTransfer,
-      fullTotal,
-      fullPixTotal,
-      chargeTotal,
-      chargePixTotal,
-      remainingBalance,
-      paymentMode,
-      isPortuguese,
-      selectedTier,
-      tourPriceInfo,
-      isWhatsAppOnly,
-    ]
+    [createdReservationCode, internalItem, serviceTitle, isTransfer, fullTotal, fullPixTotal, chargePixTotal, chargeTotal, isDeposit, remainingBalance, paymentMode, selectedTier, tourPriceInfo, form, isWhatsAppOnly]
   );
 
-  // Mercado Pago Checkout Handler (para PT)
+  // Pagamento Cartão Mercado Pago
   const handleMercadoPago = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const finalUnitPrice = Math.round(chargeTotal * 100) / 100;
       if (!finalUnitPrice || finalUnitPrice <= 0) {
-        throw new Error('Valor inválido para o checkout. Verifique a opção e o veículo selecionados.');
+        throw new Error('Valor inválido para o checkout.');
       }
 
-      const resCode = saveBookingToStorage('Cartão de Crédito');
-      await triggerHotelOpsSync('Cartão de Crédito (Mercado Pago)', resCode);
+      let resCode = sessionStorage.getItem('active_booking_code');
+      if (!resCode) {
+        resCode = saveBookingToStorage('Cartão de Crédito');
+        sessionStorage.setItem('active_booking_code', resCode);
+      } else {
+        saveBookingToStorage('Cartão de Crédito', resCode);
+      }
 
-      const titleSuffix = isDeposit ? ' - Sinal de 50%' : ' - Pagamento Integral';
+      await triggerHotelOpsSync('Cartão de Crédito', resCode);
+
+      const titleSuffix = isDeposit ? ' - Sinal 50%' : ' - Pagamento Integral';
+      const fullPhone = `${form.ddi} ${form.whatsapp}`.trim();
+
       const result = await createCheckout({
         title: `${serviceTitle}${titleSuffix}`,
         unitPrice: finalUnitPrice,
@@ -426,7 +546,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
         payer: {
           name: form.name,
           email: form.email || undefined,
-          phone: form.whatsapp,
+          phone: fullPhone,
         },
         metadata: {
           serviceId: internalItem?.id || 'service',
@@ -434,7 +554,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           tripType: form.tripType,
           optionType: form.optionType,
           vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
-          date: format(form.date, 'yyyy-MM-dd'),
+          date: form.date ? format(form.date, 'yyyy-MM-dd') : undefined,
           returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
           time: form.time,
           returnTime: isRoundTrip ? form.returnTime : undefined,
@@ -445,14 +565,14 @@ export default function BookingModal({ item, open, onOpenChange }) {
           fullTotal,
           chargeTotal: finalUnitPrice,
           remainingBalance,
-          cpf: form.cpf || undefined,
+          cpf: form.isForeigner ? undefined : form.cpf,
+          passport: form.isForeigner ? form.passport : undefined,
           code: resCode,
         },
       });
 
       if (result && (result.init_point || result.sandbox_init_point)) {
-        const checkoutUrl = result.init_point || result.sandbox_init_point;
-        window.location.href = checkoutUrl;
+        window.location.href = result.init_point || result.sandbox_init_point;
         return;
       }
 
@@ -462,19 +582,85 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  }, [form, chargeTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync, saveBookingToStorage]);
+  }, [chargeTotal, saveBookingToStorage, triggerHotelOpsSync, isDeposit, form, serviceTitle, internalItem, isTransfer, selectedTier, tourPriceInfo, isRoundTrip, paymentMode, fullTotal, remainingBalance]);
 
-  // Pix Handler (para PT)
+  // Pagamento Cartão Internacional Stripe
+  const handleStripePayment = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const finalUnitPrice = Math.round(chargeTotal * 100) / 100;
+      if (!finalUnitPrice || finalUnitPrice <= 0) {
+        throw new Error('Valor inválido para o checkout Stripe.');
+      }
+
+      let resCode = sessionStorage.getItem('active_booking_code');
+      if (!resCode) {
+        resCode = saveBookingToStorage('Cartão Internacional (Stripe)');
+        sessionStorage.setItem('active_booking_code', resCode);
+      } else {
+        saveBookingToStorage('Cartão Internacional (Stripe)', resCode);
+      }
+
+      await triggerHotelOpsSync('Cartão Internacional (Stripe)', resCode);
+
+      const titleSuffix = isDeposit ? ' - 50% Deposit' : '';
+      const fullPhone = `${form.ddi} ${form.whatsapp}`.trim();
+
+      const result = await createStripeCheckout({
+        title: `${serviceTitle}${titleSuffix}`,
+        unitPrice: finalUnitPrice,
+        quantity: 1,
+        payer: {
+          name: form.name,
+          email: form.email || undefined,
+          phone: fullPhone,
+        },
+        metadata: {
+          serviceId: internalItem?.id || 'service',
+          category: internalItem?.category || (isTransfer ? 'transfer' : 'tour'),
+          tripType: form.tripType,
+          optionType: form.optionType,
+          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
+          date: form.date ? format(form.date, 'yyyy-MM-dd') : undefined,
+          returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
+          time: form.time,
+          pickup: form.pickup,
+          passengers: form.passengers,
+          flightDetails: form.flightDetails.trim() || undefined,
+          document: form.isForeigner ? form.passport : form.cpf,
+          isForeigner: form.isForeigner ? 'true' : 'false',
+          paymentMode,
+          fullTotal,
+          chargeTotal: finalUnitPrice,
+          remainingBalance,
+          code: resCode,
+        },
+      });
+
+      if (result && result.url) {
+        window.location.href = result.url;
+        return;
+      }
+
+      setError('Resposta inesperada do servidor Stripe.');
+    } catch (err) {
+      setError(err.message || 'Erro ao processar pagamento com cartão internacional. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  }, [chargeTotal, saveBookingToStorage, triggerHotelOpsSync, isDeposit, form, serviceTitle, internalItem, isTransfer, selectedTier, tourPriceInfo, paymentMode, fullTotal, remainingBalance]);
+
+  // Pagamento via PIX Dinâmico
   const handlePixPayment = useCallback(async () => {
     setLoadingPix(true);
     setError(null);
     try {
       const finalPixUnitPrice = Math.round(chargePixTotal * 100) / 100;
       if (!finalPixUnitPrice || finalPixUnitPrice <= 0) {
-        throw new Error('Valor inválido para a chave Pix. Verifique a opção e o veículo selecionados.');
+        throw new Error('Valor inválido para a chave Pix.');
       }
 
-      // Verifica se já existe um active_booking_code nesta sessão para reaproveitar
       let resCode = sessionStorage.getItem('active_booking_code');
       if (!resCode) {
         resCode = saveBookingToStorage('Pix');
@@ -483,10 +669,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
         saveBookingToStorage('Pix', resCode);
       }
 
-      // Persiste no Supabase com o código exato antes de gerar o Pix
       await triggerHotelOpsSync('Pix', resCode);
 
       const titleSuffix = isDeposit ? ' - Sinal 50% PIX' : ' - PIX (5% OFF)';
+      const fullPhone = `${form.ddi} ${form.whatsapp}`.trim();
+
       const result = await createPixPayment({
         title: `${serviceTitle}${titleSuffix}`,
         unitPrice: finalPixUnitPrice,
@@ -494,7 +681,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
         payer: {
           name: form.name,
           email: form.email || undefined,
-          phone: form.whatsapp,
+          phone: fullPhone,
         },
         metadata: {
           serviceId: internalItem?.id || 'service',
@@ -502,7 +689,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           tripType: form.tripType,
           optionType: form.optionType,
           vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || undefined,
-          date: format(form.date, 'yyyy-MM-dd'),
+          date: form.date ? format(form.date, 'yyyy-MM-dd') : undefined,
           returnDate: form.returnDate ? format(form.returnDate, 'yyyy-MM-dd') : undefined,
           time: form.time,
           returnTime: isRoundTrip ? form.returnTime : undefined,
@@ -514,7 +701,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
           chargePixTotal: finalPixUnitPrice,
           remainingBalance,
           isPixDiscount: true,
-          cpf: form.cpf || undefined,
+          cpf: form.isForeigner ? undefined : form.cpf,
           code: resCode,
         },
       });
@@ -526,12 +713,12 @@ export default function BookingModal({ item, open, onOpenChange }) {
           ticketUrl: result.ticket_url,
         };
         setPixData(pixInfo);
-        
+
         try {
           localStorage.setItem(`jeri_pix_data_${resCode}`, JSON.stringify(pixInfo));
-        } catch(e) {}
-        
-        setStep('pix');
+        } catch (e) {}
+
+        setStepStatus('pix');
         return;
       }
 
@@ -541,54 +728,15 @@ export default function BookingModal({ item, open, onOpenChange }) {
     } finally {
       setLoadingPix(false);
     }
-  }, [form, chargePixTotal, fullTotal, remainingBalance, paymentMode, isDeposit, serviceTitle, internalItem, selectedTier, tourPriceInfo, isTransfer, isRoundTrip, triggerHotelOpsSync, saveBookingToStorage]);
+  }, [chargePixTotal, saveBookingToStorage, triggerHotelOpsSync, isDeposit, form, serviceTitle, internalItem, isTransfer, selectedTier, tourPriceInfo, isRoundTrip, paymentMode, fullTotal, remainingBalance]);
 
-  // Handler para quando o cliente clica em "Já realizei o pagamento / Acessar Voucher"
+  // Confirmação manual de Pix
   const handlePixPaymentConfirmedAndRedirect = useCallback(async () => {
     setLoadingPix(true);
     const resCode = createdReservationCode || sessionStorage.getItem('active_booking_code');
     if (!resCode) {
       setLoadingPix(false);
       return;
-    }
-
-    const isDeposit = isPortuguese && paymentMode === '50';
-    const amountPaid = isDeposit ? chargePixTotal : fullPixTotal;
-    const remaining = isDeposit ? remainingBalance : 0;
-
-    const bookingObj = {
-      code: resCode,
-      created_at: new Date().toISOString(),
-      client_name: form.name || 'Cliente Jericoacoara Premium',
-      client_phone: form.whatsapp || '',
-      client_email: form.email || '',
-      status: 'confirmada',
-      reservation_status: 'confirmada',
-      payment_status: 'sinal_pago',
-      payment_method: 'pix',
-      amount_total: fullTotal,
-      amount_paid: amountPaid,
-      remaining_balance: remaining,
-      pickup_location: form.pickup || 'Ponto informado no formulário',
-      notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
-      items: [
-        {
-          title: serviceTitle,
-          service_type: isTransfer ? 'transfer' : 'passeio',
-          modality: form.optionType,
-          vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 / Buggy',
-          date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
-          time: form.time || '11:30',
-          pax: form.passengers || 1,
-          unit_price: fullTotal,
-        },
-      ],
-    };
-
-    try {
-      localStorage.setItem(`jeri_last_booking_${resCode}`, JSON.stringify(bookingObj));
-    } catch (e) {
-      console.warn('[BookingModal] Erro ao salvar voucher em localStorage:', e);
     }
 
     try {
@@ -599,11 +747,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
         fullPixTotal,
         chargeTotal: chargePixTotal,
         chargePixTotal,
-        remainingBalance: isPortuguese ? remainingBalance : 0,
-        paymentMode: isPortuguese ? paymentMode : '100',
+        remainingBalance: isDeposit ? remainingBalance : 0,
+        paymentMode,
         paymentMethod: 'Pix',
         vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-        isWhatsAppOnly: !isPortuguese || isWhatsAppOnly,
+        isWhatsAppOnly: isWhatsAppOnly,
         isConfirmed: true,
         paymentStatus: 'sinal_pago',
         reservationStatus: 'confirmada',
@@ -616,136 +764,64 @@ export default function BookingModal({ item, open, onOpenChange }) {
     setLoadingPix(false);
     handleOpenChange(false);
     window.location.href = `/voucher/${resCode}`;
-  }, [
-    createdReservationCode,
-    form,
-    isPortuguese,
-    paymentMode,
-    chargePixTotal,
-    fullPixTotal,
-    remainingBalance,
-    fullTotal,
-    serviceTitle,
-    isTransfer,
-    selectedTier,
-    tourPriceInfo,
-    internalItem,
-    isWhatsAppOnly,
-    handleOpenChange,
-  ]);
+  }, [createdReservationCode, internalItem, serviceTitle, isTransfer, fullTotal, fullPixTotal, chargePixTotal, isDeposit, remainingBalance, paymentMode, selectedTier, tourPriceInfo, form, isWhatsAppOnly, handleOpenChange]);
 
-  // Handler do WhatsApp em PT, EN ou ES
+  // Handler WhatsApp
   const handleWhatsApp = useCallback(async () => {
-    const resCode = createdReservationCode || saveBookingToStorage(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
+    const resCode =
+      createdReservationCode || saveBookingToStorage(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)');
     await triggerHotelOpsSync(isPortuguese ? 'WhatsApp' : 'WhatsApp (International)', resCode);
 
-    let msgText = '';
-
-    if (language === 'en') {
-      msgText = `Hello! I would like to book:\n\n*${serviceTitle}*\n`;
-      if (isTransfer) {
-        const tripLabelMap = {
-          oneWay: 'One Way',
-          returnWay: 'Return Only',
-          roundTrip: 'Round Trip',
-        };
-        msgText += `Route: ${tripLabelMap[form.tripType] || 'Round Trip'}\n`;
-        msgText += `Service: ${form.optionType === 'shared' ? 'Shared' : `Private (${selectedTier?.vehicle || 'Exclusive'})`}\n`;
-        if (form.flightDetails.trim()) {
-          msgText += `Flight Details: ${form.flightDetails.trim()}\n`;
-        }
-      } else if (isTour) {
-        msgText += `Modality: ${form.optionType === 'shared' ? 'Shared' : `Private (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
+    let msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
+    if (isTransfer) {
+      const tripLabelMap = {
+        oneWay: 'Somente Ida',
+        returnWay: 'Somente Volta',
+        roundTrip: 'Ida e Volta',
+      };
+      msgText += `Trajeto: ${tripLabelMap[form.tripType] || 'Ida e Volta'}\n`;
+      msgText += `Serviço: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
+      if (form.flightDetails.trim()) {
+        msgText += `Dados do Voo: ${form.flightDetails.trim()}\n`;
       }
-      if (isRoundTrip && form.returnDate) {
-        msgText += `Departure Date: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` at ${form.time}` : ''}\n`;
-        msgText += `Return Date: ${format(form.returnDate, 'dd/MM/yyyy')}${isTransfer ? ` at ${form.returnTime}` : ''}\n`;
-      } else {
-        msgText += `Date: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` at ${form.time}` : ''}\n`;
-      }
-      if (form.pickup) msgText += `Pickup Location: ${form.pickup}\n`;
-      msgText += `Travelers: ${form.passengers}\n`;
-      msgText += `Total Price: *${formatPrice(fullTotal)}*\n`;
-      msgText += `\nName: ${form.name}\nContact Phone: ${form.whatsapp}`;
-      if (form.email) msgText += `\nEmail: ${form.email}`;
-    } else if (language === 'es') {
-      msgText = `¡Hola! Me gustaría reservar:\n\n*${serviceTitle}*\n`;
-      if (isTransfer) {
-        const tripLabelMap = {
-          oneWay: 'Solo Ida',
-          returnWay: 'Solo Vuelta',
-          roundTrip: 'Ida y Vuelta',
-        };
-        msgText += `Trayecto: ${tripLabelMap[form.tripType] || 'Ida y Vuelta'}\n`;
-        msgText += `Servicio: ${form.optionType === 'shared' ? 'Compartido' : `Privado (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
-        if (form.flightDetails.trim()) {
-          msgText += `Datos del Vuelo: ${form.flightDetails.trim()}\n`;
-        }
-      } else if (isTour) {
-        msgText += `Modalidad: ${form.optionType === 'shared' ? 'Compartido' : `Privado (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
-      }
-      if (isRoundTrip && form.returnDate) {
-        msgText += `Fecha de Ida: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` a las ${form.time}hs` : ''}\n`;
-        msgText += `Fecha de Vuelta: ${format(form.returnDate, 'dd/MM/yyyy')}${isTransfer ? ` a las ${form.returnTime}hs` : ''}\n`;
-      } else {
-        msgText += `Fecha: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` a las ${form.time}hs` : ''}\n`;
-      }
-      if (form.pickup) msgText += `Lugar de Recogida: ${form.pickup}\n`;
-      msgText += `Pasajeros: ${form.passengers}\n`;
-      msgText += `Precio Total: *${formatPrice(fullTotal)}*\n`;
-      msgText += `\nNombre: ${form.name}\nTeléfono: ${form.whatsapp}`;
-      if (form.email) msgText += `\nCorreo: ${form.email}`;
-    } else {
-      // Português
-      msgText = `Olá! Gostaria de ${isWhatsAppOnly ? 'consultar disponibilidade para' : 'reservar'}:\n\n*${serviceTitle}*\n`;
-      if (isTransfer) {
-        const tripLabelMap = {
-          oneWay: 'Somente Ida',
-          returnWay: 'Somente Volta',
-          roundTrip: 'Ida e Volta',
-        };
-        msgText += `Trajeto: ${tripLabelMap[form.tripType] || 'Ida e Volta'}\n`;
-        msgText += `Serviço: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${selectedTier?.vehicle || 'Exclusivo'})`}\n`;
-        if (form.flightDetails.trim()) {
-          msgText += `Dados do Voo: ${form.flightDetails.trim()}\n`;
-        }
-      } else if (isTour) {
-        msgText += `Modalidade: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
-        if (tourPriceInfo?.vehicleCount > 1) {
-          msgText += `Veículos: ${tourPriceInfo.vehicleCount}x ${tourPriceInfo.selectedVehicle?.type}\n`;
-        }
-      }
-
-      if (isRoundTrip && form.returnDate) {
-        msgText += `Data da Ida: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
-        msgText += `Data da Volta: ${format(form.returnDate, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.returnTime}h` : ''}\n`;
-      } else {
-        msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
-      }
-      if (form.pickup) msgText += `Local de Embarque: ${form.pickup}\n`;
-      msgText += `Passageiros: ${form.passengers}\n`;
-
-      if (!isWhatsAppOnly) {
-        msgText += `Modalidade de Pagamento: *${isDeposit ? 'Sinal de 50%' : 'Pagamento Integral (100%)'}*\n`;
-        const nightText = nightFeeApplied ? ' (+ R$ 20 Tarifa Noturna)' : '';
-        if (isDeposit) {
-          msgText += `Valor Total do Serviço: ${formatPrice(fullTotal)}${nightText}\n`;
-          msgText += `Sinal no Cartão (50%): ${formatPrice(chargeTotal)}\n`;
-          msgText += `Sinal no PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
-          msgText += `Saldo Restante: *${formatPrice(remainingBalance)}*\n`;
-        } else {
-          msgText += `Cartão (100%): ${formatPrice(chargeTotal)}${nightText}\n`;
-          msgText += `PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
-        }
-      }
-
-      msgText += `\nNome: ${form.name}\nContato: ${form.whatsapp}`;
-      if (form.email) msgText += `\nE-mail: ${form.email}`;
+    } else if (isTour) {
+      msgText += `Modalidade: ${form.optionType === 'shared' ? 'Compartilhado' : `Privativo (${tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType})`}\n`;
     }
 
+    if (isRoundTrip && form.returnDate) {
+      msgText += `Data da Ida: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
+      msgText += `Data da Volta: ${format(form.returnDate, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.returnTime}h` : ''}\n`;
+    } else if (form.date) {
+      msgText += `Data: ${format(form.date, 'dd/MM/yyyy')}${isTransfer ? ` às ${form.time}h` : ''}\n`;
+    }
+    if (form.pickup) msgText += `Local de Embarque: ${form.pickup}\n`;
+    msgText += `Passageiros: ${form.passengers}\n`;
+
+    if (!isWhatsAppOnly) {
+      msgText += `Modalidade de Pagamento: *${isDeposit ? 'Sinal de 50%' : 'Pagamento Integral (100%)'}*\n`;
+      const nightText = nightFeeApplied ? ' (+ R$ 20 Tarifa Noturna)' : '';
+      if (isDeposit) {
+        msgText += `Valor Total do Serviço: ${formatPrice(fullTotal)}${nightText}\n`;
+        msgText += `Sinal no Cartão (50%): ${formatPrice(chargeTotal)}\n`;
+        msgText += `Sinal no PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+        msgText += `Saldo Restante: *${formatPrice(remainingBalance)}*\n`;
+      } else {
+        msgText += `Cartão (100%): ${formatPrice(chargeTotal)}${nightText}\n`;
+        msgText += `PIX (5% OFF): *${formatPrice(chargePixTotal)}*\n`;
+      }
+    }
+
+    msgText += `\nNome: ${form.name}\nContato: ${form.ddi} ${form.whatsapp}`;
+    if (form.isForeigner && form.passport) {
+      msgText += `\nDocumento: Passaporte ${form.passport}`;
+    } else if (form.cpf) {
+      msgText += `\nCPF: ${form.cpf}`;
+    }
+    if (form.email) msgText += `\nE-mail: ${form.email}`;
+
     openWhatsApp(msgText);
-    setStep('success');
-  }, [form, serviceTitle, isTransfer, isTour, isRoundTrip, isWhatsAppOnly, isPortuguese, language, isDeposit, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier, tourPriceInfo, nightFeeApplied, triggerHotelOpsSync, createdReservationCode, saveBookingToStorage]);
+    setStepStatus('success');
+  }, [createdReservationCode, saveBookingToStorage, isPortuguese, triggerHotelOpsSync, isWhatsAppOnly, serviceTitle, isTransfer, form, isTour, tourPriceInfo, isRoundTrip, isDeposit, nightFeeApplied, fullTotal, chargeTotal, chargePixTotal, remainingBalance, selectedTier]);
 
   const handleCopyPix = useCallback(() => {
     if (pixData?.qrCode) {
@@ -766,7 +842,7 @@ export default function BookingModal({ item, open, onOpenChange }) {
       const res = await fetch('/api/send-voucher-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: createdReservationCode, email: emailInput })
+        body: JSON.stringify({ code: createdReservationCode, email: emailInput }),
       });
       if (res.ok) {
         setEmailStatus('sent');
@@ -780,479 +856,831 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="z-[60] w-[95vw] max-w-lg mx-auto max-h-[90dvh] overflow-hidden rounded-xl bg-white p-0 shadow-xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
-        <DialogHeader className="px-5 pt-5 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-gray-100 shrink-0">
-          <DialogTitle className="text-lg font-bold text-gray-900 pr-8">
-            {step === 'success'
-              ? 'Reserva Solicitada!'
-              : step === 'pix'
-              ? t('bookingModal.pixTitle')
-              : (isWhatsAppOnly || !isPortuguese)
-              ? t('bookingModal.whatsappTitle')
-              : t('bookingModal.modalTitle')}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-gray-500">
-            {step === 'success'
-              ? 'Sua solicitação foi registrada no sistema com sucesso.'
-              : step === 'pix'
-              ? t('bookingModal.pixInstructions')
-              : serviceTitle}
-          </DialogDescription>
+      <DialogContent className="z-[70] w-[95vw] max-w-2xl mx-auto max-h-[92dvh] overflow-hidden rounded-2xl bg-white p-0 shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        
+        {/* Header com Título do Modal */}
+        <DialogHeader className="px-5 pt-4 pb-3 sm:px-6 border-b border-gray-100 shrink-0 bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-base sm:text-lg font-bold text-gray-900 pr-6">
+                {stepStatus === 'success'
+                  ? 'Reserva Confirmada!'
+                  : stepStatus === 'pix'
+                  ? 'Pagamento via PIX Dinâmico'
+                  : serviceTitle}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-gray-500">
+                {stepStatus === 'success'
+                  ? 'Sua solicitação foi registrada com sucesso.'
+                  : stepStatus === 'pix'
+                  ? 'Escaneie o QR Code ou copie o código Pix abaixo.'
+                  : isTransfer
+                  ? 'Configure sua viagem, identifique os passageiros e garanta sua reserva.'
+                  : 'Escolha seu veículo, informe seus dados e parcele sua aventura.'}
+              </DialogDescription>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Reserva Garantida</span>
+            </div>
+          </div>
         </DialogHeader>
 
-        {step === 'form' && (
+        {/* Barra de Progresso Visual (Stepper 1-2-3) */}
+        {stepStatus === 'wizard' && (
+          <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/80 shrink-0">
+            <div className="flex items-center justify-between max-w-md mx-auto relative">
+              {/* Linha conectora de fundo */}
+              <div className="absolute left-6 right-6 top-3.5 -translate-y-1/2 h-0.5 bg-gray-200 z-0">
+                <div
+                  className="h-full bg-emerald-600 transition-all duration-300"
+                  style={{
+                    width: wizardStep === 1 ? '0%' : wizardStep === 2 ? '50%' : '100%',
+                  }}
+                />
+              </div>
+
+              {/* Etapa 1 */}
+              <button
+                type="button"
+                onClick={() => setWizardStep(1)}
+                className="flex flex-col items-center relative z-10 cursor-pointer focus:outline-none"
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    wizardStep > 1
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : wizardStep === 1
+                      ? 'bg-[#D4AF37] text-gray-950 ring-4 ring-[#D4AF37]/25 shadow-md'
+                      : 'bg-white border-2 border-gray-300 text-gray-400'
+                  }`}
+                >
+                  {wizardStep > 1 ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : '1'}
+                </div>
+                <span
+                  className={`text-[10px] font-bold mt-1 tracking-wide ${
+                    wizardStep === 1 ? 'text-[#B48F1E]' : 'text-gray-500'
+                  }`}
+                >
+                  Serviço & Veículo
+                </span>
+              </button>
+
+              {/* Etapa 2 */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isStep1Valid) setWizardStep(2);
+                }}
+                className={`flex flex-col items-center relative z-10 focus:outline-none ${
+                  isStep1Valid ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    wizardStep > 2
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : wizardStep === 2
+                      ? 'bg-[#D4AF37] text-gray-950 ring-4 ring-[#D4AF37]/25 shadow-md'
+                      : 'bg-white border-2 border-gray-300 text-gray-400'
+                  }`}
+                >
+                  {wizardStep > 2 ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : '2'}
+                </div>
+                <span
+                  className={`text-[10px] font-bold mt-1 tracking-wide ${
+                    wizardStep === 2 ? 'text-[#B48F1E]' : 'text-gray-500'
+                  }`}
+                >
+                  Identificação
+                </span>
+              </button>
+
+              {/* Etapa 3 */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isStep1Valid && isStep2Valid) setWizardStep(3);
+                }}
+                className={`flex flex-col items-center relative z-10 focus:outline-none ${
+                  isStep1Valid && isStep2Valid ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    wizardStep === 3
+                      ? 'bg-[#D4AF37] text-gray-950 ring-4 ring-[#D4AF37]/25 shadow-md'
+                      : 'bg-white border-2 border-gray-300 text-gray-400'
+                  }`}
+                >
+                  3
+                </div>
+                <span
+                  className={`text-[10px] font-bold mt-1 tracking-wide ${
+                    wizardStep === 3 ? 'text-[#B48F1E]' : 'text-gray-500'
+                  }`}
+                >
+                  Pagamento Seguro
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* CORPO DO WIZARD */}
+        {stepStatus === 'wizard' && (
           <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
             
-            {/* Seletor do Serviço */}
-            <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-              <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.serviceSelected')} *</Label>
-              <Select
-                value={internalItem?.id || ''}
-                onValueChange={(val) => {
-                  const newTransfer = transfersData.find((t) => t.id === val);
-                  if (newTransfer) setInternalItem(newTransfer);
-                  const newTour = toursData.find((t) => t.id === val);
-                  if (newTour) setInternalItem(newTour);
-                }}
-              >
-                <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
-                  <SelectValue placeholder="Escolha o serviço..." />
-                </SelectTrigger>
-                <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg max-h-60">
-                  <div className="px-2 py-1.5 text-xs font-bold text-gray-500 bg-gray-50">Transfers</div>
-                  {transfersData.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
-                  ))}
-                  <div className="px-2 py-1.5 text-xs font-bold text-gray-500 bg-gray-50 mt-2">Passeios e Roteiros</div>
-                  {toursData.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Transfer Fields */}
-            {isTransfer && transferItem && (
-              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.tripType')} *</Label>
-                    <Select
-                      value={form.tripType}
-                      onValueChange={(val) => setForm((prev) => ({ ...prev, tripType: val }))}
-                    >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
-                        <SelectValue placeholder="Trajeto" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="oneWay">{t('transfers.oneWay')}</SelectItem>
-                        <SelectItem value="returnWay">Somente Volta</SelectItem>
-                        <SelectItem value="roundTrip">{t('transfers.roundTrip')}</SelectItem>
-                      </SelectContent>
-                    </Select>
+            {/* ETAPA 1: SERVIÇO & VEÍCULO */}
+            {wizardStep === 1 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                
+                {/* Seletor rápido de rota / item */}
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    {isTransfer ? (
+                      <Car className="w-4 h-4 text-[#D4AF37]" />
+                    ) : (
+                      <Compass className="w-4 h-4 text-emerald-600" />
+                    )}
+                    <div>
+                      <span className="text-[10px] font-bold uppercase text-gray-400 block">
+                        Rota Selecionada
+                      </span>
+                      <p className="text-xs sm:text-sm font-bold text-gray-900">{serviceTitle}</p>
+                    </div>
                   </div>
 
+                  <Select
+                    value={internalItem?.id || ''}
+                    onValueChange={(val) => {
+                      const newTransfer = transfersData.find((t) => t.id === val);
+                      if (newTransfer) setInternalItem(newTransfer);
+                      const newTour = toursData.find((t) => t.id === val);
+                      if (newTour) setInternalItem(newTour);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-white border-gray-200 w-auto px-3">
+                      <SelectValue placeholder="Trocar" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[150] bg-white border border-gray-200 max-h-60">
+                      <div className="px-2 py-1 text-[10px] font-bold text-gray-400 uppercase">Transfers</div>
+                      {transfersData.map((t) => (
+                        <SelectItem key={t.id} value={t.id} className="text-xs">
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1 text-[10px] font-bold text-gray-400 uppercase mt-1">Passeios</div>
+                      {toursData.map((t) => (
+                        <SelectItem key={t.id} value={t.id} className="text-xs">
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Trajeto (Para Transfers) */}
+                {isTransfer && (
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.serviceType')} *</Label>
-                    <Select
-                      value={form.optionType}
-                      onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
+                    <Label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                      Modalidade do Trajeto
+                    </Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'roundTrip', label: 'Ida e Volta', badge: 'Mais Recomendado' },
+                        { id: 'oneWay', label: 'Somente Ida', badge: null },
+                        { id: 'returnWay', label: 'Somente Volta', badge: null },
+                      ].map((trip) => (
+                        <button
+                          key={trip.id}
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, tripType: trip.id }))}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            form.tripType === trip.id
+                              ? 'bg-emerald-50/70 border-emerald-500 ring-1 ring-emerald-500 shadow-xs'
+                              : 'bg-white border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-900">{trip.label}</span>
+                            {form.tripType === trip.id && (
+                              <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
+                            )}
+                          </div>
+                          {trip.badge && (
+                            <span className="text-[9px] text-emerald-700 font-semibold block mt-0.5">
+                              {trip.badge}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* CARDS COMPARATIVOS: COMPARTILHADO VS PRIVATIVO */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    Escolha a Categoria do Veículo
+                  </Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
+                    {/* Opção Compartilhada (se disponível) */}
+                    {isTransfer && transferItem?.options?.shared?.available && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, optionType: 'shared' }))}
+                        className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                          form.optionType === 'shared'
+                            ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md'
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
+                              <Users className="w-3.5 h-3.5 text-emerald-600" /> Compartilhado
+                            </span>
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                              Econômico
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 leading-snug">
+                            Van, Ônibus ou Jardineira climatizada com outros viajantes.
+                          </p>
+                          <ul className="mt-2 space-y-1 text-[10px] text-gray-600">
+                            <li className="flex items-center gap-1">✓ Preço por passageiro</li>
+                            <li className="flex items-center gap-1">✓ Horários regulares definidos</li>
+                            <li className="flex items-center gap-1">✓ Motorista credenciado</li>
+                          </ul>
+                        </div>
+                        <div className="pt-3 mt-2 border-t border-gray-100 flex items-baseline justify-between">
+                          <span className="text-[10px] text-gray-400">Tarifa por pessoa:</span>
+                          <span className="text-base font-extrabold text-emerald-700">
+                            {formatPrice(
+                              form.tripType === 'roundTrip'
+                                ? transferItem.options.shared.roundTrip
+                                : transferItem.options.shared.oneWay
+                            )}
+                          </span>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* Opção Compartilhada para Passeios */}
+                    {isTour && tourItem?.options?.shared?.available && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, optionType: 'shared' }))}
+                        className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                          form.optionType === 'shared'
+                            ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md'
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
+                              <Users className="w-3.5 h-3.5 text-emerald-600" /> Jardineira Compartilhada
+                            </span>
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                              Melhor Custo
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 leading-snug">
+                            Passeio em grupo na clássica Jardineira 4x4 de Jeri.
+                          </p>
+                          <ul className="mt-2 space-y-1 text-[10px] text-gray-600">
+                            <li className="flex items-center gap-1">✓ Preço por pessoa</li>
+                            <li className="flex items-center gap-1">✓ Roteiro completo com paradas</li>
+                          </ul>
+                        </div>
+                        <div className="pt-3 mt-2 border-t border-gray-100 flex items-baseline justify-between">
+                          <span className="text-[10px] text-gray-400">Por pessoa:</span>
+                          <span className="text-base font-extrabold text-emerald-700">
+                            {formatPrice(tourItem.options.shared.price)}
+                          </span>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* Opção Privativa (Transfers ou Passeios) */}
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, optionType: 'private' }))}
+                      className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                        form.optionType === 'private'
+                          ? 'bg-amber-50/70 border-[#D4AF37] ring-2 ring-[#D4AF37]/25 shadow-md'
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
                     >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium border-gray-200">
-                        <SelectValue placeholder="Tipo" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                        {transferItem?.options?.private?.available !== false && (
-                          <SelectItem value="private">{t('tours.private')}</SelectItem>
-                        )}
-                        {transferItem?.options?.shared?.available !== false && (
-                          <SelectItem value="shared">{t('tours.shared')}</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
+                            <Car className="w-3.5 h-3.5 text-[#D4AF37]" /> Privativo VIP 4x4
+                          </span>
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-gray-900 font-extrabold">
+                            Exclusivo
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-snug">
+                          Veículo e motorista particular dedicados com total flexibilidade.
+                        </p>
+                        <ul className="mt-2 space-y-1 text-[10px] text-gray-600">
+                          <li className="flex items-center gap-1">✓ Embarque porta a porta no hotel/aeroporto</li>
+                          <li className="flex items-center gap-1">✓ Você escolhe o melhor horário de partida</li>
+                          <li className="flex items-center gap-1">✓ Hilux, SW4, Buggy ou Quadriciclo</li>
+                        </ul>
+                      </div>
+                      <div className="pt-3 mt-2 border-t border-gray-100 flex items-baseline justify-between">
+                        <span className="text-[10px] text-gray-400">Preço fechado para o grupo</span>
+                        <span className="text-base font-extrabold text-gray-900">
+                          {isTransfer && transferItem?.options?.private?.tiers?.[0]
+                            ? formatPrice(
+                                form.tripType === 'roundTrip'
+                                  ? transferItem.options.private.tiers[0].roundTrip
+                                  : transferItem.options.private.tiers[0].oneWay
+                              )
+                            : isTour && tourItem?.options?.private?.vehicles?.[0]
+                            ? formatPrice(tourItem.options.private.vehicles[0].price)
+                            : 'Sob consulta'}
+                        </span>
+                      </div>
+                    </button>
                   </div>
                 </div>
 
-                {isRoundTrip ? (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
-                          {t('bookingModal.departureTime')} *
-                        </Label>
-                        <div className="relative flex items-center">
-                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
-                          <Input
-                            id="booking-time"
-                            type="time"
-                            value={form.time}
-                            onChange={handleChange('time')}
-                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium"
+                {/* Seletor de Veículo Privativo Específico */}
+                {form.optionType === 'private' && (
+                  <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-2">
+                    <Label className="text-xs font-semibold text-gray-700">
+                      Escolha o Modelo do Veículo Privativo
+                    </Label>
+                    
+                    {/* Tiers de Transfers */}
+                    {isTransfer && transferItem?.options?.private?.tiers && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {transferItem.options.private.tiers.map((tier, idx) => {
+                          const isTierSelected =
+                            form.selectedTierIndex === idx ||
+                            (form.selectedTierIndex === undefined && idx === 0);
+                          const tierPrice =
+                            form.tripType === 'roundTrip' ? tier.roundTrip : tier.oneWay;
+                          return (
+                            <button
+                              key={tier.vehicle}
+                              type="button"
+                              onClick={() =>
+                                setForm((prev) => ({
+                                  ...prev,
+                                  selectedTierIndex: idx,
+                                  selectedVehicleType: tier.vehicle,
+                                }))
+                              }
+                              className={`p-2.5 rounded-lg border text-left flex items-center justify-between transition-colors cursor-pointer ${
+                                isTierSelected
+                                  ? 'bg-white border-[#D4AF37] ring-1 ring-[#D4AF37] shadow-xs'
+                                  : 'bg-white/60 border-gray-200 hover:bg-white'
+                              }`}
+                            >
+                              <div>
+                                <p className="text-xs font-bold text-gray-900">{tier.vehicle}</p>
+                                <p className="text-[10px] text-gray-500">Até {tier.maxCapacity} passageiros</p>
+                              </div>
+                              <span className="text-xs font-extrabold text-[#B48F1E]">
+                                {formatPrice(tierPrice)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Veículos de Tours */}
+                    {isTour && tourItem?.options?.private?.vehicles && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {tourItem.options.private.vehicles.map((v) => {
+                          const isSelected = form.selectedVehicleType === v.type;
+                          return (
+                            <button
+                              key={v.type}
+                              type="button"
+                              onClick={() =>
+                                setForm((prev) => ({ ...prev, selectedVehicleType: v.type }))
+                              }
+                              className={`p-2.5 rounded-lg border text-center transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-white border-[#D4AF37] ring-1 ring-[#D4AF37] shadow-xs'
+                                  : 'bg-white/60 border-gray-200 hover:bg-white'
+                              }`}
+                            >
+                              <p className="text-xs font-bold text-gray-900">{v.type}</p>
+                              <p className="text-[10px] text-gray-500 mb-1">Até {v.maxCapacity} pax</p>
+                              <span className="text-[11px] font-extrabold text-emerald-700">
+                                {formatPrice(v.price)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Datas, Horários e Passageiros */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
+                  
+                  {/* Data Ida */}
+                  <div className={`space-y-1 ${isRoundTrip ? 'sm:col-span-4' : 'sm:col-span-5'}`}>
+                    <Label className="text-xs font-semibold text-gray-700">
+                      {isRoundTrip ? 'Data da Ida' : 'Data do Serviço'} *
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsCalendarOpen((prev) => !prev);
+                        setIsReturnCalendarOpen(false);
+                      }}
+                      className="w-full justify-start text-left font-normal h-10 bg-white border-gray-200 text-xs"
+                    >
+                      <CalendarIcon className="mr-1.5 h-4 w-4 text-[#D4AF37]" />
+                      {form.date ? format(form.date, 'dd/MM/yyyy') : 'Selecione a data'}
+                    </Button>
+                    {isCalendarOpen && (
+                      <div className="absolute z-[120] mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-2">
+                        <Calendar
+                          mode="single"
+                          selected={form.date}
+                          onSelect={(d) => {
+                            if (d) {
+                              setForm((prev) => ({ ...prev, date: d }));
+                              if (form.returnDate && isBefore(form.returnDate, d)) {
+                                setForm((prev) => ({ ...prev, returnDate: addDays(d, 3) }));
+                              }
+                              setIsCalendarOpen(false);
+                            }
+                          }}
+                          disabled={(d) => isBefore(d, startOfDay(new Date()))}
+                          locale={dateFnsLocale}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Data Volta (se roundTrip) */}
+                  {isRoundTrip && (
+                    <div className="space-y-1 sm:col-span-4">
+                      <Label className="text-xs font-semibold text-gray-700">Data da Volta *</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsReturnCalendarOpen((prev) => !prev);
+                          setIsCalendarOpen(false);
+                        }}
+                        className="w-full justify-start text-left font-normal h-10 bg-white border-gray-200 text-xs"
+                      >
+                        <CalendarIcon className="mr-1.5 h-4 w-4 text-emerald-600" />
+                        {form.returnDate ? format(form.returnDate, 'dd/MM/yyyy') : 'Data de retorno'}
+                      </Button>
+                      {isReturnCalendarOpen && (
+                        <div className="absolute z-[120] mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-2">
+                          <Calendar
+                            mode="single"
+                            selected={form.returnDate}
+                            onSelect={(d) => {
+                              if (d) {
+                                setForm((prev) => ({ ...prev, returnDate: d }));
+                                setIsReturnCalendarOpen(false);
+                              }
+                            }}
+                            disabled={(d) => isBefore(d, startOfDay(form.date || new Date()))}
+                            locale={dateFnsLocale}
                           />
                         </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="booking-return-time" className="text-xs font-semibold text-gray-700">
-                          {t('bookingModal.returnTime')} *
-                        </Label>
-                        <div className="relative flex items-center">
-                          <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
-                          <Input
-                            id="booking-return-time"
-                            type="time"
-                            value={form.returnTime}
-                            onChange={handleChange('returnTime')}
-                            className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium"
-                          />
-                        </div>
-                      </div>
+                      )}
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
-                        {t('bookingModal.flightData')}
-                      </Label>
-                      <Input
-                        id="booking-flight"
-                        placeholder={t('bookingModal.flightPlaceholder')}
-                        value={form.flightDetails}
-                        onChange={handleChange('flightDetails')}
-                        className="h-10 bg-white text-xs px-3 w-full rounded-md border border-gray-200"
-                      />
+                  {/* Horário */}
+                  <div className={`space-y-1 ${isRoundTrip ? 'sm:col-span-2' : 'sm:col-span-3'}`}>
+                    <Label className="text-xs font-semibold text-gray-700">Horário</Label>
+                    <Input
+                      type="time"
+                      value={form.time}
+                      onChange={handleChange('time')}
+                      className="h-10 text-xs bg-white"
+                    />
+                  </div>
+
+                  {/* Passageiros */}
+                  <div className={`space-y-1 ${isRoundTrip ? 'sm:col-span-2' : 'sm:col-span-4'}`}>
+                    <Label className="text-xs font-semibold text-gray-700">Passageiros</Label>
+                    <div className="flex items-center justify-between h-10 bg-white border border-gray-200 rounded-md px-2">
+                      <button
+                        type="button"
+                        disabled={form.passengers <= 1}
+                        onClick={() =>
+                          setForm((prev) => ({ ...prev, passengers: Math.max(1, prev.passengers - 1) }))
+                        }
+                        className="w-6 h-6 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 flex items-center justify-center cursor-pointer"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="text-xs font-bold text-gray-900">{form.passengers}</span>
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, passengers: prev.passengers + 1 }))}
+                        className="w-6 h-6 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
                     </div>
-                  </>
-                ) : (
+                  </div>
+                </div>
+
+                {/* Resumo Financeiro da Etapa 1 */}
+                <div className="bg-slate-50 p-3.5 rounded-xl border border-gray-200 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-gray-500 uppercase font-bold block">
+                      Subtotal Estimado
+                    </span>
+                    <span className="text-xl font-extrabold text-gray-900">
+                      {formatPrice(fullTotal)}
+                    </span>
+                    {nightFeeApplied && (
+                      <span className="text-[10px] text-amber-700 block font-medium">
+                        + R$ 20 (Tarifa Noturna após 18h)
+                      </span>
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={() => setWizardStep(2)}
+                    disabled={!isStep1Valid}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-5 rounded-xl flex items-center gap-2 cursor-pointer shadow-md"
+                  >
+                    <span>Continuar para Identificação</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ETAPA 2: IDENTIFICAÇÃO & EMBARQUE */}
+            {wizardStep === 2 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                
+                {/* Alternador de Documento: Brasileiro vs Estrangeiro */}
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-gray-900 block">Nacionalidade do Titular</span>
+                    <span className="text-[11px] text-gray-500">
+                      {form.isForeigner
+                        ? 'Identificação via Passaporte ou ID Internacional'
+                        : 'Identificação padrão via CPF brasileiro'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 p-1 bg-white border border-gray-200 rounded-lg shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, isForeigner: false, ddi: '+55' }))}
+                      className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        !form.isForeigner
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      🇧🇷 Brasileiro
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, isForeigner: true, ddi: '+1' }))}
+                      className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        form.isForeigner
+                          ? 'bg-[#D4AF37] text-gray-950 shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      🌍 Estrangeiro
+                    </button>
+                  </div>
+                </div>
+
+                {/* Campos do Titular */}
+                <div className="space-y-3">
+                  {/* Nome Completo */}
+                  <div className="space-y-1">
+                    <Label htmlFor="step2-name" className="text-xs font-semibold text-gray-700">
+                      Nome Completo do Titular *
+                    </Label>
+                    <Input
+                      id="step2-name"
+                      placeholder="Ex: Maria Silva Santos"
+                      value={form.name}
+                      onChange={handleChange('name')}
+                      className="h-10 text-xs bg-white"
+                    />
+                  </div>
+
+                  {/* WhatsApp com Seletor de DDI & E-mail */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="booking-time" className="text-xs font-semibold text-gray-700">
-                        {t('bookingModal.departureTime')} *
+                    <div className="space-y-1">
+                      <Label htmlFor="step2-whatsapp" className="text-xs font-semibold text-gray-700">
+                        WhatsApp para Envio do Voucher *
                       </Label>
-                      <div className="relative flex items-center">
-                        <Clock className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none z-10 shrink-0" />
+                      <div className="flex gap-2">
+                        {/* Seletor DDI */}
+                        <Select value={form.ddi} onValueChange={handleDdiChange}>
+                          <SelectTrigger className="w-28 h-10 text-xs bg-white border-gray-200 shrink-0">
+                            <SelectValue placeholder="+55" />
+                          </SelectTrigger>
+                          <SelectContent className="z-[150] bg-white border border-gray-200 max-h-56">
+                            {DDI_OPTIONS.map((item) => (
+                              <SelectItem key={item.code} value={item.code} className="text-xs">
+                                <span>{item.flag}</span> <span className="font-bold">{item.code}</span> ({item.country})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        {/* Input do Telefone */}
                         <Input
-                          id="booking-time"
-                          type="time"
-                          value={form.time}
-                          onChange={handleChange('time')}
-                          className="h-10 bg-white text-xs pl-9 pr-3 w-full rounded-md border border-gray-200 font-medium"
+                          id="step2-whatsapp"
+                          placeholder={form.ddi === '+55' ? '(85) 99999-9999' : 'Número com código de área'}
+                          value={form.whatsapp}
+                          onChange={handleChange('whatsapp')}
+                          className="h-10 text-xs bg-white flex-1"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="booking-flight" className="text-xs font-semibold text-gray-700">
-                        {t('bookingModal.flightData')}
+                    <div className="space-y-1">
+                      <Label htmlFor="step2-email" className="text-xs font-semibold text-gray-700">
+                        E-mail de Confirmação
                       </Label>
                       <Input
-                        id="booking-flight"
-                        placeholder={t('bookingModal.flightPlaceholder')}
-                        value={form.flightDetails}
-                        onChange={handleChange('flightDetails')}
-                        className="h-10 bg-white text-xs px-3 w-full rounded-md border border-gray-200"
+                        id="step2-email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={form.email}
+                        onChange={handleChange('email')}
+                        className="h-10 text-xs bg-white"
                       />
                     </div>
                   </div>
-                )}
-              </div>
-            )}
 
-            {/* Tour Fields */}
-            {isTour && tourItem && (
-              <div className="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-                <div className={`grid grid-cols-1 ${form.optionType === 'private' ? 'sm:grid-cols-2' : ''} gap-3`}>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.modality')} *</Label>
-                    <Select
-                      value={form.optionType}
-                      onValueChange={(val) => setForm((prev) => ({ ...prev, optionType: val }))}
-                    >
-                      <SelectTrigger className="h-10 bg-white text-xs font-medium">
-                        <SelectValue placeholder="Modalidade" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="private">{t('tours.private')}</SelectItem>
-                        {tourItem.options?.shared?.available && (
-                          <SelectItem value="shared">{t('tours.shared')}</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                  {/* Campo de Documento (CPF vs Passaporte) */}
+                  <div className="space-y-1">
+                    <Label htmlFor="step2-doc" className="text-xs font-semibold text-gray-700 flex items-center justify-between">
+                      <span>{form.isForeigner ? 'Passaporte / ID Internacional *' : 'CPF do Titular *'}</span>
+                      {!form.isForeigner && form.cpf && (
+                        <span className={`text-[10px] font-bold ${isCpfValid ? 'text-emerald-600' : 'text-red-500'}`}>
+                          {isCpfValid ? '✓ CPF Válido' : '✕ CPF Inválido'}
+                        </span>
+                      )}
+                    </Label>
+                    <Input
+                      id="step2-doc"
+                      placeholder={form.isForeigner ? 'Ex: AA1234567 ou Documento de Identidade' : '000.000.000-00'}
+                      value={form.isForeigner ? form.passport : form.cpf}
+                      onChange={handleChange(form.isForeigner ? 'passport' : 'cpf')}
+                      className={`h-10 text-xs bg-white ${
+                        !form.isForeigner && form.cpf && !isCpfValid ? 'border-red-400 focus:ring-red-400' : ''
+                      }`}
+                    />
                   </div>
 
-                  {form.optionType === 'private' && tourItem.options?.private?.vehicles && (
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-gray-700">{t('bookingModal.vehicle')} *</Label>
-                      <Select
-                        value={form.selectedVehicleType}
-                        onValueChange={(val) => setForm((prev) => ({ ...prev, selectedVehicleType: val }))}
-                      >
-                        <SelectTrigger className="h-10 bg-white text-xs font-medium">
-                          <SelectValue placeholder="Veículo" />
-                        </SelectTrigger>
-                        <SelectContent className="z-[110] bg-white border border-gray-200 shadow-lg">
-                          {tourItem.options.private.vehicles.map((v) => (
-                            <SelectItem key={v.type} value={v.type}>
-                              {v.type} {v.requireWhatsApp ? '(WhatsApp)' : `- ${formatPrice(v.price)}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  {/* Local de Embarque Inteligente */}
+                  <div className="space-y-1">
+                    <Label htmlFor="step2-pickup" className="text-xs font-semibold text-gray-700">
+                      Local de Embarque / Hotel / Pousada *
+                    </Label>
+                    <Input
+                      id="step2-pickup"
+                      placeholder="Ex: Hotel Vila Kalango, Aeroporto de Fortaleza, ou Pousada em Jeri"
+                      value={form.pickup}
+                      onChange={handleChange('pickup')}
+                      className="h-10 text-xs bg-white"
+                    />
+                    
+                    {/* Banner de Ajuda Sutil */}
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-50/70 border border-blue-200/60 text-blue-900 text-[11px] mt-1.5">
+                      <Info className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                      <span>
+                        Ainda não escolheu seu hotel? Digite <strong>"A definir"</strong> e nos informe até 24h antes do embarque via WhatsApp.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Dados do Voo (se aplicável) */}
+                  {isTransfer && (
+                    <div className="space-y-1 pt-1">
+                      <Label htmlFor="step2-flight" className="text-xs font-semibold text-gray-700">
+                        Número do Voo & Horário de Pouso (Opcional)
+                      </Label>
+                      <Input
+                        id="step2-flight"
+                        placeholder="Ex: G3 1540 pousando às 14:20"
+                        value={form.flightDetails}
+                        onChange={handleChange('flightDetails')}
+                        className="h-10 text-xs bg-white"
+                      />
                     </div>
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* Dados do Cliente */}
-            <div className="space-y-1.5">
-              <Label htmlFor="booking-name" className="text-xs font-semibold">
-                {t('bookingModal.fullName')} *
-              </Label>
-              <Input
-                id="booking-name"
-                placeholder={t('bookingModal.fullNamePlaceholder')}
-                value={form.name}
-                onChange={handleChange('name')}
-                className="h-10 bg-white text-xs"
-              />
-            </div>
-
-            <div className={`grid grid-cols-1 ${isPortuguese ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
-              <div className="space-y-1.5">
-                <Label htmlFor="booking-whatsapp" className="text-xs font-semibold">
-                  {t('bookingModal.whatsapp')} *
-                </Label>
-                <Input
-                  id="booking-whatsapp"
-                  placeholder={t('bookingModal.whatsappPlaceholder')}
-                  value={form.whatsapp}
-                  onChange={handleChange('whatsapp')}
-                  className="h-10 bg-white text-xs"
-                />
-              </div>
-              
-              <div className="space-y-1.5">
-                <Label htmlFor="booking-email" className="text-xs font-semibold">
-                  {t('bookingModal.email')}
-                </Label>
-                <Input
-                  id="booking-email"
-                  type="email"
-                  placeholder={t('bookingModal.emailPlaceholder')}
-                  value={form.email}
-                  onChange={handleChange('email')}
-                  className="h-10 bg-white text-xs"
-                />
-              </div>
-
-              {/* Campo CPF exibido APENAS para Português */}
-              {isPortuguese && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="booking-cpf" className="text-xs font-semibold">
-                    CPF
-                  </Label>
-                  <Input
-                    id="booking-cpf"
-                    placeholder="000.000.000-00"
-                    value={form.cpf}
-                    onChange={handleChange('cpf')}
-                    className="h-10 bg-white text-xs"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Datas, Local e Pessoas */}
-            <div className={`grid grid-cols-1 ${isRoundTrip ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
-              <div className="relative space-y-1.5 sm:col-span-1">
-                <Label className="text-xs font-semibold">
-                  {isRoundTrip ? t('bookingModal.departureDate') : `${t('bookingModal.departureDate')} *`}
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsCalendarOpen((prev) => !prev);
-                    setIsReturnCalendarOpen(false);
-                  }}
-                  className={`w-full justify-start text-left font-normal h-10 bg-white border border-gray-200 text-xs ${
-                    form.date ? 'text-gray-900' : 'text-muted-foreground'
-                  }`}
-                >
-                  <CalendarIcon className="mr-1.5 h-4 w-4" />
-                  {form.date ? format(form.date, 'dd/MM/yy') : t('bookingModal.departureDate')}
-                </Button>
-                {isCalendarOpen && (
-                  <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
-                    <Calendar
-                      mode="single"
-                      selected={form.date}
-                      onSelect={handleDateSelect}
-                      disabled={(date) => isBefore(date, startOfDay(addDays(new Date(), 1)))}
-                      locale={dateFnsLocale}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {isRoundTrip && (
-                <div className="relative space-y-1.5 sm:col-span-1">
-                  <Label className="text-xs font-semibold">{t('bookingModal.returnDate')} *</Label>
+                {/* Botões de Navegação Etapa 2 */}
+                <div className="pt-2 flex items-center justify-between gap-3">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      setIsReturnCalendarOpen((prev) => !prev);
-                      setIsCalendarOpen(false);
-                    }}
-                    className={`w-full justify-start text-left font-normal h-10 bg-white border border-gray-200 text-xs ${
-                      form.returnDate ? 'text-gray-900' : 'text-muted-foreground'
-                    }`}
+                    onClick={() => setWizardStep(1)}
+                    className="h-10 text-xs px-4 border-gray-200"
                   >
-                    <CalendarIcon className="mr-1.5 h-4 w-4" />
-                    {form.returnDate ? format(form.returnDate, 'dd/MM/yy') : t('bookingModal.returnDate')}
+                    <ArrowLeft className="w-4 h-4 mr-1" />
+                    Voltar
                   </Button>
-                  {isReturnCalendarOpen && (
-                    <div className="absolute top-full left-0 mt-1 z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-2">
-                      <Calendar
-                        mode="single"
-                        selected={form.returnDate}
-                        onSelect={handleReturnDateSelect}
-                        disabled={(date) =>
-                          isBefore(date, startOfDay(form.date ? form.date : addDays(new Date(), 1)))
-                        }
-                        locale={dateFnsLocale}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-1.5 sm:col-span-1">
-                <Label htmlFor="booking-pickup" className="text-xs font-semibold">
-                  {t('bookingModal.pickupLocation')} *
-                </Label>
-                <Input
-                  id="booking-pickup"
-                  placeholder={t('bookingModal.pickupPlaceholder')}
-                  value={form.pickup}
-                  onChange={handleChange('pickup')}
-                  className="h-10 bg-white text-xs"
-                />
-              </div>
-
-              <div className="space-y-1.5 sm:col-span-1">
-                <Label htmlFor="booking-passengers" className="text-xs font-semibold">
-                  {t('bookingModal.passengers')} *
-                </Label>
-                <div className="flex items-center justify-between h-10 bg-white border border-gray-200 rounded-md px-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    disabled={form.passengers <= 1}
-                    onClick={() => setForm((prev) => ({ ...prev, passengers: Math.max(1, prev.passengers - 1) }))}
-                    className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 shrink-0"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-
-                  <span className="text-sm font-bold text-gray-900 min-w-[2rem] text-center select-none">
-                    {form.passengers}
-                  </span>
 
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setForm((prev) => ({ ...prev, passengers: prev.passengers + 1 }))}
-                    className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100 shrink-0"
+                    onClick={() => setWizardStep(3)}
+                    disabled={!isStep2Valid}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-6 rounded-xl flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-40"
                   >
-                    <Plus className="w-4 h-4" />
+                    <span>Avançar para Pagamento</span>
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Seções de Pagamento Condicionais */}
-            {isPortuguese && !isWhatsAppOnly ? (
-              <>
-                {/* Seleção de Fração de Pagamento (Apenas para Português PT) */}
-                <div className="space-y-2 mt-4">
+            {/* ETAPA 3: PAGAMENTO SEGURO MULTI-GATEWAY */}
+            {wizardStep === 3 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+                
+                {/* Modalidade de Quitação (Sinal 50% vs 100%) */}
+                <div className="space-y-2">
                   <Label className="text-xs font-bold text-gray-800 uppercase tracking-wide">
-                    {t('bookingModal.paymentMethodLabel')} *
+                    Escolha a Condição de Pagamento
                   </Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setPaymentMode('50')}
-                      className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                      className={`relative p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         paymentMode === '50'
                           ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                          {t('bookingModal.deposit50')}
-                          {paymentMode === '50' && (
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
-                              ✓
-                            </span>
-                          )}
-                        </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-extrabold text-gray-900">Sinal de 50%</span>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                          {t('bookingModal.recommended')}
+                          Recomendado
                         </span>
                       </div>
                       <p className="text-[11px] text-gray-500 leading-tight">
-                        {t('bookingModal.deposit50Desc')}
+                        Garanta sua vaga pagando 50% agora e o restante de {formatPrice(remainingBalance)} no embarque.
                       </p>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setPaymentMode('100')}
-                      className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                      className={`relative p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         paymentMode === '100'
                           ? 'bg-emerald-50/80 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                          {t('bookingModal.full100')}
-                          {paymentMode === '100' && (
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
-                              ✓
-                            </span>
-                          )}
-                        </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-extrabold text-gray-900">Pagamento Integral (100%)</span>
+                        {paymentMode === '100' && (
+                          <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
+                            ✓
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] text-gray-500 leading-tight">
-                        {t('bookingModal.full100Desc')}
+                        Pague o valor total do serviço e embarque sem nenhuma pendência financeira.
                       </p>
                     </button>
                   </div>
                 </div>
 
-                {/* Resumo do Valor */}
-                <div className="bg-gray-50 p-4 rounded-lg mt-3 border border-gray-200 space-y-1.5">
-                  {isPrivate && selectedTier && (
-                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
-                      <Car className="w-4 h-4 text-[#2C7A7B]" />
-                      Veículo: <span className="font-semibold">{selectedTier.vehicle}</span>
-                    </p>
-                  )}
-                  {nightFeeApplied && (
-                    <p className="text-sm text-amber-600 mb-2 font-medium flex items-center gap-1.5">
-                      <Moon className="w-4 h-4 text-amber-600 shrink-0" />
-                      + R$ 20 (Tarifa Noturna)
-                    </p>
-                  )}
+                {/* Resumo Financeiro Transparente */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-gray-200 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-gray-600 border-b border-gray-200/80 pb-2">
+                    <span className="font-medium">Serviço:</span>
+                    <span className="font-bold text-gray-900">{serviceTitle}</span>
+                  </div>
 
-                  <div className="flex justify-between items-baseline text-xs text-gray-500 pb-1">
-                    <span>{t('bookingModal.totalValue')}</span>
+                  <div className="flex justify-between items-baseline text-xs text-gray-500">
+                    <span>Valor Total do Serviço</span>
                     <span className="font-semibold text-gray-700">{formatPrice(fullTotal)}</span>
                   </div>
 
@@ -1265,180 +1693,228 @@ export default function BookingModal({ item, open, onOpenChange }) {
                         Cartão: {formatPrice(chargeTotal)}
                       </span>
                     </div>
+
                     <div className="flex justify-between items-center pt-0.5">
-                      <span className="text-xs font-bold text-emerald-800">
-                        {t('bookingModal.pixDiscountLabel')}
+                      <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> PIX Dinâmico (5% OFF)
                       </span>
-                      <span className="text-2xl font-bold text-emerald-600">
+                      <span className="text-2xl font-black text-emerald-600">
                         {formatPrice(chargePixTotal)}
                       </span>
                     </div>
                   </div>
 
                   {isDeposit && (
-                    <p className="text-xs text-amber-800 font-medium bg-amber-50/90 p-2 rounded border border-amber-200 mt-2">
-                      * O saldo restante de <strong>{formatPrice(remainingBalance)}</strong> deverá ser pago no dia do serviço.
+                    <p className="text-xs text-amber-800 font-medium bg-amber-50/90 p-2 rounded-lg border border-amber-200 mt-2">
+                      * O saldo de <strong>{formatPrice(remainingBalance)}</strong> deverá ser pago no dia do serviço diretamente ao motorista credenciado.
                     </p>
                   )}
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 text-red-700 text-sm rounded-lg p-3 border border-red-200">
-                    {error}
+                  <div className="bg-red-50 text-red-700 text-xs rounded-lg p-3 border border-red-200 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{error}</span>
                   </div>
                 )}
 
-                {/* Botões de Ação de Pagamento PT */}
-                <div className="space-y-2 mt-3">
-                  <Button
-                    onClick={handlePixPayment}
-                    disabled={!isFormValid || loadingPix || loading}
-                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md cursor-pointer"
-                  >
-                    {loadingPix ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <QrCode className="w-5 h-5" />
-                    )}
-                    {loadingPix ? t('bookingModal.generatingPix') : t('bookingModal.payWithPix', { price: formatPrice(chargePixTotal) })}
-                  </Button>
+                {/* GATEWAYS CONTEXTUAIS (BRASILEIRO VS INTERNACIONAL) */}
+                <div className="space-y-2.5 pt-1">
+                  
+                  {/* Se for Cliente Internacional: Prioridade Stripe Checkout */}
+                  {form.isForeigner ? (
+                    <>
+                      {/* Botão Stripe Internacional */}
+                      <Button
+                        onClick={handleStripePayment}
+                        disabled={loading || loadingPix}
+                        className="w-full h-13 bg-slate-900 hover:bg-black text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 shadow-lg cursor-pointer"
+                      >
+                        {loading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Lock className="w-4 h-4 text-[#D4AF37]" />
+                        )}
+                        <span>
+                          {loading
+                            ? 'Abrindo Stripe Checkout...'
+                            : `Pagar com Cartão Internacional (${formatPrice(chargeTotal)})`}
+                        </span>
+                      </Button>
 
-                  <Button
-                    onClick={handleMercadoPago}
-                    disabled={!isFormValid || loading || loadingPix}
-                    className="w-full h-11 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CreditCard className="w-4 h-4" />
-                    )}
-                    {loading ? t('bookingModal.processing') : t('bookingModal.payWithCardMP', { price: formatPrice(chargeTotal) })}
-                  </Button>
+                      <div className="flex items-center justify-center gap-4 text-[10px] text-gray-500 py-0.5">
+                        <span className="flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" /> Stripe Verified
+                        </span>
+                        <span>•</span>
+                        <span>Visa / MasterCard / Amex</span>
+                        <span>•</span>
+                        <span>Criptografia 256-bit</span>
+                      </div>
 
+                      {/* PIX como opção secundária */}
+                      <Button
+                        onClick={handlePixPayment}
+                        disabled={loadingPix || loading}
+                        variant="outline"
+                        className="w-full h-11 border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {loadingPix ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
+                        Pagar via PIX com 5% OFF ({formatPrice(chargePixTotal)})
+                      </Button>
+                    </>
+                  ) : (
+                    /* Se for Cliente Brasileiro: PIX em Destaque + Mercado Pago */
+                    <>
+                      {/* Botão 1: PIX Dinâmico com 5% OFF */}
+                      <Button
+                        onClick={handlePixPayment}
+                        disabled={loadingPix || loading}
+                        className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm sm:text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer"
+                      >
+                        {loadingPix ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <QrCode className="w-5 h-5" />
+                        )}
+                        <span>
+                          {loadingPix
+                            ? 'Gerando QR Code Pix...'
+                            : `Pagar com PIX Dinâmico • ${formatPrice(chargePixTotal)}`}
+                        </span>
+                      </Button>
+
+                      {/* Botão 2: Cartão de Crédito Mercado Pago */}
+                      <Button
+                        onClick={handleMercadoPago}
+                        disabled={loading || loadingPix}
+                        className="w-full h-11 bg-[#009ee3] hover:bg-[#007eb5] text-white font-bold text-xs sm:text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                        <span>Pagar com Cartão até 12x • {formatPrice(chargeTotal)}</span>
+                      </Button>
+
+                      {/* Botão 3: Stripe Internacional (opcional para cartões internacionais) */}
+                      <Button
+                        onClick={handleStripePayment}
+                        disabled={loading || loadingPix}
+                        variant="outline"
+                        className="w-full h-10 border-gray-300 text-gray-700 hover:bg-gray-100 font-medium text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Cartão Internacional (Stripe)</span>
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Botão de Escape / WhatsApp */}
                   <Button
                     onClick={handleWhatsApp}
-                    disabled={!isFormValid}
                     variant="outline"
-                    className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full h-10 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-xs rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer mt-1"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    {t('bookingModal.finishWhatsApp')}
+                    <span>Falar com Consultor via WhatsApp</span>
                   </Button>
                 </div>
-              </>
-            ) : (
-              /* Modo Direcionado ao WhatsApp (Para EN/ES e serviços WhatsApp Only) */
-              <div className="pt-2 space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-1.5">
-                  <div className="flex justify-between items-baseline text-xs text-gray-500 pb-1">
-                    <span>{t('bookingModal.totalValue')}</span>
-                    <span className="font-bold text-gray-900 text-lg">{formatPrice(fullTotal)}</span>
-                  </div>
-                </div>
 
-                <Button
-                  onClick={handleWhatsApp}
-                  disabled={!isFormValid}
-                  className="w-full h-14 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
-                >
-                  <MessageCircle className="w-6 h-6" />
-                  {t('bookingModal.finishWhatsApp')}
-                </Button>
+                {/* Botão Voltar Etapa 2 */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setWizardStep(2)}
+                    className="text-xs text-gray-500 hover:text-gray-800 flex items-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Voltar para dados de identificação
+                  </button>
+                </div>
               </div>
             )}
 
-            <p className="text-[11px] text-gray-400 text-center leading-relaxed pb-1">
-              {t('bookingModal.guaranteeFooter')}
-            </p>
           </div>
         )}
 
-        {step === 'pix' && pixData && (
-          <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
-            <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200">
+        {/* STEP STATUS: PIX QR CODE & INSTRUÇÕES */}
+        {stepStatus === 'pix' && pixData && (
+          <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 space-y-4 animate-in fade-in">
+            <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200 shadow-xs max-w-xs mx-auto">
               <img
                 src={`data:image/png;base64,${pixData.qrCodeBase64}`}
                 alt="QR Code Pix"
-                className="w-48 h-48 sm:w-56 sm:h-56"
+                className="w-48 h-48 sm:w-52 sm:h-52"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">{t('bookingModal.copyPix')}</Label>
+              <Label className="text-xs font-semibold text-gray-700">Código Pix Copia e Cola:</Label>
               <div className="flex gap-2">
                 <Input
                   readOnly
                   value={pixData.qrCode}
-                  className="h-11 text-xs font-mono bg-white truncate"
+                  className="h-10 text-xs font-mono bg-white truncate"
                 />
                 <Button
                   onClick={handleCopyPix}
                   variant="outline"
-                  className="h-11 px-4 flex-shrink-0"
+                  className="h-10 px-4 shrink-0 text-xs font-bold"
                 >
                   {copied ? (
-                    <CheckCheck className="w-4 h-4 text-green-600" />
+                    <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                      <CheckCheck className="w-4 h-4" /> Copiado!
+                    </span>
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <span className="flex items-center gap-1">
+                      <Copy className="w-4 h-4" /> Copiar
+                    </span>
                   )}
                 </Button>
               </div>
             </div>
 
-            <div className="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-200">
-              <p className="text-base text-gray-900 mb-1">
-                <strong>Total no PIX: {formatPrice(chargePixTotal)}</strong>
-              </p>
-              <p className="text-xs text-gray-600">
-                {t('bookingModal.pixPaidConfirm')}
-              </p>
+            {/* Aviso de Polling */}
+            <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+              <span>Aguardando identificação do pagamento... Atualização automática.</span>
             </div>
 
-            <div className="text-center">
-              <a
-                href={pixData.ticketUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[#009ee3] hover:underline"
-              >
-                {t('bookingModal.openMP')}
-              </a>
-            </div>
-
+            {/* Botão de Liberação / Acessar Voucher */}
             <Button
               onClick={handlePixPaymentConfirmedAndRedirect}
               disabled={loadingPix}
-              className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer mt-2"
+              className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
             >
               {loadingPix ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <CheckCircle2 className="w-6 h-6" />
+                <CheckCircle2 className="w-5 h-5" />
               )}
               Já realizei o pagamento / Acessar Voucher
             </Button>
           </div>
         )}
 
-        {step === 'success' && (
-          <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6 space-y-5 text-center">
+        {/* STEP STATUS: SUCESSO / VOUCHER */}
+        {stepStatus === 'success' && (
+          <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6 space-y-5 text-center animate-in fade-in">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
 
             <div className="space-y-1">
               <h3 className="text-xl font-extrabold text-gray-900">
-                Reserva Confirmada com Sucesso!
+                Reserva Registrada com Sucesso!
               </h3>
               <p className="text-xs text-gray-500">
-                Sua reserva para <strong className="text-gray-800">{serviceTitle}</strong> foi registrada no sistema.
+                Sua solicitação para <strong className="text-gray-800">{serviceTitle}</strong> foi registrada no sistema.
               </p>
             </div>
 
             {createdReservationCode && (
               <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl space-y-1">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Código Localizador</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                  Código Localizador
+                </span>
                 <div className="flex items-center justify-center gap-2 font-mono text-2xl font-black text-[#2C7A7B]">
                   <span>{createdReservationCode}</span>
                   <Button
@@ -1451,7 +1927,11 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     }}
                     className="h-8 w-8 p-0"
                   >
-                    {copied ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                    {copied ? (
+                      <CheckCheck className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-gray-400" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1464,9 +1944,9 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     handleOpenChange(false);
                     window.open(`/voucher/${createdReservationCode}`, '_blank');
                   }}
-                  className="w-full h-13 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                  className="w-full h-12 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                 >
-                  <FileText className="w-5 h-5" />
+                  <FileText className="w-4 h-4" />
                   Visualizar Meu Voucher
                 </Button>
               )}
@@ -1474,19 +1954,21 @@ export default function BookingModal({ item, open, onOpenChange }) {
               <Button
                 onClick={handleWhatsApp}
                 variant="outline"
-                className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-11 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white font-bold text-xs sm:text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4" />
                 Falar com Suporte no WhatsApp
               </Button>
             </div>
 
-            {/* Opcional: Enviar voucher por e-mail */}
+            {/* Enviar voucher por e-mail */}
             {createdReservationCode && (
               <div className="mt-6 pt-5 border-t border-gray-100 text-left">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Deseja receber o voucher no seu e-mail?</p>
+                <p className="text-xs font-semibold text-gray-700 mb-2">
+                  Deseja receber o voucher no seu e-mail?
+                </p>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Input 
+                  <Input
                     type="email"
                     placeholder="Seu melhor e-mail"
                     value={emailInput}
@@ -1502,19 +1984,28 @@ export default function BookingModal({ item, open, onOpenChange }) {
                     disabled={!emailInput || emailStatus === 'sending' || emailStatus === 'sent'}
                     className="h-10 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold"
                   >
-                    {emailStatus === 'sending' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Voucher'}
+                    {emailStatus === 'sending' ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Enviar Voucher'
+                    )}
                   </Button>
                 </div>
                 {emailStatus === 'sent' && (
-                  <p className="text-xs font-semibold text-emerald-600 mt-2">Voucher enviado com sucesso!</p>
+                  <p className="text-xs font-semibold text-emerald-600 mt-2">
+                    Voucher enviado com sucesso!
+                  </p>
                 )}
                 {emailStatus === 'error' && (
-                  <p className="text-xs font-semibold text-red-500 mt-2">Falha ao enviar e-mail. Verifique o endereço.</p>
+                  <p className="text-xs font-semibold text-red-500 mt-2">
+                    Falha ao enviar e-mail. Verifique o endereço.
+                  </p>
                 )}
               </div>
             )}
           </div>
         )}
+
       </DialogContent>
     </Dialog>
   );

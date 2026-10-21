@@ -105,6 +105,11 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
     if (formData.pickup) {
       notesParts.push(`Ponto de Embarque: ${formData.pickup.trim()}`);
     }
+    if (formData.isForeigner && formData.passport) {
+      notesParts.push(`Doc: Passaporte ${formData.passport.trim()}`);
+    } else if (formData.cpf) {
+      notesParts.push(`Doc: CPF ${formData.cpf.trim()}`);
+    }
     if (formData.flightDetails && formData.flightDetails.trim()) {
       notesParts.push(`Dados Voo: ${formData.flightDetails.trim()}`);
     }
@@ -133,18 +138,29 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
 
     const reservationCode = paymentInfo.code || paymentInfo.reservationCode || formData.code || formData.reservationCode;
 
+    const clientPhone = formData.whatsapp
+      ? `${formData.ddi ? formData.ddi.trim() + ' ' : ''}${formData.whatsapp.trim()}`.trim()
+      : '';
+
     const payload = {
       code: reservationCode || undefined,
       reservation_code: reservationCode || undefined,
       client_name: formData.name ? formData.name.trim() : 'Cliente Site',
-      client_phone: formData.whatsapp ? formData.whatsapp.trim() : '',
+      customer_name: formData.name ? formData.name.trim() : 'Cliente Site',
+      client_phone: clientPhone,
+      customer_phone: clientPhone,
       client_email: formData.email ? formData.email.trim() : '',
+      customer_email: formData.email ? formData.email.trim() : '',
+      document: formData.isForeigner ? formData.passport : formData.cpf,
+      is_foreigner: Boolean(formData.isForeigner),
       service_type: serviceType,
       vehicle,
       modality,
       date: formattedDate,
       time: formData.time || '12:00',
       pax: Number(formData.passengers || 1),
+      fullTotal: unitPrice,
+      total_amount: unitPrice,
       price_final: unitPrice,
       amount_paid: Number(Number(amountPaid).toFixed(2)),
       discount: Number(Number(discount).toFixed(2)),

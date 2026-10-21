@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, Calendar, MessageCircle, ShieldCheck, Car, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import BookingBar from '@/components/BookingBar';
+import HeroSearch from '@/components/hero/HeroSearch';
 import BookingModal from '@/components/BookingModal';
+import { transfersData, toursData } from '@/data/catalog';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { openWhatsApp as triggerWhatsApp } from '@/utils/whatsapp';
 
@@ -12,13 +13,37 @@ const ImmersiveHero = () => {
   const shouldReduceMotion = useReducedMotion();
   const { t } = useLanguage();
 
-  const handleBookingBarSubmit = (rawItem, { date, passengers }) => {
-    const formattedDate = date ? (typeof date === 'string' ? date : date.toISOString().split('T')[0]) : '';
-    triggerWhatsApp({
-      servico: rawItem?.id || rawItem?.title || 'Transfer',
-      data: formattedDate,
-      pax: passengers,
-    });
+  const handleHeroSearch = (searchData) => {
+    if (searchData.tab === 'transfers') {
+      const matchedTransfer =
+        transfersData.find((t) => t.id === searchData.catalogMatchId) || transfersData[1];
+
+      const isReturnWay = searchData.origin === 'jeri';
+      const tripType = searchData.hasReturn
+        ? 'roundTrip'
+        : isReturnWay
+        ? 'returnWay'
+        : 'oneWay';
+
+      setBookingItem({
+        ...matchedTransfer,
+        initialDate: searchData.departureDate,
+        initialReturnDate: searchData.returnDate,
+        initialPassengers: searchData.passengers?.total || 1,
+        selectedTripType: tripType,
+        initialPickup: searchData.originLabel,
+      });
+    } else {
+      const matchedTour =
+        toursData.find((t) => t.id === searchData.catalogMatchId) || toursData[0];
+
+      setBookingItem({
+        ...matchedTour,
+        initialDate: searchData.departureDate,
+        initialPassengers: searchData.passengers?.total || 1,
+        initialPickup: 'Jericoacoara (Vila / Hotéis)',
+      });
+    }
   };
 
   const scrollToExplore = () => {
@@ -154,16 +179,27 @@ const ImmersiveHero = () => {
           </span>
         </motion.div>
 
-        {/* Booking Bar */}
+        {/* Hero Search Island */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
           className="w-full mt-8"
         >
-          <BookingBar onBook={handleBookingBarSubmit} />
+          <HeroSearch onSearch={handleHeroSearch} />
         </motion.div>
       </div>
+
+      {/* Booking Modal Integrado */}
+      {bookingItem && (
+        <BookingModal
+          item={bookingItem}
+          open={Boolean(bookingItem)}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setBookingItem(null);
+          }}
+        />
+      )}
 
       {/* Scroll indicator */}
       <motion.button

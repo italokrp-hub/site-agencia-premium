@@ -294,6 +294,13 @@ export default defineConfig({
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		allowedHosts: true,
+		proxy: {
+			'/api': {
+				target: process.env.VITE_API_PROXY_TARGET || 'https://www.jericoacoarapremium.com',
+				changeOrigin: true,
+				secure: true,
+			},
+		},
 	},
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],

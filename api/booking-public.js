@@ -7,10 +7,11 @@ const sendTelegramNotification = async (data) => {
     
     if (!token || !chatId) return;
 
+    const formattedVal = Number(data.totalValue || 0).toFixed(2);
     const text = `🚨 *Nova Reserva Recebida!*
 • Cliente: ${data.customerName}
 • Pacote/Serviço: ${data.itemsSummary}
-• Valor: R$ ${data.totalValue.toFixed(2)}
+• Valor: R$ ${formattedVal}
 • Origem: ${data.origin}
 • Link: [Abrir Painel](${process.env.VITE_PANEL_URL || 'https://painel.jericoacoarapremium.com'})`;
 

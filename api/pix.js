@@ -25,6 +25,9 @@ export default async function handler(req, res) {
 
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
+    const cleanCpf = payer?.cpf ? String(payer.cpf).replace(/\D/g, '') : '';
+    const idNumber = cleanCpf && cleanCpf.length === 11 ? cleanCpf : '00000000000';
+
     const paymentBody = {
       transaction_amount: Math.round(unitPrice * quantity * 100) / 100,
       description: title,
@@ -32,7 +35,7 @@ export default async function handler(req, res) {
       payer: {
         email: payer?.email || 'comprador@email.com',
         first_name: payer?.name || 'Comprador',
-        identification: { type: 'CPF', number: '00000000000' },
+        identification: { type: 'CPF', number: idNumber },
       },
       date_of_expiration: expiresAt.toISOString(),
       metadata: metadata || {},
