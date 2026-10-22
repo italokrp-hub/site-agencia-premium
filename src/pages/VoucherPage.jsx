@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
 import {
   Printer,
@@ -130,6 +130,26 @@ export default function VoucherPage() {
   const [isPixModalOpen, setIsPixModalOpen] = useState(false);
   const [pixData, setPixData] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  // SearchParams & Fornecedor Lock
+  const [searchParams] = useSearchParams();
+  const isSupplierLocked = useMemo(() => {
+    return (
+      searchParams.get('supplier') === 'true' ||
+      searchParams.get('isSupplierLocked') === 'true' ||
+      searchParams.get('fornecedor') === 'true' ||
+      searchParams.get('lock') === 'supplier' ||
+      Boolean(booking?.isSupplierLocked) ||
+      Boolean(booking?.is_supplier_locked)
+    );
+  }, [searchParams, booking]);
+
+  // States for Email Modal (Disparo Manual de Voucher)
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailLang, setEmailLang] = useState('pt');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState(null);
 
   const formattedCode = useMemo(() => (code || '').toUpperCase().trim(), [code]);
 
@@ -797,6 +817,73 @@ export default function VoucherPage() {
     return buildWhatsAppLink(text);
   }, [formattedCode]);
 
+  const handleOpenEmailModal = () => {
+    setEmailInput(booking?.client_email || '');
+    setEmailLang(isEnglish ? 'en' : 'pt');
+    setEmailFeedback(null);
+    setIsEmailModalOpen(true);
+  };
+
+  const handleSendEmailManual = async (e) => {
+    if (e) e.preventDefault();
+    const targetEmail = (emailInput || '').trim();
+    if (!targetEmail || !targetEmail.includes('@') || !targetEmail.includes('.')) {
+      setEmailFeedback({
+        type: 'error',
+        message: emailLang === 'en' ? 'Please provide a valid email address.' : 'Por favor, informe um endereço de e-mail válido.',
+      });
+      return;
+    }
+
+    setSendingEmail(true);
+    setEmailFeedback(null);
+
+    try {
+      const res = await fetch('/api/send-voucher-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: booking?.code || formattedCode,
+          email: targetEmail,
+          isEnglish: emailLang === 'en',
+          forceResend: true,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success) {
+        setEmailFeedback({
+          type: 'success',
+          message: emailLang === 'en'
+            ? `Official voucher successfully sent to ${targetEmail}!`
+            : `Voucher oficial enviado com sucesso para ${targetEmail}!`,
+        });
+
+        // Atualiza o estado local do e-mail do cliente se estivesse vazio
+        setBooking((prev) => (prev ? { ...prev, client_email: targetEmail } : prev));
+
+        setTimeout(() => {
+          setIsEmailModalOpen(false);
+          setEmailFeedback(null);
+        }, 2200);
+      } else {
+        setEmailFeedback({
+          type: 'error',
+          message: data.error || data.message || (emailLang === 'en' ? 'Failed to send email. Please try again.' : 'Erro ao enviar e-mail. Tente novamente.'),
+        });
+      }
+    } catch (err) {
+      console.error('[VoucherPage] Erro ao disparar e-mail:', err);
+      setEmailFeedback({
+        type: 'error',
+        message: emailLang === 'en' ? 'Connection error. Please try again.' : 'Erro de conexão ao enviar e-mail. Tente novamente.',
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -890,6 +977,17 @@ export default function VoucherPage() {
             <Printer className="w-4 h-4" />
             Imprimir
           </button>
+
+          {!isSupplierLocked && (
+            <button
+              onClick={handleOpenEmailModal}
+              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+              title="Disparar voucher oficial por e-mail"
+            >
+              <Mail className="w-4 h-4 text-emerald-400" />
+              <span>Enviar por E-mail</span>
+            </button>
+          )}
 
           <a
             href={!isPending && conciergeUrl ? conciergeUrl : whatsappSupportUrl}
@@ -1333,6 +1431,138 @@ export default function VoucherPage() {
             ) : (
               <p className="text-sm text-gray-500 my-8">Os dados do Pix não foram encontrados para esta sessão.</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Disparo Manual de E-mail (Resend) */}
+      {isEmailModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 no-print animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-gray-100 flex flex-col space-y-4 max-h-[90vh] overflow-y-auto">
+            
+            <button
+              onClick={() => {
+                if (!sendingEmail) {
+                  setIsEmailModalOpen(false);
+                  setEmailFeedback(null);
+                }
+              }}
+              disabled={sendingEmail}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#2C7A7B]/10 flex items-center justify-center text-[#2C7A7B] shrink-0">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-gray-900 leading-tight">
+                  {emailLang === 'en' ? 'Send Official Voucher via Email' : 'Enviar Voucher Oficial por E-mail'}
+                </h3>
+                <p className="text-xs text-gray-500 font-medium">
+                  Localizador: <span className="font-mono font-bold text-gray-700">{booking?.code || formattedCode}</span>
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSendEmailManual} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  {emailLang === 'en' ? 'Recipient Email' : 'E-mail do Destinatário'}
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="cliente@email.com"
+                    disabled={sendingEmail}
+                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2C7A7B] focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-500"
+                  />
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  {emailLang === 'en'
+                    ? 'The email will be sent with luxury styling and direct Concierge links.'
+                    : 'O e-mail será emitido com o design oficial de luxo e botões diretos de voucher e concierge.'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  {emailLang === 'en' ? 'Email Language' : 'Idioma do E-mail'}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEmailLang('pt')}
+                    disabled={sendingEmail}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      emailLang === 'pt'
+                        ? 'bg-[#2C7A7B]/10 border-[#2C7A7B] text-[#2C7A7B]'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>🇧🇷 Português</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEmailLang('en')}
+                    disabled={sendingEmail}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      emailLang === 'en'
+                        ? 'bg-[#2C7A7B]/10 border-[#2C7A7B] text-[#2C7A7B]'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>🇺🇸 English</span>
+                  </button>
+                </div>
+              </div>
+
+              {emailFeedback && (
+                <div
+                  className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                    emailFeedback.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-900 border border-rose-200'
+                  }`}
+                >
+                  {emailFeedback.type === 'success' ? (
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  )}
+                  <span>{emailFeedback.message}</span>
+                </div>
+              )}
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEmailModalOpen(false);
+                    setEmailFeedback(null);
+                  }}
+                  disabled={sendingEmail}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {emailLang === 'en' ? 'Cancel' : 'Cancelar'}
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={sendingEmail || !emailInput.trim()}
+                  className="inline-flex items-center gap-2 bg-[#2C7A7B] hover:bg-[#235f60] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  <span>{sendingEmail ? (emailLang === 'en' ? 'Sending...' : 'Enviando...') : (emailLang === 'en' ? 'Send Email' : 'Confirmar e Enviar')}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

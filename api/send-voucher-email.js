@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Cache em memória para garantir idempotência em requisições concorrentes na mesma instância serverless
+// Cache em memória para garantir idempotência em requisições automáticas concorrentes na mesma instância serverless
 const sentEmailCodesCache = new Set();
 
 function getSupabaseAdmin() {
@@ -26,7 +26,7 @@ function getSupabaseAdmin() {
 const WHATSAPP_NUMBER = process.env.VITE_WHATSAPP_NUMBER || process.env.WHATSAPP_NUMBER || '5588988463182';
 
 /**
- * Formata mensagem dinâmica do concierge para o WhatsApp.
+ * Formata mensagem dinâmica do concierge para o WhatsApp por serviço e idioma.
  */
 function formatConciergeMessage({ serviceName, code, date, isEnglish }) {
   const cleanCode = code ? String(code).replace(/^#/, '').trim() : '';
@@ -46,9 +46,10 @@ function buildConciergeWhatsAppLink(params) {
 }
 
 export default async function handler(req, res) {
+  // 1. Suporte amplo a CORS (permite requisições do próprio site e do painel HotelOps)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
@@ -61,26 +62,28 @@ export default async function handler(req, res) {
   try {
     const body = req.body || {};
     const code = (body.code || body.reservationCode || '').toString().trim().toUpperCase();
+    const forceResend = Boolean(body.forceResend || body.force_resend);
 
     if (!code) {
       return res.status(400).json({ error: 'Código do voucher é obrigatório.' });
     }
 
-    // 1. Verificação de Idempotência em memória rápida
-    if (sentEmailCodesCache.has(code)) {
+    // 2. Verificação de Idempotência em memória rápida (ignorada em disparos manuais com forceResend)
+    if (!forceResend && sentEmailCodesCache.has(code)) {
       console.log(`[Send Voucher Email] Idempotência (memória): Email para ${code} já enviado anteriormente.`);
       return res.status(200).json({ success: true, alreadySent: true, message: 'Email já enviado previamente.' });
     }
 
     const supabase = getSupabaseAdmin();
 
-    // 2. Buscar detalhes completos da reserva no Supabase
+    // 3. Buscar os dados mais recentes da reserva diretamente no Supabase (sincronia com HotelOps e Webhooks)
     let resData = null;
     try {
       const { data, error } = await supabase
         .from('agency_reservations')
         .select(`
           id,
+          customer_id,
           reservation_code,
           date,
           time,
@@ -89,23 +92,45 @@ export default async function handler(req, res) {
           price_final,
           payment_method,
           payment_status,
+          reservation_status,
+          status,
           notes,
-          agency_customers (name, whatsapp, email),
-          agency_reservation_items (service_name, title, category, trecho, vehicle_type, pax_adults, pax_children, date_start, time_start)
+          notes_service,
+          pickup_location,
+          dropoff_location,
+          agency_customers (id, name, whatsapp, email),
+          agency_reservation_items (
+            id,
+            service_name,
+            title,
+            category,
+            trecho,
+            vehicle_type,
+            pax_adults,
+            pax_children,
+            date_start,
+            time_start,
+            price_total,
+            unit_price
+          ),
+          agency_payments (amount, method, status)
         `)
         .ilike('reservation_code', code)
+        .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (!error && data) {
         resData = data;
+      } else if (error) {
+        console.warn('[Send Voucher Email] Aviso ao consultar reserva no Supabase:', error);
       }
     } catch (dbErr) {
       console.warn('[Send Voucher Email] Erro ao consultar Supabase:', dbErr);
     }
 
-    // 3. Verificação de Idempotência no banco de dados (flag no campo notes)
-    if (resData?.notes && resData.notes.includes('[EMAIL_VOUCHER_ENVIADO]')) {
+    // 4. Verificação de Idempotência no banco de dados (ignorada em disparos manuais com forceResend)
+    if (!forceResend && resData?.notes && resData.notes.includes('[EMAIL_VOUCHER_ENVIADO]')) {
       sentEmailCodesCache.add(code);
       console.log(`[Send Voucher Email] Idempotência (DB): Email para ${code} já constava como enviado.`);
       return res.status(200).json({ success: true, alreadySent: true, message: 'Email já enviado previamente.' });
@@ -120,16 +145,70 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: false, reason: 'missing_email', message: 'E-mail do cliente não cadastrado.' });
     }
 
-    // Extrair parâmetros com prioridade body -> db -> defaults
+    // 5. Se o usuário passou email no body e a reserva ainda não tinha email salvo no Supabase, atualiza o banco
+    if (cleanEmail && supabase) {
+      try {
+        if (resData?.customer_id) {
+          const currentEmail = resData.agency_customers?.email || '';
+          if (!currentEmail || currentEmail.trim() === '' || currentEmail.toLowerCase().includes('example.com')) {
+            await supabase
+              .from('agency_customers')
+              .update({ email: cleanEmail })
+              .eq('id', resData.customer_id);
+            console.log(`[Send Voucher Email] agency_customers (${resData.customer_id}) atualizado com o e-mail: ${cleanEmail}`);
+          }
+        } else if (resData?.id) {
+          // Se a reserva não possui customer_id vinculado, cria o registro do cliente e associa
+          const clientNameFallback = body.clientName || 'Cliente Jericoacoara Premium';
+          const { data: newCust } = await supabase
+            .from('agency_customers')
+            .insert([{
+              name: clientNameFallback,
+              email: cleanEmail,
+              whatsapp: body.phone || body.whatsapp || null,
+            }])
+            .select('id')
+            .single();
+
+          if (newCust?.id) {
+            await supabase
+              .from('agency_reservations')
+              .update({ customer_id: newCust.id })
+              .eq('id', resData.id);
+            console.log(`[Send Voucher Email] Cliente criado (${newCust.id}) e vinculado à reserva ${code}: ${cleanEmail}`);
+          }
+        }
+      } catch (updateCustErr) {
+        console.warn('[Send Voucher Email] Erro ao sincronizar e-mail do cliente no Supabase:', updateCustErr);
+      }
+    }
+
+    // 6. Extrair parâmetros com prioridade body -> db -> defaults
     const isEnglish = Boolean(
-      body.isEnglish ||
-      resData?.payment_method === 'stripe' ||
-      (resData?.notes && resData.notes.includes('Stripe'))
+      body.isEnglish !== undefined
+        ? body.isEnglish
+        : (resData?.payment_method === 'stripe' || (resData?.notes && resData.notes.includes('Stripe')))
     );
 
-    const clientName = body.clientName || resData?.agency_customers?.name || (isEnglish ? 'Valued Customer' : 'Cliente Especial');
-    const firstItem = resData?.agency_reservation_items?.[0] || {};
-    const serviceName = body.serviceName || firstItem.service_name || firstItem.title || (isEnglish ? 'Jericoacoara Luxury Tour / Transfer' : 'Transfer & Passeio Jericoacoara Premium');
+    const clientName = (
+      body.clientName ||
+      resData?.agency_customers?.name ||
+      (isEnglish ? 'Valued Customer' : 'Cliente Especial')
+    ).trim();
+
+    // Itens contratados (suporte a pacotes múltiplos cadastrados no HotelOps)
+    const items = Array.isArray(resData?.agency_reservation_items) && resData.agency_reservation_items.length > 0
+      ? resData.agency_reservation_items
+      : [{
+          service_name: body.serviceName || 'Transfer & Passeio Jericoacoara Premium',
+          title: body.serviceName || 'Transfer & Passeio Jericoacoara Premium',
+          date_start: resData?.date || new Date().toISOString().split('T')[0],
+          time_start: resData?.time || '09:30',
+          pax_adults: resData?.pax_adults || 1,
+        }];
+
+    const firstItem = items[0] || {};
+    const mainServiceName = firstItem.service_name || firstItem.title || (isEnglish ? 'Jericoacoara Luxury Tour / Transfer' : 'Transfer & Passeio Jericoacoara Premium');
     
     const rawDate = body.date || firstItem.date_start || resData?.date || '';
     let formattedDate = rawDate;
@@ -140,8 +219,11 @@ export default async function handler(req, res) {
     if (!formattedDate) formattedDate = isEnglish ? 'To be confirmed' : 'A combinar';
 
     const departureTime = body.time || firstItem.time_start || resData?.time || '09:30';
-    const passengers = body.passengers || firstItem.pax_adults || resData?.pax_adults || 1;
-    const amountVal = Number(body.amountPaid || resData?.price_final || resData?.price_gross || 0);
+    const totalPax = items.reduce((sum, it) => sum + (Number(it.pax_adults || 0) + Number(it.pax_children || 0)), 0) || Number(body.passengers || resData?.pax_adults || 1);
+
+    // Cálculos financeiros com base nos dados mais recentes
+    const itemsSum = items.reduce((s, it) => s + Number(it.price_total || it.unit_price || 0), 0);
+    const amountVal = Number(resData?.price_final || resData?.price_gross || body.amountPaid || itemsSum || 0);
     const amountFormatted = amountVal > 0 ? `R$ ${amountVal.toFixed(2).replace('.', ',')}` : (isEnglish ? 'Confirmed' : 'Confirmado');
 
     const paymentMethodRaw = (body.paymentMethod || resData?.payment_method || 'PIX').toUpperCase();
@@ -153,13 +235,39 @@ export default async function handler(req, res) {
 
     const voucherUrl = `https://jericoacoarapremium.com/voucher/${code}`;
     const conciergeWhatsAppUrl = buildConciergeWhatsAppLink({
-      serviceName,
+      serviceName: items.length > 1 ? `${mainServiceName} + ${items.length - 1} serviços` : mainServiceName,
       code,
       date: formattedDate,
       isEnglish,
     });
 
-    // 4. Montar Template HTML Premium Jericoacoara (Gold #D4AF37 & Emerald #0F1E20 / #2C7A7B)
+    // Renderização dos serviços (suporta pacote individual ou múltiplo do HotelOps)
+    let servicesListHtml = '';
+    if (items.length > 1) {
+      servicesListHtml = items.map((it, idx) => {
+        const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
+        let itDate = it.date_start || formattedDate;
+        if (itDate && itDate.includes('-')) {
+          const [y, m, d] = itDate.split('T')[0].split('-');
+          itDate = `${d}/${m}/${y}`;
+        }
+        const itTime = it.time_start || '09:30';
+        const itPax = (Number(it.pax_adults || 0) + Number(it.pax_children || 0)) || 1;
+        return `
+          <div style="padding: 6px 0; border-bottom: ${idx < items.length - 1 ? '1px dashed rgba(255,255,255,0.1)' : 'none'};">
+            <span style="color: #D4AF37; font-weight: 800; font-size: 11px; text-transform: uppercase;">✦ ${isEnglish ? 'Service' : 'Serviço'} ${idx + 1}:</span>
+            <strong style="color: #ffffff; font-size: 13px;"> ${itName}</strong>
+            <div style="font-size: 11px; color: #a2c4c5; margin-top: 2px;">
+              📅 ${itDate} ${isEnglish ? 'at' : 'às'} ${itTime}h · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      servicesListHtml = `<strong style="color: #ffffff; font-size: 13px;">${mainServiceName}</strong>`;
+    }
+
+    // 7. Montar Template HTML Premium Jericoacoara (Gold #D4AF37 & Emerald #0F1E20 / #2C7A7B)
     const emailSubject = isEnglish
       ? `Your Booking is Confirmed! Official Voucher #${code} — Jericoacoara Premium`
       : `Sua Reserva Está Confirmada! Voucher Oficial #${code} — Jericoacoara Premium`;
@@ -233,10 +341,10 @@ export default async function handler(req, res) {
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #122123; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;">
                 <tr>
                   <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); width: 35%; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
-                    ${isEnglish ? 'Service' : 'Serviço'}
+                    ${isEnglish ? 'Service(s)' : 'Serviço(s)'}
                   </td>
-                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px; font-weight: 700;">
-                    ${serviceName}
+                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px;">
+                    ${servicesListHtml}
                   </td>
                 </tr>
                 <tr>
@@ -244,7 +352,9 @@ export default async function handler(req, res) {
                     ${isEnglish ? 'Date & Time' : 'Data & Horário'}
                   </td>
                   <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px; font-weight: 700;">
-                    ${formattedDate} ${isEnglish ? 'at' : 'às'} ${departureTime}h
+                    ${items.length > 1
+                      ? `${formattedDate} (${items.length} ${isEnglish ? 'services' : 'serviços'})`
+                      : `${formattedDate} ${isEnglish ? 'at' : 'às'} ${departureTime}h`}
                   </td>
                 </tr>
                 <tr>
@@ -252,7 +362,7 @@ export default async function handler(req, res) {
                     ${isEnglish ? 'Passengers' : 'Passageiros'}
                   </td>
                   <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px; font-weight: 700;">
-                    ${passengers} ${isEnglish ? 'person(s)' : 'pessoa(s)'}
+                    ${totalPax} ${isEnglish ? 'person(s)' : 'pessoa(s)'}
                   </td>
                 </tr>
                 <tr>
@@ -352,7 +462,7 @@ export default async function handler(req, res) {
 </html>
     `;
 
-    // 5. Enviar via Resend API
+    // 8. Enviar via Resend API (exclusivo para todo envio de e-mail)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'Jericoacoara Premium <contato@jericoacoarapremium.com>';
 
@@ -381,9 +491,9 @@ export default async function handler(req, res) {
           emailSentSuccessfully = true;
         } else {
           console.warn('[Send Voucher Email] Erro retornado pela API da Resend:', resendResult);
-          // Fallback caso o domínio de remetente ainda esteja pendente de verificação no Resend
+          // Fallback caso o domínio customizado de remetente ainda esteja pendente de verificação no Resend
           if (resendResult?.message && resendResult.message.includes('domain')) {
-            console.log('[Send Voucher Email] Tentando envio com remetente padrão de fallback da Resend...');
+            console.log('[Send Voucher Email] Tentando envio com remetente de fallback da Resend (onboarding@resend.dev)...');
             const fallbackRes = await fetch('https://api.resend.com/emails', {
               method: 'POST',
               headers: {
@@ -411,15 +521,17 @@ export default async function handler(req, res) {
       emailSentSuccessfully = true;
     }
 
-    // 6. Atualizar idempotência em memória e no banco de dados
+    // 9. Atualizar idempotência em memória e no banco de dados
     sentEmailCodesCache.add(code);
 
     if (resData?.id) {
       try {
         const currentNotes = resData.notes || '';
-        const updatedNotes = currentNotes
-          ? `${currentNotes} | [EMAIL_VOUCHER_ENVIADO:${new Date().toISOString()}]`
+        const tag = forceResend
+          ? `[EMAIL_VOUCHER_REENVIADO_MANUAL:${new Date().toISOString()}]`
           : `[EMAIL_VOUCHER_ENVIADO:${new Date().toISOString()}]`;
+
+        const updatedNotes = currentNotes ? `${currentNotes} | ${tag}` : tag;
 
         await supabase
           .from('agency_reservations')
@@ -438,7 +550,9 @@ export default async function handler(req, res) {
       delivered: emailSentSuccessfully,
       code,
       recipient: cleanEmail,
-      message: 'Voucher enviado com sucesso para o cliente.',
+      message: forceResend
+        ? 'Voucher reenviado com sucesso para o cliente.'
+        : 'Voucher enviado com sucesso para o cliente.',
     });
   } catch (globalErr) {
     console.error('[Send Voucher Email] Erro global não tratado:', globalErr);
