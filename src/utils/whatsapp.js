@@ -59,3 +59,35 @@ export const WA_MESSAGES = {
     `Olá! Montei meu perfil de viagem pelo site da Jericoacoara Premium:\n\nViajantes: ${travelers}\nDuração: ${days}\nEstilo: ${style}\nInteresses: ${Array.isArray(interests) ? interests.join(', ') : interests}\n\nGostaria de receber um roteiro personalizado.`,
 };
 
+/**
+ * Formata a mensagem dinâmica de concierge pós-reserva por serviço e idioma.
+ * @param {object} params
+ * @param {string} [params.serviceName] - Nome do serviço
+ * @param {string} [params.code] - Código do voucher
+ * @param {string} [params.date] - Data da reserva
+ * @param {boolean} [params.isEnglish] - Idioma inglês se cliente internacional
+ * @returns {string} Mensagem dinâmica
+ */
+export function formatConciergeMessage({ serviceName = 'Transfer / Passeio', code = '', date = '', isEnglish = false } = {}) {
+  const cleanCode = code ? String(code).replace(/^#/, '').trim() : '';
+  const cleanService = (serviceName || 'Transfer / Passeio em Jericoacoara').trim();
+  const cleanDate = (date || 'A combinar').trim();
+
+  if (isEnglish) {
+    return `Hello, Jericoacoara Premium team! I just confirmed my booking for *${cleanService}* (Voucher *#${cleanCode}* — Date: *${cleanDate}*). I would like to align the details of my reservation and ask a few questions!`;
+  }
+
+  return `Olá, equipe Jericoacoara Premium! Acabei de confirmar minha reserva de *${cleanService}* (Voucher *#${cleanCode}* — Data: *${cleanDate}*). Gostaria de alinhar os detalhes da minha reserva e tirar algumas dúvidas!`;
+}
+
+/**
+ * Gera link direto para o WhatsApp do Concierge com a mensagem dinâmica pós-reserva.
+ * @param {object} params
+ * @returns {string} URL wa.me
+ */
+export function buildConciergeWhatsAppLink(params = {}) {
+  const message = formatConciergeMessage(params);
+  return buildWhatsAppLink(message);
+}
+
+

@@ -29,7 +29,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
 import { supabase } from '@/lib/supabase';
-import { buildWhatsAppLink } from '@/utils/whatsapp';
+import { buildWhatsAppLink, buildConciergeWhatsAppLink } from '@/utils/whatsapp';
 import { formatModalityLabel } from '@/utils/reservationUtils';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -121,7 +121,7 @@ const DEMO_VOUCHERS = {
 export default function VoucherPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -769,6 +769,23 @@ export default function VoucherPage() {
     );
   }, [booking]);
 
+  const isEnglish = language === 'en' || (booking?.payment_method || '').toLowerCase() === 'stripe';
+
+  const conciergeUrl = useMemo(() => {
+    if (!booking) return '';
+    const mainService = booking.items?.[0]?.service_name || booking.items?.[0]?.title || 'Transfer / Passeio em Jericoacoara';
+    const mainDate = booking.items?.[0]?.date
+      ? new Date(booking.items[0].date + 'T00:00:00').toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR')
+      : 'A combinar';
+    const codeToUse = booking.code || formattedCode;
+    return buildConciergeWhatsAppLink({
+      serviceName: mainService,
+      code: codeToUse,
+      date: mainDate,
+      isEnglish,
+    });
+  }, [booking, formattedCode, isEnglish]);
+
   const whatsappProofUrl = useMemo(() => {
     const codeToUse = booking?.reservation_code || booking?.code || formattedCode;
     const text = `Olá! Acabei de realizar o pagamento do Pix da minha reserva no site. Localizador: ${codeToUse}. Segue o comprovante em anexo.`;
@@ -875,13 +892,13 @@ export default function VoucherPage() {
           </button>
 
           <a
-            href={whatsappSupportUrl}
+            href={!isPending && conciergeUrl ? conciergeUrl : whatsappSupportUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
           >
             <MessageCircle className="w-4 h-4" />
-            Suporte WhatsApp
+            {!isPending ? (isEnglish ? 'VIP Concierge' : 'Concierge WhatsApp') : 'Suporte WhatsApp'}
           </a>
         </div>
       </div>
@@ -949,12 +966,52 @@ export default function VoucherPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-emerald-50 border-b border-emerald-200/80 px-3.5 sm:px-5 py-2.5 sm:py-3.5 no-print">
-            <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Voucher Oficial Ativado & Reserva 100% Garantida com Suporte Operacional</span>
+          <>
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-emerald-50 border-b border-emerald-200/80 px-3.5 sm:px-5 py-2.5 sm:py-3.5 no-print">
+              <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Voucher Oficial Ativado & Reserva 100% Garantida com Suporte Operacional</span>
+              </div>
             </div>
-          </div>
+
+            {/* Card Concierge em Destaque — Alinhamento VIP Pós-Reserva */}
+            <div className="bg-gradient-to-r from-slate-900 via-gray-900 to-[#0e2729] text-white p-4 sm:p-5 border-b border-emerald-500/30 no-print">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1.5 max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#D4AF37] text-gray-950 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                      {isEnglish ? 'RECOMMENDED NEXT STEP' : 'PRÓXIMO PASSO RECOMENDADO'}
+                    </span>
+                    <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      {isEnglish ? 'Payment Confirmed' : 'Pagamento Aprovado'}
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                    {isEnglish
+                      ? 'Align Your Reservation with our 24/7 VIP Concierge'
+                      : 'Próximo Passo Recomendado: Alinhamento com nosso Concierge'}
+                  </h3>
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    {isEnglish
+                      ? 'Our dedicated team is ready on WhatsApp to synchronize your exact pickup time, hotel address, and answer any questions with VIP priority.'
+                      : 'Nossa equipe exclusiva está a postos no WhatsApp para alinhar seu horário exato de saída, detalhes do hotel/pousada e tirar todas as suas dúvidas.'}
+                  </p>
+                </div>
+
+                <a
+                  href={conciergeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-lg shadow-emerald-950/40 transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>{isEnglish ? 'Speak with Concierge on WhatsApp' : 'Falar com o Concierge no WhatsApp'}</span>
+                </a>
+              </div>
+            </div>
+          </>
         )}
 
         <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">

@@ -181,7 +181,7 @@ export default async function handler(req, res) {
                 trecho: 'privativo',
                 date_start: new Date().toISOString().split('T')[0],
                 pax_adults: 1,
-                price_total: amount,
+                price_total: amountPaidVal,
               },
             ]);
             console.log('[MP Webhook] Reserva criada e confirmada automaticamente no Supabase:', reservationCode);
@@ -190,28 +190,22 @@ export default async function handler(req, res) {
           }
         }
 
-        // Enviar e-mail de confirmação (se customer tiver e-mail)
-        if (resData?.id) {
-          try {
-            const { data: fullRes } = await supabaseAdmin
-              .from('agency_reservations')
-              .select('customer_id, agency_customers(email)')
-              .eq('id', resData.id)
-              .maybeSingle();
-
-            const email = fullRes?.agency_customers?.email;
-            if (email) {
-              const host = req.headers.host || 'www.jericoacoarapremium.com';
-              const protocol = host.includes('localhost') ? 'http' : 'https';
-              await fetch(`${protocol}://${host}/api/send-voucher-email`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: reservationCode, email }),
-              }).catch((e) => console.error('[MP Webhook] Erro envio email:', e));
-            }
-          } catch (e) {
-            console.error('[MP Webhook] Erro ao buscar email:', e);
-          }
+        // Disparo isolado e não-bloqueante do e-mail de confirmação (garante resposta 200 instantânea ao webhook)
+        try {
+          const host = req.headers.host || 'www.jericoacoarapremium.com';
+          const protocol = host.includes('localhost') ? 'http' : 'https';
+          fetch(`${protocol}://${host}/api/send-voucher-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code: reservationCode,
+              amountPaid: payment.transaction_amount,
+              paymentMethod: payment.payment_method_id || 'PIX',
+              isEnglish: false,
+            }),
+          }).catch((mailErr) => console.error('[MP Webhook] Erro assíncrono no envio de e-mail:', mailErr));
+        } catch (mailTriggerErr) {
+          console.error('[MP Webhook] Falha ao disparar envio de e-mail:', mailTriggerErr);
         }
       } else {
         console.warn('[MP Webhook] Pagamento aprovado sem reservationCode. Payment ID:', paymentId);

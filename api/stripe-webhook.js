@@ -211,6 +211,29 @@ export default async function handler(req, res) {
 
         console.log('[Stripe Webhook] Nova reserva criada e confirmada via Webhook:', reservationCode);
       }
+
+      // 4. Disparo automático seguro e não-bloqueante do e-mail de confirmação (em inglês)
+      try {
+        const host = req.headers.host || 'www.jericoacoarapremium.com';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        fetch(`${protocol}://${host}/api/send-voucher-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: reservationCode,
+            email: clientEmail,
+            clientName: clientName,
+            isEnglish: true,
+            serviceName: metadata.serviceId || metadata.title || metadata.service_name || 'Jericoacoara Tour / Transfer',
+            date: metadata.date,
+            passengers: metadata.passengers,
+            amountPaid: amountPaid,
+            paymentMethod: 'Stripe (International Card)',
+          }),
+        }).catch((mailErr) => console.error('[Stripe Webhook] Erro assíncrono no envio de e-mail:', mailErr));
+      } catch (emailTriggerErr) {
+        console.error('[Stripe Webhook] Falha ao acionar envio de e-mail:', emailTriggerErr);
+      }
     } catch (dbErr) {
       console.error('[Stripe Webhook] Erro ao atualizar banco de dados no Supabase:', dbErr);
     }

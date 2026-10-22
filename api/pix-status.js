@@ -119,6 +119,24 @@ export default async function handler(req, res) {
                 console.warn('[pix-status] Erro ao registrar pagamento em agency_payments:', payErr);
               }
             }
+
+            // Disparar envio de email de confirmação de forma isolada e não-bloqueante
+            try {
+              const host = req.headers.host || 'www.jericoacoarapremium.com';
+              const protocol = host.includes('localhost') ? 'http' : 'https';
+              fetch(`${protocol}://${host}/api/send-voucher-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  code: reservationCode,
+                  amountPaid: payment.transaction_amount,
+                  paymentMethod: 'PIX',
+                  isEnglish: false,
+                }),
+              }).catch((mailErr) => console.error('[pix-status] Erro assíncrono no envio de e-mail:', mailErr));
+            } catch (mailTriggerErr) {
+              console.error('[pix-status] Falha ao acionar send-voucher-email:', mailTriggerErr);
+            }
           }
 
           return res.status(200).json({
