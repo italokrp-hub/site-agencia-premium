@@ -32,6 +32,7 @@ const JeriDuneTrail = lazy(() => import('@/components/effects/JeriDuneTrail'));
 const Reservas = lazy(() => import('@/pages/agencia/Reservas'));
 const VoucherPage = lazy(() => import('@/pages/VoucherPage'));
 const ObrigadoPage = lazy(() => import('@/pages/ObrigadoPage'));
+const FaqPage = lazy(() => import('@/pages/FaqPage'));
 
 // SEO Landing Pages (Lazy loaded)
 const TransferFortalezaJeri = lazy(() => import('@/pages/seo/TransferFortalezaJeri'));
@@ -174,6 +175,7 @@ function App() {
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/faq" element={<FaqPage />} />
               <Route path="/obrigado" element={<ObrigadoPage />} />
               <Route path="/voucher/:code" element={<VoucherPage />} />
               <Route path="/agencia/reservas" element={<Reservas />} />

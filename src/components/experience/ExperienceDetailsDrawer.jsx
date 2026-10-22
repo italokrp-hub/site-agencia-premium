@@ -11,11 +11,19 @@ import {
   ChevronRight,
   MessageCircle,
   Shield,
+  CheckCircle2,
+  XCircle,
+  Luggage,
+  Baby,
+  Plane,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   formatPrice,
   PIX_DISCOUNT_PERCENT,
+  getServiceDetails,
+  CANCELLATION_POLICY,
 } from '@/data/catalog';
 import { renderTourTitle } from '@/utils/titleHelper';
 import { buildObrigadoLink } from '@/utils/whatsapp';
@@ -197,6 +205,7 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
   const isWhatsAppOnly = resolveIsWhatsAppOnly(item);
   const sharedAvailable = resolveSharedAvailable(item);
   const isTransfer = category === 'transfer';
+  const serviceDetails = getServiceDetails(item);
 
   const waMessage = `Olá! Gostaria de saber mais sobre: ${title}`;
 
@@ -368,6 +377,91 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
               </div>
             );
           })()}
+
+          {/* Incluso vs Não Incluso */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+              <span className="w-1 h-4 rounded-full bg-[#D4AF37] inline-block" />
+              O Que Está Incluso & Condições
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* O que Inclui */}
+              <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-200/60 space-y-1.5">
+                <p className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Incluso (✔️)
+                </p>
+                <ul className="space-y-1 text-xs text-gray-700">
+                  {serviceDetails.includes.map((inc, i) => (
+                    <li key={i} className="flex items-start gap-1.5">
+                      <Check className="w-3 h-3 text-emerald-600 mt-0.5 shrink-0 stroke-[3]" />
+                      <span>{inc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* O que Não Inclui */}
+              <div className="bg-red-50/40 rounded-xl p-3 border border-red-200/50 space-y-1.5">
+                <p className="text-xs font-bold text-red-800 flex items-center gap-1">
+                  <XCircle className="w-3.5 h-3.5 text-red-500" />
+                  Não Incluso (✕)
+                </p>
+                <ul className="space-y-1 text-xs text-gray-700">
+                  {serviceDetails.excludes.map((exc, i) => (
+                    <li key={i} className="flex items-start gap-1.5">
+                      <span className="text-red-500 font-bold text-xs mt-0.2 shrink-0">✕</span>
+                      <span>{exc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Informações Práticas */}
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-2 text-xs">
+              <span className="font-bold text-gray-900 block text-[11px] uppercase tracking-wide">
+                Condições & Informações Práticas
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-gray-600">
+                {serviceDetails.practicalInfo?.baggage && (
+                  <div className="flex items-start gap-1.5">
+                    <Luggage className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-gray-900">Bagagem: </strong>
+                      {serviceDetails.practicalInfo.baggage}
+                    </div>
+                  </div>
+                )}
+                {serviceDetails.practicalInfo?.children && (
+                  <div className="flex items-start gap-1.5">
+                    <Baby className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-gray-900">Crianças: </strong>
+                      {serviceDetails.practicalInfo.children}
+                    </div>
+                  </div>
+                )}
+                {serviceDetails.practicalInfo?.flightDelay && (
+                  <div className="flex items-start gap-1.5">
+                    <Plane className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-gray-900">Atraso de voo: </strong>
+                      {serviceDetails.practicalInfo.flightDelay}
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-1.5 sm:col-span-2 bg-emerald-50/70 p-1.5 rounded-lg border border-emerald-200">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                  <div className="text-emerald-900">
+                    <strong className="text-emerald-950">Cancelamento Estrito: </strong>
+                    {CANCELLATION_POLICY.fullRefundText} (Até 7 dias de antecedência para 100% de reembolso).
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Price section */}
           <PriceSection item={item} category={category} isWhatsAppOnly={isWhatsAppOnly} t={t} />

@@ -122,13 +122,17 @@ const Footer = () => {
 
           {/* SEO Links */}
           <div>
-            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Serviços Exclusivos</h3>
+            <h3 className="text-lg font-bold mb-4 text-[#D4AF37]">Serviços & Ajuda</h3>
             <div className="flex flex-col gap-3 text-sm text-gray-400">
               <Link to="/transfer-fortaleza-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Fortaleza ↔ Jeri</Link>
               <Link to="/transfer-aeroporto-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Aeroporto ↔ Jeri</Link>
               <Link to="/transfer-jijoca-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Jijoca ↔ Jeri</Link>
               <Link to="/transfer-prea-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Preá ↔ Jeri</Link>
               <Link to="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</Link>
+              <Link to="/faq" className="hover:text-[#D4AF37] text-[#D4AF37]/90 font-semibold transition-colors flex items-center gap-1.5 pt-1">
+                <span>Perguntas Frequentes (FAQ)</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#D4AF37]/20 text-[#D4AF37] font-bold">7 Dias</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -139,7 +143,10 @@ const Footer = () => {
             <p className="text-gray-400 text-sm text-center md:text-left">
               © {new Date().getFullYear()} Jericoacoara Premium. {t('footer.rights')}
             </p>
-            <div className="flex gap-6 text-sm text-gray-400">
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+              <Link to="/faq" className="hover:text-[#D4AF37] transition-colors">
+                FAQ & Cancelamento
+              </Link>
               <a href="#privacidade" className="hover:text-[#D4AF37] transition-colors">
                 {t('footer.privacy')}
               </a>

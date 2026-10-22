@@ -33,6 +33,11 @@ import {
   Plane,
   MapPin,
   Users,
+  XCircle,
+  Luggage,
+  Baby,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   Dialog,
@@ -59,6 +64,8 @@ import {
   calculateTourPrice,
   transfersData,
   toursData,
+  getServiceDetails,
+  CANCELLATION_POLICY,
 } from '@/data/catalog';
 import { createCheckout, createPixPayment } from '@/services/payment';
 import { createStripeCheckout } from '@/services/stripePayment';
@@ -181,6 +188,10 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [createdReservationCode, setCreatedReservationCode] = useState(null);
   const [emailInput, setEmailInput] = useState('');
   const [emailStatus, setEmailStatus] = useState(''); // 'idle', 'sending', 'sent', 'error'
+  const [showDetailsSection, setShowDetailsSection] = useState(false);
+
+  // Detalhes ricos do serviço (o que inclui, não inclui, bagagem, cancelamento)
+  const serviceDetails = useMemo(() => getServiceDetails(internalItem), [internalItem]);
 
   // Locale de datas
   const dateFnsLocale = useMemo(() => {
@@ -1399,6 +1410,147 @@ export default function BookingModal({ item, open, onOpenChange }) {
                       </button>
                     </div>
                   </div>
+                </div>
+
+                {/* PAINEL DE DETALHES DO SERVIÇO (O QUE INCLUI / NÃO INCLUI + INFO PRÁTICA) */}
+                <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-2xs transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setShowDetailsSection((prev) => !prev)}
+                    className="w-full flex items-center justify-between p-3.5 bg-gray-50/80 hover:bg-gray-100/80 transition-colors text-left cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4 text-emerald-700" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-gray-900">
+                            Detalhes do Serviço: O que Inclui & Condições
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-extrabold uppercase">
+                            Garantia 7 Dias
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500">
+                          Veja a franquia de bagagem, política de crianças e cancelamento 100% garantido.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 shrink-0">
+                      <span className="hidden sm:inline">{showDetailsSection ? 'Recolher' : 'Ver detalhes'}</span>
+                      {showDetailsSection ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                  </button>
+
+                  {showDetailsSection && (
+                    <div className="p-4 space-y-4 border-t border-gray-100 bg-white text-xs animate-in fade-in duration-200">
+                      {/* Descrição Completa */}
+                      {serviceDetails.description && (
+                        <div className="text-gray-600 text-xs leading-relaxed bg-amber-50/50 p-2.5 rounded-xl border border-amber-200/50">
+                          <strong className="text-gray-900 block mb-0.5">Sobre esta rota:</strong>
+                          <span>{serviceDetails.description}</span>
+                        </div>
+                      )}
+
+                      {/* Grid: O que Inclui vs O que Não Inclui */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* O que Inclui */}
+                        <div className="bg-emerald-50/40 rounded-xl p-3 border border-emerald-200/60 space-y-2">
+                          <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-xs uppercase tracking-wide">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>O Que Está Incluso (✔️)</span>
+                          </div>
+                          <ul className="space-y-1.5 text-[11px] text-gray-700">
+                            {serviceDetails.includes.map((inc, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5">
+                                <Check className="w-3 h-3 text-emerald-600 mt-0.5 shrink-0 stroke-[3]" />
+                                <span>{inc}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* O que Não Inclui */}
+                        <div className="bg-red-50/30 rounded-xl p-3 border border-red-200/50 space-y-2">
+                          <div className="flex items-center gap-1.5 text-red-800 font-bold text-xs uppercase tracking-wide">
+                            <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                            <span>O Que NÃO Está Incluso (✕)</span>
+                          </div>
+                          <ul className="space-y-1.5 text-[11px] text-gray-700">
+                            {serviceDetails.excludes.map((exc, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5">
+                                <span className="text-red-500 font-bold text-xs mt-0.2 shrink-0">✕</span>
+                                <span>{exc}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Informações Práticas e Condições */}
+                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-2.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
+                          Informações Práticas & Condições
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-gray-700">
+                          {/* Franquia de Bagagem */}
+                          {serviceDetails.practicalInfo?.baggage && (
+                            <div className="flex items-start gap-2 bg-white p-2 rounded-lg border border-gray-100">
+                              <Luggage className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-gray-900 block">Franquia de Bagagem</span>
+                                <span className="text-gray-600 leading-tight block">{serviceDetails.practicalInfo.baggage}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Crianças e Bebês */}
+                          {serviceDetails.practicalInfo?.children && (
+                            <div className="flex items-start gap-2 bg-white p-2 rounded-lg border border-gray-100">
+                              <Baby className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-gray-900 block">Política de Crianças</span>
+                                <span className="text-gray-600 leading-tight block">{serviceDetails.practicalInfo.children}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Tolerância de Atraso */}
+                          {serviceDetails.practicalInfo?.flightDelay && (
+                            <div className="flex items-start gap-2 bg-white p-2 rounded-lg border border-gray-100">
+                              <Plane className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-gray-900 block">Atraso de Voo</span>
+                                <span className="text-gray-600 leading-tight block">{serviceDetails.practicalInfo.flightDelay}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Cancelamento 7 Dias */}
+                          <div className="flex items-start gap-2 bg-emerald-50/70 p-2 rounded-lg border border-emerald-200/80">
+                            <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-emerald-900">Cancelamento Estrito</span>
+                                <a
+                                  href="/faq"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] text-emerald-800 underline hover:text-emerald-950 font-bold"
+                                >
+                                  (Ver FAQ)
+                                </a>
+                              </div>
+                              <span className="text-emerald-800 text-[10.5px] leading-tight block">
+                                {CANCELLATION_POLICY.fullRefundText} Entre 7 dias e 48h voucher ou 50%.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Resumo Financeiro da Etapa 1 */}
