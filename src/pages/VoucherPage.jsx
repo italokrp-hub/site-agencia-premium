@@ -23,7 +23,8 @@ import {
   Copy,
   XCircle,
   Download,
-  Loader2
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
@@ -528,58 +529,57 @@ export default function VoucherPage() {
     }
   };
 
-  // Polling para pagamento pendente com cache-busting
+  // Polling para pagamento pendente com verificação no gateway e cache-busting
   useEffect(() => {
     let interval;
     if (booking && (booking.payment_status === 'pendente' || booking.status === 'pendente') && !DEMO_VOUCHERS[formattedCode]) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`);
-          const data = await res.json();
-          if (data && data.success && data.booking) {
-            const status = data.booking.payment_status;
-            const resStatus = data.booking.reservation_status || data.booking.status;
-            
-            if (status === 'pago_integral' || status === 'sinal_pago' || resStatus === 'confirmada' || resStatus === 'concluida') {
-              const apiPaid = typeof data.booking.amount_paid === 'number' ? data.booking.amount_paid : null;
-              const apiRemaining = typeof data.booking.remaining_balance === 'number' ? data.booking.remaining_balance : null;
-              const statusLower = (status || '').toLowerCase();
-              const isSinal = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
-              const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
+          const res = await fetch(`/api/pix-status?code=${formattedCode}&t=${Date.now()}`);
+          const statusData = await res.json().catch(() => null);
 
-              setBooking((prev) => {
-                const total = prev ? prev.amount_total : (data.booking.price_final || data.booking.amount_total || 0);
-                let paid = prev ? prev.amount_paid : 0;
+          if (statusData && statusData.isPaid) {
+            const bookRes = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`);
+            const data = await bookRes.json().catch(() => null);
 
-                if (apiPaid !== null && apiPaid > 0) {
-                  paid = apiPaid;
-                } else if (isSinal) {
-                  paid = total * 0.5;
-                } else if (isQuitado) {
-                  paid = total;
-                } else if (prev && typeof prev.amount_paid === 'number' && prev.amount_paid > 0) {
-                  paid = prev.amount_paid;
-                }
+            const status = statusData.paymentStatus || data?.booking?.payment_status || 'sinal_pago';
+            const resStatus = 'confirmada';
+            const statusLower = (status || '').toLowerCase();
+            const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
 
-                paid = Math.min(total, Math.max(0, paid));
-                const remaining = apiRemaining !== null ? apiRemaining : Math.max(0, total - paid);
+            setBooking((prev) => {
+              const total = prev ? prev.amount_total : (data?.booking?.price_final || 0);
+              const paid = isQuitado ? total : (statusData.amountPaid || total * 0.5);
+              const remaining = isQuitado ? 0 : Math.max(0, total - paid);
 
-                return {
-                  ...prev,
-                  status: resStatus || prev?.status || 'confirmada',
-                  payment_status: status || prev?.payment_status || 'sinal_pago',
-                  amount_paid: paid,
-                  remaining_balance: remaining,
-                };
-              });
-              setIsPixModalOpen(false);
-              clearInterval(interval);
-            }
+              return {
+                ...prev,
+                status: resStatus,
+                reservation_status: resStatus,
+                payment_status: status,
+                amount_paid: paid,
+                remaining_balance: remaining,
+              };
+            });
+
+            try {
+              const localKey = `jeri_last_booking_${formattedCode}`;
+              const currentLocal = JSON.parse(localStorage.getItem(localKey) || '{}');
+              localStorage.setItem(localKey, JSON.stringify({
+                ...currentLocal,
+                status: 'confirmada',
+                reservation_status: 'confirmada',
+                payment_status: status,
+              }));
+            } catch (e) {}
+
+            setIsPixModalOpen(false);
+            clearInterval(interval);
           }
         } catch (e) {
           console.error('[Polling Voucher] Erro:', e);
         }
-      }, 4000);
+      }, 3500);
     }
     return () => {
       if (interval) clearInterval(interval);
@@ -587,8 +587,71 @@ export default function VoucherPage() {
   }, [booking?.payment_status, booking?.status, formattedCode]);
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
+
+  const handleCheckStatusNow = async () => {
+    setCheckingStatus(true);
+    setStatusMessage(null);
+    try {
+      const res = await fetch(`/api/pix-status?code=${formattedCode}&t=${Date.now()}`);
+      const statusData = await res.json().catch(() => null);
+
+      if (statusData && statusData.isPaid) {
+        const bookRes = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`);
+        const data = await bookRes.json().catch(() => null);
+
+        const newPaymentStatus = statusData.paymentStatus || data?.booking?.payment_status || 'sinal_pago';
+        const isFull = newPaymentStatus === 'pago_integral';
+
+        setBooking((prev) => {
+          const total = prev?.amount_total || data?.booking?.price_final || 0;
+          const paid = isFull ? total : (statusData.amountPaid || total * 0.5);
+          return {
+            ...prev,
+            status: 'confirmada',
+            reservation_status: 'confirmada',
+            payment_status: newPaymentStatus,
+            amount_paid: paid,
+            remaining_balance: isFull ? 0 : Math.max(0, total - paid),
+          };
+        });
+
+        try {
+          const localKey = `jeri_last_booking_${formattedCode}`;
+          const currentLocal = JSON.parse(localStorage.getItem(localKey) || '{}');
+          localStorage.setItem(localKey, JSON.stringify({
+            ...currentLocal,
+            status: 'confirmada',
+            reservation_status: 'confirmada',
+            payment_status: newPaymentStatus,
+          }));
+        } catch (e) {}
+
+        setIsPixModalOpen(false);
+        setStatusMessage({ type: 'success', text: 'Pagamento confirmado com sucesso pelo banco! Voucher oficial ativado.' });
+        return;
+      }
+
+      setStatusMessage({
+        type: 'pending',
+        text: 'Pagamento ainda não confirmado pelo banco. Se acabou de transferir pelo Pix, aguarde de 5 a 15 segundos para a compensação bancária.',
+      });
+    } catch (e) {
+      setStatusMessage({ type: 'error', text: 'Erro ao verificar status. Tente novamente em alguns segundos.' });
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
 
   const handleDownloadPdf = async () => {
+    if (isPending) {
+      const confirmDownload = window.confirm(
+        'Atenção: Este voucher ainda está PENDENTE DE PAGAMENTO e não é válido para embarque. Deseja baixar a versão provisória mesmo assim?'
+      );
+      if (!confirmDownload) return;
+    }
+
     const cardElement = document.querySelector('.print-card');
     if (!cardElement) return;
 
@@ -665,11 +728,19 @@ export default function VoucherPage() {
   const mainItem = booking?.items?.[0] || {};
   const isDeposit = booking?.payment_status === 'sinal_pago' || (booking?.remaining_balance && booking.remaining_balance > 0);
 
+  const isPending = useMemo(() => {
+    if (!booking) return false;
+    const pStatus = (booking.payment_status || '').toLowerCase();
+    const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
+    return pStatus === 'pendente' || rStatus === 'pendente';
+  }, [booking]);
+
   const statusBadge = useMemo(() => {
     if (!booking) return null;
     const pStatus = (booking.payment_status || '').toLowerCase();
     const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
 
+    // 1. Pago Integral
     if (pStatus === 'pago_integral' || rStatus === 'concluida') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -679,10 +750,21 @@ export default function VoucherPage() {
       );
     }
 
+    // 2. Sinal Pago (50%)
+    if (pStatus === 'sinal_pago' || rStatus === 'confirmada') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
+          CONFIRMADA · SINAL PAGO (50%)
+        </span>
+      );
+    }
+
+    // 3. Pagamento Pendente
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-        <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
-        CONFIRMADA · SINAL PAGO (50%)
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+        <Clock className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
+        PAGAMENTO PENDENTE · AGUARDANDO COMPENSAÇÃO
       </span>
     );
   }, [booking]);
@@ -814,7 +896,9 @@ export default function VoucherPage() {
               <span className="text-[#D4AF37] font-extrabold tracking-wider text-lg sm:text-2xl">JERICOACOARA</span>
               <span className="bg-[#D4AF37] text-gray-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">PREMIUM</span>
             </div>
-            <p className="text-[10px] sm:text-xs text-gray-300 font-medium tracking-wide">VOUCHER OFICIAL DE RESERVA E EMBARQUE</p>
+            <p className="text-[10px] sm:text-xs text-gray-300 font-medium tracking-wide">
+              {isPending ? 'VOUCHER PROVISÓRIO — AGUARDANDO CONFIRMAÇÃO DO PAGAMENTO' : 'VOUCHER OFICIAL DE RESERVA E EMBARQUE'}
+            </p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm px-3.5 py-1.5 sm:py-2 rounded-xl border border-white/20 sm:text-right">
@@ -833,29 +917,45 @@ export default function VoucherPage() {
           </p>
         </div>
 
-        {/* Caixa de Instrução Operacional: Validação e Ativação do Voucher */}
-        <div className="bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-b border-emerald-200/80 px-3.5 sm:px-5 py-2.5 sm:py-3.5 no-print">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-extrabold text-emerald-950 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                Validação e Ativação do Voucher
-              </h4>
-              <p className="text-[11px] text-gray-700 leading-relaxed max-w-xl">
-                Para validar o seu voucher e receber o contato do seu guia/motorista, envie o comprovante de pagamento no nosso WhatsApp oficial.
-              </p>
+        {/* Caixa de Status Operacional: Validação e Ativação do Voucher */}
+        {isPending ? (
+          <div className="bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 border-b border-amber-200/80 px-3.5 sm:px-5 py-3 sm:py-3.5 no-print">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-extrabold text-amber-950 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+                  Voucher Provisório — Aguardando Compensação Bancária
+                </h4>
+                <p className="text-[11px] text-amber-900 leading-relaxed max-w-xl">
+                  Este voucher ainda <strong>não é válido para embarque</strong>. A vaga e o veículo serão reservados oficialmente assim que o pagamento via Pix ou cartão for identificado pelo banco.
+                </p>
+                {statusMessage && (
+                  <p className={`text-[11px] font-semibold mt-1 ${statusMessage.type === 'success' ? 'text-emerald-700' : 'text-amber-800'}`}>
+                    {statusMessage.text}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  onClick={handleCheckStatusNow}
+                  disabled={checkingStatus}
+                  className="inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {checkingStatus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  <span>Verificar Pagamento Agora</span>
+                </button>
+              </div>
             </div>
-            <a
-              href={whatsappProofUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              Enviar Comprovante no WhatsApp
-            </a>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-emerald-50 border-b border-emerald-200/80 px-3.5 sm:px-5 py-2.5 sm:py-3.5 no-print">
+            <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Voucher Oficial Ativado & Reserva 100% Garantida com Suporte Operacional</span>
+            </div>
+          </div>
+        )}
 
         <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
           

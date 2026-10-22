@@ -1,10 +1,40 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
+  }
+
+  // Suporte a GET para consulta de status do Pix
+  if (req.method === 'GET') {
+    const paymentId = req.query.paymentId || req.query.id;
+    const code = req.query.code || req.query.reservationCode;
+
+    const mpToken = process.env.MP_ACCESS_TOKEN || process.env.MERCADO_PAGO_ACCESS_TOKEN;
+
+    if (paymentId && mpToken) {
+      try {
+        const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+          headers: { Authorization: `Bearer ${mpToken}` },
+        });
+
+        if (mpResponse.ok) {
+          const payment = await mpResponse.json();
+          return res.status(200).json({
+            isPaid: payment.status === 'approved',
+            status: payment.status,
+            amountPaid: payment.transaction_amount,
+            code: code || payment.external_reference,
+          });
+        }
+      } catch (e) {
+        console.error('[API pix GET] Erro ao consultar status no MP:', e);
+      }
+    }
+
+    return res.status(200).json({ isPaid: false, status: 'pending' });
   }
 
   if (req.method !== 'POST') {

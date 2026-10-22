@@ -67,7 +67,7 @@ import {
   getServiceDetails,
   CANCELLATION_POLICY,
 } from '@/data/catalog';
-import { createCheckout, createPixPayment } from '@/services/payment';
+import { createCheckout, createPixPayment, checkPixPaymentStatus } from '@/services/payment';
 import { createStripeCheckout } from '@/services/stripePayment';
 import { sendBookingToHotelOps } from '@/services/hotelopsIntegration';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -181,6 +181,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
   const [loading, setLoading] = useState(false);
   const [loadingPix, setLoadingPix] = useState(false);
   const [pixData, setPixData] = useState(null);
+  const [isPixConfirmed, setIsPixConfirmed] = useState(false);
+  const [pixVerificationMessage, setPixVerificationMessage] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -470,8 +472,8 @@ export default function BookingModal({ item, open, onOpenChange }) {
         payment_status: 'pendente',
         payment_method: isPix ? 'pix' : 'cartao',
         amount_total: fullTotal,
-        amount_paid: amountPaid,
-        remaining_balance: remaining,
+        amount_paid: 0,
+        remaining_balance: fullTotal,
         pickup_location: form.pickup || 'Ponto informado no formulário',
         notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
         items: [
@@ -719,11 +721,14 @@ export default function BookingModal({ item, open, onOpenChange }) {
 
       if (result.qr_code_base64) {
         const pixInfo = {
+          paymentId: result.id,
           qrCodeBase64: result.qr_code_base64,
           qrCode: result.qr_code,
           ticketUrl: result.ticket_url,
         };
         setPixData(pixInfo);
+        setIsPixConfirmed(false);
+        setPixVerificationMessage(null);
 
         try {
           localStorage.setItem(`jeri_pix_data_${resCode}`, JSON.stringify(pixInfo));
@@ -741,9 +746,74 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
   }, [chargePixTotal, saveBookingToStorage, triggerHotelOpsSync, isDeposit, form, serviceTitle, internalItem, isTransfer, selectedTier, tourPriceInfo, isRoundTrip, paymentMode, fullTotal, remainingBalance]);
 
-  // Confirmação manual de Pix
-  const handlePixPaymentConfirmedAndRedirect = useCallback(async () => {
+  // Polling automático no modal de PIX aguardando confirmação real do Mercado Pago
+  useEffect(() => {
+    let interval = null;
+    if (stepStatus === 'pix' && pixData && !isPixConfirmed) {
+      const resCode = createdReservationCode || sessionStorage.getItem('active_booking_code');
+      interval = setInterval(async () => {
+        try {
+          const statusRes = await checkPixPaymentStatus({
+            paymentId: pixData.paymentId,
+            code: resCode,
+          });
+
+          if (statusRes && statusRes.isPaid) {
+            setIsPixConfirmed(true);
+            const paidAmount = isDeposit ? chargePixTotal : fullPixTotal;
+            const remaining = isDeposit ? remainingBalance : 0;
+            const fullPhone = `${form.ddi} ${form.whatsapp}`.trim();
+
+            const confirmedObj = {
+              code: resCode,
+              created_at: new Date().toISOString(),
+              client_name: form.name || 'Cliente Jericoacoara Premium',
+              client_phone: fullPhone,
+              client_email: form.email || '',
+              document: form.isForeigner ? form.passport : form.cpf,
+              is_foreigner: form.isForeigner,
+              status: 'confirmada',
+              reservation_status: 'confirmada',
+              payment_status: paymentMode === '50' ? 'sinal_pago' : 'pago_integral',
+              payment_method: 'pix',
+              amount_total: fullTotal,
+              amount_paid: paidAmount,
+              remaining_balance: remaining,
+              pickup_location: form.pickup || 'Ponto informado no formulário',
+              notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
+              items: [
+                {
+                  title: serviceTitle,
+                  service_type: isTransfer ? 'transfer' : 'passeio',
+                  modality: form.optionType,
+                  vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 / Buggy',
+                  date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
+                  time: form.time || '11:30',
+                  pax: form.passengers || 1,
+                  unit_price: fullTotal,
+                },
+              ],
+            };
+            try {
+              localStorage.setItem(`jeri_last_booking_${resCode}`, JSON.stringify(confirmedObj));
+            } catch (e) {}
+
+            clearInterval(interval);
+          }
+        } catch (e) {
+          // ignore polling error
+        }
+      }, 3500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [stepStatus, pixData, isPixConfirmed, createdReservationCode, isDeposit, chargePixTotal, fullPixTotal, remainingBalance, form, paymentMode, fullTotal, serviceTitle, isTransfer, selectedTier, tourPriceInfo]);
+
+  // Verificação de Pix disparada por clique (com consulta real, sem bypass)
+  const handleVerifyPixPayment = useCallback(async () => {
     setLoadingPix(true);
+    setPixVerificationMessage(null);
     const resCode = createdReservationCode || sessionStorage.getItem('active_booking_code');
     if (!resCode) {
       setLoadingPix(false);
@@ -751,31 +821,68 @@ export default function BookingModal({ item, open, onOpenChange }) {
     }
 
     try {
-      const itemInfo = internalItem || { title: serviceTitle, category: isTransfer ? 'transfer' : 'tour' };
-      const paymentInfo = {
-        code: resCode,
-        fullTotal,
-        fullPixTotal,
-        chargeTotal: chargePixTotal,
-        chargePixTotal,
-        remainingBalance: isDeposit ? remainingBalance : 0,
-        paymentMode,
-        paymentMethod: 'Pix',
-        vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType,
-        isWhatsAppOnly: isWhatsAppOnly,
-        isConfirmed: true,
-        paymentStatus: 'sinal_pago',
-        reservationStatus: 'confirmada',
-      };
-      await sendBookingToHotelOps(form, itemInfo, paymentInfo);
-    } catch (err) {
-      console.error('[BookingModal] Erro ao sincronizar status confirmado no Supabase:', err);
-    }
+      const paymentId = pixData?.paymentId;
+      const statusRes = await checkPixPaymentStatus({ paymentId, code: resCode });
 
-    setLoadingPix(false);
-    handleOpenChange(false);
-    window.location.href = `/voucher/${resCode}`;
-  }, [createdReservationCode, internalItem, serviceTitle, isTransfer, fullTotal, fullPixTotal, chargePixTotal, isDeposit, remainingBalance, paymentMode, selectedTier, tourPriceInfo, form, isWhatsAppOnly, handleOpenChange]);
+      if (statusRes && statusRes.isPaid) {
+        setIsPixConfirmed(true);
+        const paidAmount = isDeposit ? chargePixTotal : fullPixTotal;
+        const remaining = isDeposit ? remainingBalance : 0;
+        const fullPhone = `${form.ddi} ${form.whatsapp}`.trim();
+
+        const confirmedObj = {
+          code: resCode,
+          created_at: new Date().toISOString(),
+          client_name: form.name || 'Cliente Jericoacoara Premium',
+          client_phone: fullPhone,
+          client_email: form.email || '',
+          document: form.isForeigner ? form.passport : form.cpf,
+          is_foreigner: form.isForeigner,
+          status: 'confirmada',
+          reservation_status: 'confirmada',
+          payment_status: paymentMode === '50' ? 'sinal_pago' : 'pago_integral',
+          payment_method: 'pix',
+          amount_total: fullTotal,
+          amount_paid: paidAmount,
+          remaining_balance: remaining,
+          pickup_location: form.pickup || 'Ponto informado no formulário',
+          notes: form.flightDetails ? `Voo: ${form.flightDetails}` : '',
+          items: [
+            {
+              title: serviceTitle,
+              service_type: isTransfer ? 'transfer' : 'passeio',
+              modality: form.optionType,
+              vehicle: selectedTier?.vehicle || tourPriceInfo?.selectedVehicle?.type || form.selectedVehicleType || 'SW4 / Buggy',
+              date: form.date ? format(form.date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
+              time: form.time || '11:30',
+              pax: form.passengers || 1,
+              unit_price: fullTotal,
+            },
+          ],
+        };
+        try {
+          localStorage.setItem(`jeri_last_booking_${resCode}`, JSON.stringify(confirmedObj));
+        } catch (e) {}
+
+        handleOpenChange(false);
+        window.location.href = `/voucher/${resCode}`;
+        return;
+      }
+
+      setPixVerificationMessage({
+        type: 'pending',
+        text: 'Pagamento Pix ainda não identificado pelo banco. Se você acabou de efetuar o Pix no app do seu banco, aguarde alguns instantes (a compensação pelo Banco Central leva geralmente de 5 a 15 segundos). O sistema atualiza automaticamente assim que o pagamento for registrado.',
+      });
+    } catch (err) {
+      console.error('[BookingModal] Erro ao verificar status Pix:', err);
+      setPixVerificationMessage({
+        type: 'error',
+        text: 'Não foi possível verificar o pagamento no momento. Tente novamente em alguns segundos.',
+      });
+    } finally {
+      setLoadingPix(false);
+    }
+  }, [createdReservationCode, pixData, isDeposit, chargePixTotal, fullPixTotal, remainingBalance, form, paymentMode, fullTotal, serviceTitle, isTransfer, selectedTier, tourPriceInfo, handleOpenChange]);
 
   // Handler WhatsApp
   const handleWhatsApp = useCallback(async () => {
@@ -2024,25 +2131,64 @@ export default function BookingModal({ item, open, onOpenChange }) {
               </div>
             </div>
 
-            {/* Aviso de Polling */}
-            <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
-              <span>Aguardando identificação do pagamento... Atualização automática.</span>
-            </div>
+            {/* Estado de Pagamento Pix Confirmado vs Aguardando */}
+            {isPixConfirmed ? (
+              <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-4 text-center space-y-2.5 animate-in zoom-in-95">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-6 h-6 stroke-[3]" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-emerald-950">Pagamento Pix Confirmado pelo Banco!</h4>
+                  <p className="text-xs text-emerald-700 mt-0.5">
+                    Sua reserva foi ativada com sucesso e seu voucher oficial de embarque já está disponível.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    const resCode = createdReservationCode || sessionStorage.getItem('active_booking_code');
+                    handleOpenChange(false);
+                    window.location.href = `/voucher/${resCode}`;
+                  }}
+                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md cursor-pointer mt-1"
+                >
+                  <span>Acessar Voucher Oficial Confirmado</span>
+                  <ArrowRight className="w-4 h-4 ml-1.5" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Aviso de Polling em tempo real */}
+                <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                  <span>Aguardando identificação bancária... Atualização em tempo real.</span>
+                </div>
 
-            {/* Botão de Liberação / Acessar Voucher */}
-            <Button
-              onClick={handlePixPaymentConfirmedAndRedirect}
-              disabled={loadingPix}
-              className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
-            >
-              {loadingPix ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <CheckCircle2 className="w-5 h-5" />
-              )}
-              Já realizei o pagamento / Acessar Voucher
-            </Button>
+                {pixVerificationMessage && (
+                  <div className={`p-3 rounded-xl border text-xs flex items-start gap-2 ${
+                    pixVerificationMessage.type === 'error'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-amber-50 text-amber-800 border-amber-200'
+                  }`}>
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{pixVerificationMessage.text}</span>
+                  </div>
+                )}
+
+                {/* Botão de Verificação Real */}
+                <Button
+                  onClick={handleVerifyPixPayment}
+                  disabled={loadingPix}
+                  className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-60"
+                >
+                  {loadingPix ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" />
+                  )}
+                  Já realizei o pagamento (Verificar Agora)
+                </Button>
+              </>
+            )}
           </div>
         )}
 

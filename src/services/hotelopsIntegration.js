@@ -65,19 +65,24 @@ export async function sendBookingToHotelOps(formData = {}, itemData = {}, paymen
     const paymentStatus = isConfirmed ? (paymentInfo.paymentStatus || 'sinal_pago') : 'pendente';
     const reservationStatus = isConfirmed ? (paymentInfo.reservationStatus || 'confirmada') : 'pendente';
 
-    // Cálculo do valor pago e desconto
+    // Cálculo do valor pago e desconto (Somente após confirmação real)
     let amountPaid = 0;
     let discount = 0;
 
-    if (paymentMethod === 'pix') {
-      amountPaid = paymentInfo.chargePixTotal ?? paymentInfo.chargeTotal ?? paymentInfo.fullTotal ?? 0;
-      if (paymentInfo.chargeTotal && paymentInfo.chargePixTotal && paymentInfo.chargeTotal > paymentInfo.chargePixTotal) {
-        discount = Number((paymentInfo.chargeTotal - paymentInfo.chargePixTotal).toFixed(2));
-      } else if (paymentInfo.fullTotal && paymentInfo.fullPixTotal && paymentInfo.fullTotal > paymentInfo.fullPixTotal) {
-        discount = Number((paymentInfo.fullTotal - paymentInfo.fullPixTotal).toFixed(2));
+    if (isConfirmed) {
+      if (paymentMethod === 'pix') {
+        amountPaid = paymentInfo.chargePixTotal ?? paymentInfo.chargeTotal ?? paymentInfo.fullTotal ?? 0;
+        if (paymentInfo.chargeTotal && paymentInfo.chargePixTotal && paymentInfo.chargeTotal > paymentInfo.chargePixTotal) {
+          discount = Number((paymentInfo.chargeTotal - paymentInfo.chargePixTotal).toFixed(2));
+        } else if (paymentInfo.fullTotal && paymentInfo.fullPixTotal && paymentInfo.fullTotal > paymentInfo.fullPixTotal) {
+          discount = Number((paymentInfo.fullTotal - paymentInfo.fullPixTotal).toFixed(2));
+        }
+      } else {
+        amountPaid = paymentInfo.chargeTotal ?? paymentInfo.fullTotal ?? 0;
       }
     } else {
-      amountPaid = paymentInfo.chargeTotal ?? paymentInfo.fullTotal ?? 0;
+      amountPaid = 0;
+      discount = 0;
     }
 
     if (paymentInfo.isWhatsAppOnly) {

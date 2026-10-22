@@ -262,20 +262,56 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Dados do cliente (nome/telefone) são obrigatórios.' });
     }
 
-    // Regra estrita de status: Ao criar a reserva na geração do Pix ou checkout, status DEVE SER 'pendente'.
-    // NUNCA criar a reserva como 'confirmada' ou 'sinal_pago' antes da confirmação do gateway.
-    const isConfirmedParam = Boolean(body.is_confirmed || body.isConfirmed);
-    const rawPaymentStatus = (body.payment_status || body.paymentStatus || '').toLowerCase();
-    const rawReservationStatus = (body.reservation_status || body.status || '').toLowerCase();
+    // Regra estrita de segurança e Zero Trust:
+    // Uma requisição pública POST NUNCA pode forçar o status para 'confirmada' ou 'sinal_pago' pelo frontend.
+    // O voucher só é confirmado se o banco já foi atualizado pelo Webhook ou se validado diretamente no gateway.
+    let isConfirmed = false;
+    let paymentStatus = 'pendente';
+    let reservationStatus = 'pendente';
 
-    const isConfirmed =
-      isConfirmedParam ||
-      rawPaymentStatus === 'sinal_pago' ||
-      rawPaymentStatus === 'pago_integral' ||
-      rawReservationStatus === 'confirmada';
+    // 1. Se o banco já possui esta reserva como confirmada por Webhook/Gateway, preservar status
+    if (reservationCode) {
+      try {
+        const { data: currentRes } = await supabase
+          .from('agency_reservations')
+          .select('id, status, reservation_status, payment_status')
+          .eq('reservation_code', reservationCode)
+          .maybeSingle();
 
-    const reservationStatus = isConfirmed ? (rawReservationStatus || 'confirmada') : 'pendente';
-    const paymentStatus = isConfirmed ? (rawPaymentStatus || 'sinal_pago') : 'pendente';
+        if (currentRes) {
+          const curP = (currentRes.payment_status || '').toLowerCase();
+          const curR = (currentRes.reservation_status || currentRes.status || '').toLowerCase();
+          if (['confirmada', 'concluida'].includes(curR) || ['sinal_pago', 'pago_integral', 'pago'].includes(curP)) {
+            isConfirmed = true;
+            reservationStatus = curR || 'confirmada';
+            paymentStatus = curP || 'sinal_pago';
+          }
+        }
+      } catch (errCheck) {
+        console.warn('[API booking-public] Erro checagem reserva atual:', errCheck);
+      }
+    }
+
+    // 2. Se o payload incluir payment_id, validar formalmente na API oficial do Mercado Pago
+    const paymentId = body.payment_id || body.paymentId;
+    const mpToken = process.env.MP_ACCESS_TOKEN || process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    if (!isConfirmed && paymentId && mpToken) {
+      try {
+        const mpCheck = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+          headers: { Authorization: `Bearer ${mpToken}` },
+        });
+        if (mpCheck.ok) {
+          const mpData = await mpCheck.json();
+          if (mpData.status === 'approved') {
+            isConfirmed = true;
+            reservationStatus = 'confirmada';
+            paymentStatus = (mpData.transaction_amount && mpData.transaction_amount >= fullPrice) ? 'pago_integral' : 'sinal_pago';
+          }
+        }
+      } catch (mpErr) {
+        console.error('[API booking-public] Erro na validação MP:', mpErr);
+      }
+    }
 
     // 1. Tabela agency_customers
     let customerId = null;
