@@ -158,7 +158,6 @@ export default async function handler(req, res) {
             console.log(`[Send Voucher Email] agency_customers (${resData.customer_id}) atualizado com o e-mail: ${cleanEmail}`);
           }
         } else if (resData?.id) {
-          // Se a reserva não possui customer_id vinculado, cria o registro do cliente e associa
           const clientNameFallback = body.clientName || 'Cliente Jericoacoara Premium';
           const { data: newCust } = await supabase
             .from('agency_customers')
@@ -190,11 +189,24 @@ export default async function handler(req, res) {
         : (resData?.payment_method === 'stripe' || (resData?.notes && resData.notes.includes('Stripe')))
     );
 
-    const clientName = (
+    // Tratamento anti-spam de nome do cliente:
+    // Evita termos promocionais/genéricos como "Cliente Especial!" ou "Valued Customer!" que ativam filtros de spam
+    const rawCustomerName = (
       body.clientName ||
       resData?.agency_customers?.name ||
-      (isEnglish ? 'Valued Customer' : 'Cliente Especial')
+      ''
     ).trim();
+
+    const isGenericOrEmptyName =
+      !rawCustomerName ||
+      rawCustomerName.toLowerCase().includes('cliente especial') ||
+      rawCustomerName.toLowerCase().includes('valued customer') ||
+      rawCustomerName.toLowerCase().includes('cliente site') ||
+      rawCustomerName.toLowerCase().includes('cliente jericoacoara');
+
+    const clientGreeting = isGenericOrEmptyName
+      ? (isEnglish ? 'Traveler' : 'viajante')
+      : rawCustomerName;
 
     // Itens contratados (suporte a pacotes múltiplos cadastrados no HotelOps)
     const items = Array.isArray(resData?.agency_reservation_items) && resData.agency_reservation_items.length > 0
@@ -241,8 +253,10 @@ export default async function handler(req, res) {
       isEnglish,
     });
 
-    // Renderização dos serviços (suporta pacote individual ou múltiplo do HotelOps)
+    // 7. Renderização dos serviços para HTML e Plain-Text
     let servicesListHtml = '';
+    let servicesListText = '';
+
     if (items.length > 1) {
       servicesListHtml = items.map((it, idx) => {
         const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
@@ -263,15 +277,116 @@ export default async function handler(req, res) {
           </div>
         `;
       }).join('');
+
+      servicesListText = items.map((it, idx) => {
+        const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
+        let itDate = it.date_start || formattedDate;
+        if (itDate && itDate.includes('-')) {
+          const [y, m, d] = itDate.split('T')[0].split('-');
+          itDate = `${d}/${m}/${y}`;
+        }
+        const itTime = it.time_start || '09:30';
+        const itPax = (Number(it.pax_adults || 0) + Number(it.pax_children || 0)) || 1;
+        return `  ${idx + 1}. ${itName} (${itDate} ${isEnglish ? 'at' : 'às'} ${itTime}h | ${itPax} pax)`;
+      }).join('\n');
     } else {
       servicesListHtml = `<strong style="color: #ffffff; font-size: 13px;">${mainServiceName}</strong>`;
+      servicesListText = `  • ${mainServiceName}`;
     }
 
-    // 7. Montar Template HTML Premium Jericoacoara (Gold #D4AF37 & Emerald #0F1E20 / #2C7A7B)
-    const emailSubject = isEnglish
-      ? `Your Booking is Confirmed! Official Voucher #${code} — Jericoacoara Premium`
-      : `Sua Reserva Está Confirmada! Voucher Oficial #${code} — Jericoacoara Premium`;
+    // 8. Otimização de Assunto Transacional (Anti-Spam: Sem exclamações, estilo bilhete aéreo)
+    const serviceSubjectSnippet = items.length > 1
+      ? (isEnglish ? `${mainServiceName} + ${items.length - 1} services` : `${mainServiceName} + ${items.length - 1} serviços`)
+      : mainServiceName;
 
+    const emailSubject = isEnglish
+      ? `Booking Voucher #${code} — Jericoacoara Premium (${serviceSubjectSnippet})`
+      : `Voucher de Reserva #${code} — Jericoacoara Premium (${serviceSubjectSnippet})`;
+
+    // 9. Versão Plain-Text Obrigatória (Elimina penalidades SpamAssassin e melhora inbox placement)
+    const plainTextContent = isEnglish
+      ? `JERICOACOARA PREMIUM — OFFICIAL BOOKING VOUCHER & BOARDING PASS
+
+Hello, ${clientGreeting}
+
+Your payment was successfully approved and your reservation is 100% confirmed and guaranteed with Jericoacoara Premium.
+
+--------------------------------------------------
+BOOKING LOCATOR / VOUCHER CODE: ${code}
+STATUS: CONFIRMED & GUARANTEED
+--------------------------------------------------
+
+RESERVATION DETAILS:
+${servicesListText}
+- Date & Time: ${items.length > 1 ? `${formattedDate} (${items.length} scheduled services)` : `${formattedDate} at ${departureTime}h`}
+- Total Passengers: ${totalPax} person(s)
+- Amount Paid: ${amountFormatted} (${paymentLabel})
+
+INCLUDED IN YOUR PREMIUM EXPERIENCE:
+* Accredited professional driver and local guide
+* Exclusive 4x4 / certified vehicle prepared for dunes and beaches
+* Complete Cadastur license, passenger insurance & safety protocol
+* 24/7 Digital Concierge assistance via WhatsApp
+
+QUICK ACCESS LINKS:
+- Access Your Official Digital Voucher:
+  ${voucherUrl}
+
+- Speak with Concierge on WhatsApp:
+  ${conciergeWhatsAppUrl}
+
+IMPORTANT BOARDING GUIDELINES:
+1. Have your digital voucher ready on your phone upon boarding.
+2. Be ready at your pickup point 15 minutes in advance.
+3. Ensure you have the Sustainable Tourism Tax voucher if entering Jericoacoara.
+
+--------------------------------------------------
+Jericoacoara Premium | Certified Travel & Transportation Agency
+CNPJ & CADASTUR Active · 24/7 VIP Concierge: +55 (88) 98846-3182
+Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brazil
+`
+      : `JERICOACOARA PREMIUM — VOUCHER OFICIAL DE RESERVA E EMBARQUE
+
+Olá, ${clientGreeting}
+
+Seu pagamento foi aprovado com sucesso e sua reserva está 100% confirmada e garantida com a Jericoacoara Premium.
+
+--------------------------------------------------
+CÓDIGO LOCALIZADOR / VOUCHER: ${code}
+STATUS: CONFIRMADO & GARANTIDO
+--------------------------------------------------
+
+DETALHES DA SUA RESERVA:
+${servicesListText}
+- Data & Horário: ${items.length > 1 ? `${formattedDate} (${items.length} serviços agendados)` : `${formattedDate} às ${departureTime}h`}
+- Total de Passageiros: ${totalPax} passageiro(s)
+- Valor Pago: ${amountFormatted} (${paymentLabel})
+
+O QUE ESTÁ INCLUSO NA SUA EXPERIÊNCIA:
+* Motorista e guia credenciado local com ampla experiência
+* Veículo 4x4 ou jardineira credenciada e revisada para trilhas e dunas
+* Seguro de viagem, conformidade integral CADASTUR e segurança ativa
+* Suporte operacional e Concierge VIP 24h via WhatsApp
+
+LINKS DE ACESSO RÁPIDO:
+- Acesse seu Voucher Oficial Digital:
+  ${voucherUrl}
+
+- Fale com o Concierge no WhatsApp (Alinhamento de embarque):
+  ${conciergeWhatsAppUrl}
+
+ORIENTAÇÕES IMPORTANTES DE EMBARQUE:
+1. Apresente este voucher digital no celular ao motorista no momento do embarque.
+2. Esteja pronto no ponto de embarque acordado com 15 minutos de antecedência.
+3. Mantenha a Taxa de Turismo Sustentável de Jericoacoara paga em mãos.
+
+--------------------------------------------------
+Jericoacoara Premium | Agência Licenciada & Transportes Credenciados
+CNPJ & CADASTUR Ativos · Atendimento e Concierge 24h: +55 (88) 98846-3182
+Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brasil
+`;
+
+    // 10. Template HTML Premium Jericoacoara (Gold #D4AF37 & Emerald #0F1E20 / #2C7A7B)
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="${isEnglish ? 'en' : 'pt-BR'}">
@@ -300,11 +415,11 @@ export default async function handler(req, res) {
             </td>
           </tr>
 
-          <!-- Confirmation Banner -->
+          <!-- Confirmation Banner com Saudação Anti-Spam sem exclamações agressivas -->
           <tr>
             <td style="padding: 28px 28px 12px 28px; text-align: center;">
               <h1 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 800; color: #ffffff;">
-                ${isEnglish ? `Welcome aboard, ${clientName}!` : `Tudo pronto, ${clientName}!`}
+                ${isEnglish ? `Hello, ${clientGreeting}` : `Olá, ${clientGreeting}`}
               </h1>
               <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
                 ${isEnglish
@@ -462,9 +577,10 @@ export default async function handler(req, res) {
 </html>
     `;
 
-    // 8. Enviar via Resend API (exclusivo para todo envio de e-mail)
+    // 11. Enviar via Resend API com Entregabilidade Anti-Spam (Plain-text, reply_to e headers transacionais)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'Jericoacoara Premium <contato@jericoacoarapremium.com>';
+    const replyToEmail = process.env.RESEND_REPLY_TO || 'contato@jericoacoarapremium.com';
 
     let emailSentSuccessfully = false;
 
@@ -479,8 +595,13 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             from: fromEmail,
             to: cleanEmail,
+            reply_to: replyToEmail,
+            headers: {
+              'X-Entity-Ref-ID': code,
+            },
             subject: emailSubject,
             html: htmlContent,
+            text: plainTextContent,
           }),
         });
 
@@ -503,8 +624,13 @@ export default async function handler(req, res) {
               body: JSON.stringify({
                 from: 'Jericoacoara Premium <onboarding@resend.dev>',
                 to: cleanEmail,
+                reply_to: replyToEmail,
+                headers: {
+                  'X-Entity-Ref-ID': code,
+                },
                 subject: emailSubject,
                 html: htmlContent,
+                text: plainTextContent,
               }),
             });
             if (fallbackRes.ok) {
@@ -521,7 +647,7 @@ export default async function handler(req, res) {
       emailSentSuccessfully = true;
     }
 
-    // 9. Atualizar idempotência em memória e no banco de dados
+    // 12. Atualizar idempotência em memória e no banco de dados
     sentEmailCodesCache.add(code);
 
     if (resData?.id) {
@@ -550,6 +676,7 @@ export default async function handler(req, res) {
       delivered: emailSentSuccessfully,
       code,
       recipient: cleanEmail,
+      subject: emailSubject,
       message: forceResend
         ? 'Voucher reenviado com sucesso para o cliente.'
         : 'Voucher enviado com sucesso para o cliente.',
