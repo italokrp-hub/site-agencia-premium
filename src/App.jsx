@@ -33,6 +33,7 @@ const Reservas = lazy(() => import('@/pages/agencia/Reservas'));
 const VoucherPage = lazy(() => import('@/pages/VoucherPage'));
 const ObrigadoPage = lazy(() => import('@/pages/ObrigadoPage'));
 const FaqPage = lazy(() => import('@/pages/FaqPage'));
+const PlanejamentoUeinerJajah = lazy(() => import('@/components/PlanejamentoUeinerJajah'));
 
 // SEO Landing Pages (Lazy loaded)
 const TransferFortalezaJeri = lazy(() => import('@/pages/seo/TransferFortalezaJeri'));
@@ -49,20 +50,22 @@ function LandingPage() {
   return (
     <>
       <Helmet>
-        <title>Jericoacoara Premium | Transfer Mais Barato, Passeios & Agência Segura</title>
+        <title>Jericoacoara Premium | Exclusividade, Conforto & Segurança em Passeios e Transfers</title>
         <meta
           name="description"
-          content="Encontre o transfer mais barato para Jericoacoara com a agência mais confiável e segura. Reserve transfer compartilhado econômico, VIP 4x4 e passeios com melhor preço, motoristas credenciados e reserva 100% garantida!"
+          content="Seu receptivo exclusivo em Jericoacoara. Transfers privativos 4x4, passeios personalizados, helicóptero e experiências de alto padrão com conforto e segurança."
         />
-        <meta name="keywords" content="transfer mais barato jericoacoara, transfer economico jeri, melhor preco transfer jeri, agencia segura jericoacoara, motoristas credenciados, reserva garantida, Transfer VIP Jericoacoara, Passeios de Buggy, Ceará" />
+        <meta name="keywords" content="Jericoacoara Premium, transfer privativo jericoacoara, transfer 4x4 jeri, passeios exclusivos jericoacoara, helicoptero jericoacoara, receptivo de luxo jericoacoara, conforto e seguranca, Transfer VIP Jericoacoara, Ceará" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <link rel="canonical" href="https://jericoacoarapremium.com/" />
         <meta property="og:url" content="https://jericoacoarapremium.com/" />
-        <meta property="og:title" content="Jericoacoara Premium | Transfer Mais Barato & Agência Confiável" />
-        <meta property="og:description" content="Reserve o transfer mais barato e econômico para Jericoacoara com segurança total, motoristas credenciados e reserva 100% garantida." />
+        <meta property="og:title" content="Jericoacoara Premium | Exclusividade, Conforto & Segurança em Passeios e Transfers" />
+        <meta property="og:description" content="Seu receptivo exclusivo em Jericoacoara. Transfers privativos 4x4, passeios personalizados, helicóptero e experiências de alto padrão com conforto e segurança." />
         <meta property="og:image" content="https://jericoacoarapremium.com/images/hero-jeri-mobile.webp" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Jericoacoara Premium | Exclusividade, Conforto & Segurança em Passeios e Transfers" />
+        <meta name="twitter:description" content="Seu receptivo exclusivo em Jericoacoara. Transfers privativos 4x4, passeios personalizados, helicóptero e experiências de alto padrão com conforto e segurança." />
         <meta name="twitter:url" content="https://jericoacoarapremium.com/" />
       </Helmet>
 
@@ -180,6 +183,12 @@ function App() {
               <Route path="/voucher/:code" element={<VoucherPage />} />
               <Route path="/agencia/reservas" element={<Reservas />} />
               <Route path="/reservas" element={<Reservas />} />
+
+              {/* Roteiro Personalizado / Concierge VIP */}
+              <Route path="/planejamento-uenner-jaja" element={<PlanejamentoUeinerJajah />} />
+              <Route path="/planejamento-reiner" element={<PlanejamentoUeinerJajah />} />
+              <Route path="/planejamento-ueiner-jajah" element={<PlanejamentoUeinerJajah />} />
+              <Route path="/planejamento-rainer" element={<PlanejamentoUeinerJajah />} />
               
               {/* SEO Landing Pages */}
               <Route path="/transfer-fortaleza-jericoacoara" element={<TransferFortalezaJeri />} />
