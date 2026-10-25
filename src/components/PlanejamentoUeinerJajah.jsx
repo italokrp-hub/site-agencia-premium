@@ -95,6 +95,13 @@ export default function PlanejamentoUeinerJajah() {
   const [modoConsultor, setModoConsultor] = useState(false);
   const [modalResumoAberto, setModalResumoAberto] = useState(false);
 
+  // Modo consultor bloqueado para o cliente — acessível apenas se tiver ?admin=italo na URL
+  const isConsultorAutorizado = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('admin') === 'italo' || params.get('consultor') === 'italo';
+  }, []);
+
   // Estados de acordeões (para manter a tela limpa)
   const [acordeoes, setAcordeoes] = useState({
     heliTransfer: false,
@@ -777,21 +784,23 @@ export default function PlanejamentoUeinerJajah() {
             <span className="text-[11px] sm:text-xs bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full font-semibold">
               {DADOS_CLIENTE.hotel} • {DADOS_CLIENTE.periodo}
             </span>
-            <button
-              onClick={() => setModoConsultor(!modoConsultor)}
-              className="text-[10px] sm:text-[11px] text-stone-400 hover:text-amber-300 mt-1 underline transition-colors"
-              title="Permite que o Ítalo altere os valores base em tempo real"
-            >
-              {modoConsultor ? '✕ Fechar Painel do Consultor' : '⚙️ Modo Consultor Ítalo (Editar Preços)'}
-            </button>
+            {isConsultorAutorizado && (
+              <button
+                onClick={() => setModoConsultor(!modoConsultor)}
+                className="text-[10px] sm:text-[11px] text-stone-400 hover:text-amber-300 mt-1 underline transition-colors"
+                title="Permite que o Ítalo altere os valores base em tempo real"
+              >
+                {modoConsultor ? '✕ Fechar Painel do Consultor' : '⚙️ Modo Consultor Ítalo (Editar Preços)'}
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       {/* ==================================================================== */}
-      {/* PAINEL RÁPIDO DO CONSULTOR ÍTALO (QUANDO ATIVADO) */}
+      {/* PAINEL RÁPIDO DO CONSULTOR ÍTALO (QUANDO AUTORIZADO E ATIVADO) */}
       {/* ==================================================================== */}
-      {modoConsultor && (
+      {isConsultorAutorizado && modoConsultor && (
         <div className="bg-[#1C1917] text-amber-100 border-b-2 border-amber-500 px-4 py-4 shadow-xl">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-3">
