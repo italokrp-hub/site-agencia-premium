@@ -119,21 +119,21 @@ export default function PlanejamentoUeinerJajah() {
   // ESTADOS DAS ESCOLHAS
   // --------------------------------------------------------------------------
   // ABA 1: Transfer
-  const [transferTerrestre, setTransferTerrestre] = useState('privativo'); // 'privativo' | 'compartilhado' | 'nenhum'
+  const [transferTerrestre, setTransferTerrestre] = useState(null); // 'privativo' | 'compartilhado' | null
   const [heliTransferSelecionado, setHeliTransferSelecionado] = useState(null); // 'jjd' | 'fortaleza' | 'camocim' | 'parnaiba' | null
 
   // ABA 2: Passeios Terrestres
   // 1) Litoral Leste
-  const [lesteAtivo, setLesteAtivo] = useState(true);
+  const [lesteAtivo, setLesteAtivo] = useState(false);
   const [lesteData, setLesteData] = useState('10/11 (Terça)');
   const [lesteVeiculo, setLesteVeiculo] = useState('sw4'); // 'sw4' | 'utv'
   const [lesteBeachClubs, setLesteBeachClubs] = useState({
-    buracoAzul: true,
+    buracoAzul: false,
     lagunBeach: false,
     carauba: false,
     alchymist: false,
     blueLagoon: false,
-    comboAlchymistBlue: true, // Combo selecionado por padrão
+    comboAlchymistBlue: false,
     vipAreaSobConsulta: false,
   });
 
@@ -143,13 +143,13 @@ export default function PlanejamentoUeinerJajah() {
   const [oesteVeiculo, setOesteVeiculo] = useState('sw4');
 
   // 3) Barrinha & Base Náutica
-  const [barrinhaAtivo, setBarrinhaAtivo] = useState(true);
+  const [barrinhaAtivo, setBarrinhaAtivo] = useState(false);
   const [barrinhaData, setBarrinhaData] = useState('13/11 (Sexta)');
   const [barrinhaVeiculo, setBarrinhaVeiculo] = useState('sw4');
   const [barrinhaBeachClub, setBarrinhaBeachClub] = useState('Munzuá Pier Club');
   const [barrinhaVipSobConsulta, setBarrinhaVipSobConsulta] = useState(false);
   const [barrinhaNautico, setBarrinhaNautico] = useState({
-    jetSki12Min: true,
+    jetSki12Min: false,
     jetSkiSegmar25Min: false,
     jetSki1Hora: false,
     jetSkiIndividual2Pax: false,
@@ -160,7 +160,7 @@ export default function PlanejamentoUeinerJajah() {
     caiaque2Pax: false,
     sup2Pax: false,
     bananaBoat2Pax: false,
-    lanchaPrivativaSobConsulta: true,
+    lanchaPrivativaSobConsulta: false,
   });
 
   // 4) Oeste Extremo
@@ -178,9 +178,7 @@ export default function PlanejamentoUeinerJajah() {
 
   // ABA 4: Extras & Pedidos Especiais
   const [droneAtivo, setDroneAtivo] = useState(false);
-  const [pedidosEspeciais, setPedidosEspeciais] = useState([
-    { id: 'esp_1', texto: 'Prioridade absoluta de ar-condicionado e cabine fechada na SW4', sobConsulta: false },
-  ]);
+  const [pedidosEspeciais, setPedidosEspeciais] = useState([]);
   const [novoPedidoInput, setNovoPedidoInput] = useState('');
 
   // --------------------------------------------------------------------------
@@ -900,7 +898,7 @@ export default function PlanejamentoUeinerJajah() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 {/* 1. Privativo 4x4 */}
                 <div
-                  onClick={() => setTransferTerrestre('privativo')}
+                  onClick={() => setTransferTerrestre((prev) => (prev === 'privativo' ? null : 'privativo'))}
                   className={`cursor-pointer rounded-xl p-4 border-2 transition-all ${
                     transferTerrestre === 'privativo'
                       ? 'border-amber-500 bg-amber-50/30 shadow-md ring-1 ring-amber-500/30'
@@ -926,7 +924,7 @@ export default function PlanejamentoUeinerJajah() {
 
                 {/* 2. Compartilhado */}
                 <div
-                  onClick={() => setTransferTerrestre('compartilhado')}
+                  onClick={() => setTransferTerrestre((prev) => (prev === 'compartilhado' ? null : 'compartilhado'))}
                   className={`cursor-pointer rounded-xl p-4 border-2 transition-all ${
                     transferTerrestre === 'compartilhado'
                       ? 'border-amber-500 bg-amber-50/30 shadow-md ring-1 ring-amber-500/30'
