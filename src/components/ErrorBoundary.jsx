@@ -13,6 +13,31 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({ errorInfo });
     console.error('CRITICAL RUNTIME ERROR CAUGHT BY ERROR BOUNDARY:', error, errorInfo);
+
+    if (typeof window !== 'undefined' && error) {
+      const msg = String(error?.message || error || '');
+      const isMimeOrChunkError =
+        msg.includes('text/html') ||
+        msg.includes('MIME type') ||
+        msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('error loading dynamically imported module') ||
+        msg.includes('Loading chunk') ||
+        msg.includes('ChunkLoadError');
+
+      if (isMimeOrChunkError) {
+        const key = 'eb_chunk_reload';
+        try {
+          const last = sessionStorage.getItem(key);
+          const now = Date.now();
+          if (!last || now - parseInt(last, 10) > 15000) {
+            sessionStorage.setItem(key, now.toString());
+            window.location.reload();
+          }
+        } catch (_) {
+          window.location.reload();
+        }
+      }
+    }
   }
 
   handleReset = () => {

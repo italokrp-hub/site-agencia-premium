@@ -16,31 +16,90 @@ import ImmersiveHero from '@/components/sections/ImmersiveHero';
 import ExperienceSelector from '@/components/sections/ExperienceSelector';
 import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
 
+// Safe lazy loader with auto-retry and cache-busting reload recovery.
+// Completely prevents and handles:
+// - TypeError: Failed to fetch dynamically imported module
+// - TypeError: 'text/html' is not a valid JavaScript MIME type
+// - ChunkLoadError after new production deployments
+function safeLazy(importFn, retriesLeft = 2, interval = 1000) {
+  return lazy(() => {
+    return new Promise((resolve, reject) => {
+      const execute = (remainingRetries) => {
+        importFn()
+          .then((module) => {
+            if (typeof window !== 'undefined') {
+              try {
+                sessionStorage.removeItem(`lazy_retry_${window.location.pathname}`);
+              } catch (_) {}
+            }
+            resolve(module);
+          })
+          .catch((error) => {
+            const errorMsg = String(error?.message || error || '');
+            const isMimeOrChunkError =
+              errorMsg.includes('text/html') ||
+              errorMsg.includes('MIME type') ||
+              errorMsg.includes('Failed to fetch dynamically imported module') ||
+              errorMsg.includes('error loading dynamically imported module') ||
+              errorMsg.includes('Loading chunk') ||
+              errorMsg.includes('ChunkLoadError');
+
+            if (isMimeOrChunkError && typeof window !== 'undefined') {
+              const storageKey = `lazy_retry_${window.location.pathname}`;
+              try {
+                const lastAttempt = sessionStorage.getItem(storageKey);
+                const now = Date.now();
+                if (!lastAttempt || now - parseInt(lastAttempt, 10) > 15000) {
+                  sessionStorage.setItem(storageKey, now.toString());
+                  window.location.reload();
+                  return;
+                }
+              } catch (_) {
+                window.location.reload();
+                return;
+              }
+            }
+
+            if (remainingRetries > 0) {
+              setTimeout(() => {
+                execute(remainingRetries - 1);
+              }, interval);
+            } else {
+              reject(error);
+            }
+          });
+      };
+
+      execute(retriesLeft);
+    });
+  });
+}
+
 // Below-the-fold homepage sections (Lazy loaded for Performance)
-const ToursExplorer = lazy(() => import('@/components/sections/ToursExplorer'));
-const TransfersSection = lazy(() => import('@/components/sections/TransfersSection'));
-const ExploreJericoMap = lazy(() => import('@/components/sections/ExploreJericoMap'));
-const TravelPlanner = lazy(() => import('@/components/sections/TravelPlanner'));
-const PremiumExperiences = lazy(() => import('@/components/sections/PremiumExperiences'));
-const TrustSection = lazy(() => import('@/components/sections/TrustSection'));
-const TestimonialsSection = lazy(() => import('@/components/sections/TestimonialsSection'));
-const FAQSection = lazy(() => import('@/components/sections/FAQSection'));
-const FinalCTA = lazy(() => import('@/components/sections/FinalCTA'));
-const JeriDuneTrail = lazy(() => import('@/components/effects/JeriDuneTrail'));
+const ToursExplorer = safeLazy(() => import('@/components/sections/ToursExplorer'));
+const TransfersSection = safeLazy(() => import('@/components/sections/TransfersSection'));
+const ExploreJericoMap = safeLazy(() => import('@/components/sections/ExploreJericoMap'));
+const TravelPlanner = safeLazy(() => import('@/components/sections/TravelPlanner'));
+const PremiumExperiences = safeLazy(() => import('@/components/sections/PremiumExperiences'));
+const TrustSection = safeLazy(() => import('@/components/sections/TrustSection'));
+const TestimonialsSection = safeLazy(() => import('@/components/sections/TestimonialsSection'));
+const FAQSection = safeLazy(() => import('@/components/sections/FAQSection'));
+const FinalCTA = safeLazy(() => import('@/components/sections/FinalCTA'));
+const JeriDuneTrail = safeLazy(() => import('@/components/effects/JeriDuneTrail'));
 
 // Secondary & Admin routes (Lazy loaded)
-const Reservas = lazy(() => import('@/pages/agencia/Reservas'));
-const VoucherPage = lazy(() => import('@/pages/VoucherPage'));
-const ObrigadoPage = lazy(() => import('@/pages/ObrigadoPage'));
-const FaqPage = lazy(() => import('@/pages/FaqPage'));
-const PlanejamentoUeinerJajah = lazy(() => import('@/components/PlanejamentoUeinerJajah'));
+const Reservas = safeLazy(() => import('@/pages/agencia/Reservas'));
+const VoucherPage = safeLazy(() => import('@/pages/VoucherPage'));
+const ObrigadoPage = safeLazy(() => import('@/pages/ObrigadoPage'));
+const FaqPage = safeLazy(() => import('@/pages/FaqPage'));
+const PlanejamentoUeinerJajah = safeLazy(() => import('@/components/PlanejamentoUeinerJajah'));
 
 // SEO Landing Pages (Lazy loaded)
-const TransferFortalezaJeri = lazy(() => import('@/pages/seo/TransferFortalezaJeri'));
-const TransferAeroportoJeri = lazy(() => import('@/pages/seo/TransferAeroportoJeri'));
-const TransferJijocaJeri = lazy(() => import('@/pages/seo/TransferJijocaJeri'));
-const TransferPreaJeri = lazy(() => import('@/pages/seo/TransferPreaJeri'));
-const PasseiosJeri = lazy(() => import('@/pages/seo/PasseiosJeri'));
+const TransferFortalezaJeri = safeLazy(() => import('@/pages/seo/TransferFortalezaJeri'));
+const TransferAeroportoJeri = safeLazy(() => import('@/pages/seo/TransferAeroportoJeri'));
+const TransferJijocaJeri = safeLazy(() => import('@/pages/seo/TransferJijocaJeri'));
+const TransferPreaJeri = safeLazy(() => import('@/pages/seo/TransferPreaJeri'));
+const PasseiosJeri = safeLazy(() => import('@/pages/seo/PasseiosJeri'));
 
 function SectionFallback() {
   return <div className="py-12 bg-white flex items-center justify-center min-h-[120px]" />;
