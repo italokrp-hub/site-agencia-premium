@@ -28,9 +28,11 @@ const Footer = () => {
           <div>
             <img 
               src="/images/logo.webp"
-              alt="Jericoacoara Premium"
+              alt="Jericoacoara Premium - Agência de Transfers e Passeios"
               width="180"
               height="64"
+              loading="lazy"
+              decoding="async"
               className="h-16 w-auto mb-4"
             />
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
@@ -134,6 +136,7 @@ const Footer = () => {
               <Link to="/passeio-lado-leste-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeio Lado Leste</Link>
               <Link to="/passeio-lado-oeste-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeio Lado Oeste</Link>
               <Link to="/passeio-buggy-utv-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Buggy, UTV e Quadriciclo</Link>
+              <Link to="/roteiro-jericoacoara" className="hover:text-[#D4AF37] text-[#D4AF37] font-semibold transition-colors">Guia de Roteiro (3, 5 e 7 Dias)</Link>
               <Link to="/faq" className="hover:text-[#D4AF37] text-[#D4AF37]/90 font-semibold transition-colors flex items-center gap-1.5 pt-1">
                 <span>Perguntas Frequentes (FAQ)</span>
                 {' '}

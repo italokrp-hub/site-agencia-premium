@@ -140,6 +140,9 @@ const TransferJijocaJeri = () => {
             className="w-full h-full object-cover"
             alt="Veículo 4x4 em Jijoca de Jericoacoara nas dunas"
             src="/images/transfer-4x4-dunas.webp"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0F1A1C]" />
         </div>

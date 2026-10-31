@@ -221,6 +221,9 @@ const PasseioBuggyUtvJeri = () => {
             className="w-full h-full object-cover"
             alt="Passeio de Buggy e UTV nas dunas de Jericoacoara"
             src="/images/passeio-utv-maverick.webp"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/50 to-[#0F1A1C]" />
         </div>

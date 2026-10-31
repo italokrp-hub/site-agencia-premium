@@ -140,6 +140,9 @@ const TransferAeroportoJeri = () => {
             className="w-full h-full object-cover opacity-60"
             alt="Veículo 4x4 no Aeroporto Regional de Jericoacoara Cruz JJD"
             src="/images/transfer-hilux.webp"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-[#0F1A1C]" />
         </div>

@@ -30,9 +30,10 @@ const FinalCTA = () => {
       <div className="absolute inset-0 z-0">
         <img
           src="/images/tours/passeio-oeste.webp"
-          alt="Jericoacoara — Lagoa da Tatajuba"
+          alt="Jericoacoara — Dunas e Lagoa da Tatajuba ao Entardecer"
           className="w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/60 to-black/80" />
       </div>

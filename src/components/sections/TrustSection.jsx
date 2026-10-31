@@ -93,7 +93,11 @@ const TrustSection = () => {
           <div className="flex items-center gap-5">
             <img
               src="/images/logo-sm.webp"
-              alt="Jericoacoara Premium"
+              alt="Jericoacoara Premium - Selo Cadastur"
+              width="56"
+              height="56"
+              loading="lazy"
+              decoding="async"
               className="h-14 w-14 rounded-full object-cover shrink-0"
             />
             <div>

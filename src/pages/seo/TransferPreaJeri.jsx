@@ -138,6 +138,9 @@ const TransferPreaJeri = () => {
             className="w-full h-full object-cover"
             alt="Veículo 4x4 nas dunas e orla da Praia do Preá"
             src="/images/transfer-4x4-dunas.webp"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0F1A1C]" />
         </div>

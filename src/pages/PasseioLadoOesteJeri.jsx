@@ -180,6 +180,9 @@ const PasseioLadoOesteJeri = () => {
             className="w-full h-full object-cover"
             alt="Passeio Lado Oeste Dunas de Tatajuba em Jericoacoara"
             src="/images/tours/passeio-oeste.webp"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#0F1A1C]" />
         </div>

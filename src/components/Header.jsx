@@ -29,6 +29,7 @@ const Header = () => {
     { label: t('nav.home'), href: '#home' },
     { label: t('nav.experiences'), href: '#experiencias' },
     { label: 'Passeios', href: '/passeios-jericoacoara' },
+    { label: 'Roteiro', href: '/roteiro-jericoacoara' },
     { 
       label: 'Transfers', 
       isDropdown: true,
@@ -103,6 +104,8 @@ const Header = () => {
                 alt="Jericoacoara Premium - Agência de Viagens Premium"
                 width="64"
                 height="64"
+                loading="eager"
+                decoding="async"
                 className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-full shadow-sm"
               />
             </a>

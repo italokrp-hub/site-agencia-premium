@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import {
@@ -499,6 +500,10 @@ const TravelPlanner = () => {
                           <img
                             src={tour.image}
                             alt={tour.title}
+                            width="56"
+                            height="56"
+                            loading="lazy"
+                            decoding="async"
                             className="w-14 h-14 rounded-xl object-cover shrink-0"
                           />
                           <div>
@@ -537,6 +542,10 @@ const TravelPlanner = () => {
                         <img
                           src={tr.image}
                           alt={tr.title}
+                          width="56"
+                          height="56"
+                          loading="lazy"
+                          decoding="async"
                           className="w-14 h-14 rounded-xl object-cover shrink-0"
                         />
                         <div>
@@ -627,6 +636,18 @@ const TravelPlanner = () => {
               </Button>
             </div>
           )}
+
+          {/* Link para o Guia Completo */}
+          <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+            <Link
+              to="/roteiro-jericoacoara"
+              className="inline-flex items-center gap-1.5 text-xs text-[#2C7A7B] hover:text-teal-900 font-bold hover:underline transition-colors"
+            >
+              <Compass className="w-4 h-4 text-[#D4AF37]" />
+              <span>Deseja ler o Guia Completo de Roteiro em Jericoacoara (3, 5 e 7 Dias)? Clique aqui</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
 
         </div>
       </div>

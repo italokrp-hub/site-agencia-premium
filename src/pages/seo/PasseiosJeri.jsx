@@ -92,8 +92,11 @@ const PasseiosJeri = () => {
         <div className="absolute inset-0 z-0">
           <img 
             className="w-full h-full object-cover"
-            alt="Passeios em Jericoacoara Lagoa do Paraíso"
+            alt="Passeios em Jericoacoara Lagoa do Paraíso e Dunas"
             src="/images/tours/passeio-leste.webp"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-teal-900/90 via-teal-900/60 to-transparent" />
         </div>
@@ -156,6 +159,13 @@ const PasseiosJeri = () => {
                 className="inline-flex items-center gap-2 bg-white/10 hover:bg-[#D4AF37] hover:text-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all border border-white/10"
               >
                 <span>Buggy, UTV & Quadri</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link 
+                to="/roteiro-jericoacoara"
+                className="inline-flex items-center gap-2 bg-[#D4AF37]/20 hover:bg-[#D4AF37] hover:text-gray-900 text-[#D4AF37] text-xs font-bold px-4 py-2.5 rounded-full transition-all border border-[#D4AF37]/40"
+              >
+                <span>Guia de Roteiro (3 a 7 Dias)</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -345,7 +355,13 @@ const PasseiosJeri = () => {
                 <div className="absolute top-4 right-4 bg-[#D4AF37] text-gray-900 font-bold px-4 py-1 rounded-full text-sm z-10 shadow-lg">
                   Off-Road VIP
                 </div>
-                <img src={tourUtv?.image || '/images/passeio-utv-maverick.webp'} alt="UTV Jericoacoara" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img 
+                  src={tourUtv?.image || '/images/passeio-utv-maverick.webp'} 
+                  alt="Passeio de UTV Can-Am Maverick nas dunas de Jericoacoara" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
               </div>
               <div className="p-8 flex-grow">
@@ -370,7 +386,13 @@ const PasseiosJeri = () => {
                 <div className="absolute top-4 right-4 bg-white text-[#2C7A7B] font-bold px-4 py-1 rounded-full text-sm z-10 shadow-lg">
                   Vista Aérea
                 </div>
-                <img src={tourHelicoptero?.image || '/images/voo-helicoptero-jeri.webp'} alt="Helicóptero Jericoacoara" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img 
+                  src={tourHelicoptero?.image || '/images/voo-helicoptero-jeri.webp'} 
+                  alt="Voo Panorâmico de Helicóptero sobre a Pedra Furada e Dunas de Jericoacoara" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2C7A7B] to-transparent" />
               </div>
               <div className="p-8 flex-grow">
