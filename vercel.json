@@ -104,6 +104,50 @@
       "destination": "/images/$1"
     },
     {
+      "source": "/passeios-jericoacoara",
+      "destination": "/passeios-jericoacoara/index.html"
+    },
+    {
+      "source": "/passeio-lado-leste-jericoacoara",
+      "destination": "/passeio-lado-leste-jericoacoara/index.html"
+    },
+    {
+      "source": "/passeio-lado-oeste-jericoacoara",
+      "destination": "/passeio-lado-oeste-jericoacoara/index.html"
+    },
+    {
+      "source": "/passeio-buggy-utv-jericoacoara",
+      "destination": "/passeio-buggy-utv-jericoacoara/index.html"
+    },
+    {
+      "source": "/transfer-fortaleza-jericoacoara",
+      "destination": "/transfer-fortaleza-jericoacoara/index.html"
+    },
+    {
+      "source": "/transfer-aeroporto-jericoacoara",
+      "destination": "/transfer-aeroporto-jericoacoara/index.html"
+    },
+    {
+      "source": "/transfer-jijoca-jericoacoara",
+      "destination": "/transfer-jijoca-jericoacoara/index.html"
+    },
+    {
+      "source": "/transfer-prea-jericoacoara",
+      "destination": "/transfer-prea-jericoacoara/index.html"
+    },
+    {
+      "source": "/roteiro-jericoacoara",
+      "destination": "/roteiro-jericoacoara/index.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq/index.html"
+    },
+    {
+      "source": "/voucher/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/((?!api/|assets/|images/|sitemap\\.xml|robots\\.txt|llms\\.txt|.*\\..*).*)",
       "destination": "/index.html"
     }

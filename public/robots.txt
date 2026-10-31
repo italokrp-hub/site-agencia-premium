@@ -4,6 +4,5 @@ Disallow: /reservas
 Disallow: /agencia/
 Disallow: /voucher/
 Disallow: /obrigado
-Disallow: /planejamento-
 
 Sitemap: https://www.jericoacoarapremium.com/sitemap.xml
