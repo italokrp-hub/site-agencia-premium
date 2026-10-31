@@ -1,161 +1,299 @@
 import React, { useState, useMemo } from 'react';
-import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search,
-  ChevronDown,
-  ShieldCheck,
+  HelpCircle,
+  CalendarCheck,
   CreditCard,
+  ShieldCheck,
   Car,
   Compass,
-  AlertCircle,
-  Clock,
-  HelpCircle,
+  ChevronDown,
+  Search,
   MessageCircle,
-  ArrowRight,
   CheckCircle2,
-  CalendarCheck,
+  Clock,
   Sparkles,
+  ArrowRight,
+  AlertCircle,
+  Users,
+  Shield,
+  FileText,
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import SEOHead from '@/components/SEOHead';
 import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
 import { CANCELLATION_POLICY } from '@/data/catalog';
 
-// Estrutura rica e categorizada de Perguntas e Respostas
+// As 4 Categorias Oficiais solicitadas na Auditoria SEO
 export const FAQ_CATEGORIES = [
   { id: 'todas', label: 'Todas as Dúvidas', icon: HelpCircle },
-  { id: 'cancelamento', label: 'Política de Cancelamento', icon: CalendarCheck, badge: 'Regra de 7 Dias' },
-  { id: 'reservas-pagamento', label: 'Reservas & Pagamento', icon: CreditCard },
-  { id: 'veiculos-seguranca', label: 'Veículos & Segurança', icon: ShieldCheck },
-  { id: 'logistica-transfer', label: 'Logística de Traslados', icon: Car },
-  { id: 'passeios-roteiros', label: 'Passeios & Atrações', icon: Compass },
+  { id: 'transfers-voos', label: 'Transfers e Atrasos de Voo', icon: Car },
+  { id: 'bagagem-criancas', label: 'Bagagem e Crianças', icon: Users },
+  { id: 'passeios-roteiros', label: 'Passeios e Roteiros', icon: Compass },
+  { id: 'pagamentos-cancelamento', label: 'Pagamentos e Cancelamento', icon: CalendarCheck, badge: 'Regra de 7 Dias' },
 ];
 
 export const ALL_FAQ_DATA = [
-  // 1. POLÍTICA DE CANCELAMENTO & REEMBOLSO
+  // 1. TRANSFERS E ATRASOS DE VOO
   {
-    category: 'cancelamento',
-    question: 'Qual é a política de cancelamento e reembolso da Jericoacoara Premium?',
-    answer: 'Nossa política de cancelamento é estrita, transparente e prioriza o respeito mútuo. Você tem direito a 100% de reembolso integral caso a solicitação de cancelamento seja formalizada com no mínimo 7 dias corridos de antecedência em relação à data do embarque ou início do serviço.',
+    id: 'atraso-voo',
+    category: 'transfers-voos',
+    question: 'O que acontece se meu voo atrasar na chegada ao aeroporto (FOR ou JJD)?',
+    answerText: 'Monitoramos todos os voos em tempo real com base no número informado na sua reserva. Tanto no Aeroporto Internacional de Fortaleza (FOR) quanto no Aeroporto Regional de Jericoacoara (JJD - Cruz), oferecemos tolerância gratuita de espera após o pouso sem qualquer taxa extra. Seu motorista credenciado estará aguardando no desembarque com placa de identificação.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          Monitoramos todos os voos em tempo real com base no número informado na sua reserva. Tanto no Aeroporto Internacional de Fortaleza (FOR) quanto no Aeroporto Regional de Jericoacoara (JJD - Cruz), oferecemos <strong>tolerância gratuita de espera após o pouso</strong> sem qualquer cobrança de taxa extra.
+        </p>
+        <p>
+          Seu motorista credenciado aguarda com placa nominal no desembarque. Conheça nossos serviços de{' '}
+          <Link to="/transfer-aeroporto-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Transfer do Aeroporto de Jericoacoara (JJD)
+          </Link>{' '}
+          e{' '}
+          <Link to="/transfer-fortaleza-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Transfer Fortaleza para Jericoacoara
+          </Link>.
+        </p>
+      </div>
+    ),
     highlight: true,
   },
   {
-    category: 'cancelamento',
-    question: 'O que acontece se eu cancelar entre 7 dias e 48 horas antes da viagem?',
-    answer: 'Para cancelamentos solicitados entre 7 dias e 48 horas antes do horário agendado, oferecemos a opção de 100% do valor convertido em Voucher de Crédito (válido por 12 meses para reagendamento) ou o reembolso financeiro com retenção de 50% para cobrir custos operacionais e taxa de reserva de data.',
+    id: 'diferenca-privativo-compartilhado',
+    category: 'transfers-voos',
+    question: 'Qual a diferença entre Transfer Privativo 4x4 e Compartilhado para Jericoacoara?',
+    answerText: 'No Transfer Privativo (Toyota Hilux ou SW4 4x4), o veículo é 100% exclusivo para o seu grupo, sem paradas desnecessárias e com horário livre de saída diretamente para sua pousada. Já o Transfer Compartilhado oferece o melhor custo-benefício, com partidas regulares e veículos confortáveis compartilhados com outros passageiros.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          No <strong>Transfer Privativo (Toyota Hilux ou SW4 4x4)</strong>, o veículo é 100% exclusivo para o seu grupo, sem espera por outros passageiros e com horário livre de saída, levando você direto à porta da sua pousada na Vila de Jericoacoara.
+        </p>
+        <p>
+          Já o <strong>Transfer Compartilhado</strong> oferece o melhor custo-benefício da rota, com veículos executivos e confortáveis compartilhados com outros passageiros. Veja mais detalhes em{' '}
+          <Link to="/transfer-fortaleza-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Transfer Fortaleza Jeri
+          </Link>{' '}
+          e{' '}
+          <Link to="/transfer-jijoca-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Transfer Jijoca Jericoacoara
+          </Link>.
+        </p>
+      </div>
+    ),
   },
   {
-    category: 'cancelamento',
-    question: 'Por que cancelamentos com menos de 48 horas ou no-show não são reembolsáveis?',
-    answer: 'Jericoacoara é uma vila de acesso restrito pelo Parque Nacional e operamos com frota 4x4 selecionada e motoristas credenciados que reservam a data exclusivamente para o seu grupo. Com menos de 48 horas ou não comparecimento (no-show), o veículo e o motorista já foram escalados, impedindo a realocação para outros passageiros.',
+    id: 'tempo-viagem',
+    category: 'transfers-voos',
+    question: 'Qual é o tempo médio de viagem até Jericoacoara saindo de cada ponto?',
+    answerText: 'Saindo do Aeroporto Regional de Jericoacoara (JJD em Cruz), o percurso leva cerca de 40 a 50 minutos em veículo 4x4. A partir de Jijoca de Jericoacoara, a travessia das dunas dura aproximadamente 35 a 45 minutos. Já de Fortaleza até Jericoacoara, a viagem dura em média de 4h a 4h30min em 4x4 privativo ou de 5h a 6h no transfer compartilhado/ônibus.',
+    renderAnswer: () => (
+      <div>
+        <ul className="list-disc pl-5 space-y-1 mb-2">
+          <li>
+            <strong>Aeroporto de Jericoacoara (Cruz / JJD):</strong> cerca de 40 a 50 minutos direto pela praia/dunas.{' '}
+            <Link to="/transfer-aeroporto-jericoacoara" className="text-[#2C7A7B] font-semibold hover:underline">Ver detalhes</Link>.
+          </li>
+          <li>
+            <strong>Jijoca de Jericoacoara:</strong> cerca de 35 a 45 minutos em jardineira 4x4 ou Hilux.{' '}
+            <Link to="/transfer-jijoca-jericoacoara" className="text-[#2C7A7B] font-semibold hover:underline">Ver detalhes</Link>.
+          </li>
+          <li>
+            <strong>Fortaleza (Aeroporto FOR ou Hotéis):</strong> 4h a 4h30min em 4x4 privativo (ou 5h a 6h no transfer compartilhado).{' '}
+            <Link to="/transfer-fortaleza-jericoacoara" className="text-[#2C7A7B] font-semibold hover:underline">Ver detalhes</Link>.
+          </li>
+          <li>
+            <strong>Praia do Preá:</strong> cerca de 30 a 40 minutos pela beira-mar.{' '}
+            <Link to="/transfer-prea-jericoacoara" className="text-[#2C7A7B] font-semibold hover:underline">Ver detalhes</Link>.
+          </li>
+        </ul>
+      </div>
+    ),
   },
   {
-    category: 'cancelamento',
-    question: 'Posso alterar a data ou horário da minha reserva sem custo?',
-    answer: 'Sim! Remarcações de data e horário solicitadas com mais de 7 dias de antecedência são 100% gratuitas, sujeitas apenas à disponibilidade de veículos na nova data solicitada. Caso a alteração ocorra dentro do período inferior a 7 dias, consulte nossa equipe de suporte pelo WhatsApp para avaliarmos a disponibilidade sem multas abusivas.',
-  },
-
-  // 2. RESERVAS & PAGAMENTOS
-  {
-    category: 'reservas-pagamento',
-    question: 'Quais são as formas de pagamento aceitas?',
-    answer: 'Aceitamos PIX Dinâmico com desconto imediato de 5% sobre o valor total, cartões de crédito em até 12x através do Mercado Pago e cartões internacionais via Stripe para passageiros estrangeiros. Você também pode optar por pagar apenas 50% de sinal online para garantir a reserva e quitar os 50% restantes no momento do embarque.',
-  },
-  {
-    category: 'reservas-pagamento',
-    question: 'Como funciona o desconto de 5% no PIX?',
-    answer: 'Ao selecionar a opção PIX no checkout, o desconto de 5% é aplicado automaticamente sobre o valor total do serviço. Nosso sistema gera um QR Code dinâmico e o código "Copia e Cola" com confirmação instantânea de pagamento.',
-  },
-  {
-    category: 'reservas-pagamento',
-    question: 'Como funciona o pagamento do Sinal de 50%?',
-    answer: 'Para sua comodidade, você pode pagar 50% do valor do transfer ou passeio antecipadamente pelo site (via PIX ou Cartão) para travar sua vaga no calendário, e pagar o saldo remanescente de 50% diretamente ao motorista ou guia no dia da viagem (em dinheiro ou cartão).',
-  },
-  {
-    category: 'reservas-pagamento',
-    question: 'Sou estrangeiro e não tenho CPF. Como posso reservar?',
-    answer: 'Nosso sistema de checkout possui um alternador específico para clientes estrangeiros ("Sou Estrangeiro"). Você pode preencher seu Passaporte ou documento internacional de identificação, selecionar o DDI do seu país e realizar o pagamento com cartões do mundo inteiro de forma segura via Stripe.',
-  },
-  {
-    category: 'reservas-pagamento',
-    question: 'Como recebo o comprovante e voucher da minha reserva?',
-    answer: 'Imediatamente após a aprovação do pagamento, você recebe seu Voucher Digital oficial contendo o código localizador único, detalhes do veículo, data, endereço de embarque e contato direto da nossa coordenação de logística.',
-  },
-
-  // 3. VEÍCULOS & SEGURANÇA
-  {
-    category: 'veiculos-seguranca',
-    question: 'Quais veículos compõem a frota da Jericoacoara Premium?',
-    answer: 'Nossa frota é composta por caminhonetes Toyota Hilux 4x4, SUVs Toyota SW4 de 6 lugares, Vans Executivas e Jardineiras 4x4 regulamentadas. Todos os veículos contam com ar-condicionado de alta eficiência, manutenção preventiva rigorosa e seguro contra sinistros.',
-  },
-  {
-    category: 'veiculos-seguranca',
-    question: 'A empresa é devidamente cadastrada nos órgãos de turismo?',
-    answer: 'Sim, somos uma agência e operadora de turismo devidamente cadastrada no Cadastur (Ministério do Turismo) sob o CNPJ 51.790.615/0001-08. Nossos motoristas e guias são profissionais certificados com ampla experiência em condução off-road nas dunas móveis do Ceará.',
-  },
-  {
-    category: 'veiculos-seguranca',
-    question: 'Os passageiros contam com seguro durante os trajetos?',
-    answer: 'Sim, todos os nossos transfers e passeios incluem seguro de Acidentes Pessoais a Passageiros (APP) com cobertura integral durante todo o percurso terrestre, garantindo tranquilidade absoluta para sua família.',
-  },
-
-  // 4. LOGÍSTICA DE TRASLADOS & AEROPORTOS
-  {
-    category: 'logistica-transfer',
-    question: 'Qual é a franquia de bagagem permitida nos transfers?',
-    answer: 'No Transfer Privativo (Hilux ou SW4), a franquia é ampla: até 2 malas despachadas (até 23kg cada) + 1 mala de mão por passageiro. No Transfer Compartilhado, para garantir o conforto de todos, é permitida 1 mala média despachada (até 23kg) + 1 mochila ou bolsa de mão por passageiro.',
-  },
-  {
-    category: 'logistica-transfer',
-    question: 'O que acontece se meu voo atrasar na chegada ao aeroporto?',
-    answer: 'Monitoramos todos os voos dos nossos clientes em tempo real através dos números informados na reserva. Para transfers que partem de aeroportos (Fortaleza Pinto Martins - FOR ou Cruz/Jericoacoara - SBJE), oferecemos tolerância gratuita de até 1 hora de espera após o pouso sem qualquer taxa extra.',
-  },
-  {
-    category: 'logistica-transfer',
-    question: 'Onde o motorista me encontra no Aeroporto de Fortaleza ou Cruz?',
-    answer: 'No Aeroporto de Fortaleza, nosso motorista aguarda no saguão de desembarque com uma placa identificadora contendo o seu nome e o logotipo da Jericoacoara Premium. No Aeroporto de Cruz (Jeri), o ponto de encontro fica logo na saída da esteira de bagagens.',
-  },
-  {
-    category: 'logistica-transfer',
-    question: 'Qual é o tempo de viagem entre Fortaleza e Jericoacoara?',
-    answer: 'Em Transfer Privativo 4x4 direto, a viagem dura em média de 4 horas a 4h30min, incluindo uma parada conveniente para lanche e esticar as pernas. Em Transfer Compartilhado de Van/Ônibus, a duração varia entre 5h e 6h, dependendo do trânsito na saída da capital e do transbordo nas dunas.',
-  },
-  {
-    category: 'logistica-transfer',
-    question: 'Crianças pagam passagem de transfer?',
-    answer: 'Bebês e crianças de colo até 2 anos completos viajam gratuitamente no colo de um adulto responsável. Crianças a partir de 2 anos completos ocupam assento individual por exigência da legislação rodoviária e pagam a tarifa padrão ou proporcional contratada.',
+    id: 'onde-encontrar-motorista',
+    category: 'transfers-voos',
+    question: 'Onde o motorista me encontra no Aeroporto de Fortaleza ou de Jericoacoara?',
+    answerText: 'No Aeroporto de Fortaleza (FOR), nosso motorista aguarda no saguão de desembarque com uma placa identificadora personalizada com seu nome e a marca Jericoacoara Premium. No Aeroporto de Jericoacoara (JJD em Cruz), o ponto de encontro fica logo na saída da esteira de restituição de bagagens.',
+    renderAnswer: () => (
+      <div>
+        <p>
+          No <strong>Aeroporto de Fortaleza (FOR)</strong>, nossa equipe aguarda no saguão de desembarque com uma placa identificadora contendo seu nome. No <strong>Aeroporto Regional de Jericoacoara (Cruz / JJD)</strong>, a recepção é logo na saída da esteira de bagagens. Nosso suporte 24h via WhatsApp (+55 88 98846-3182) acompanha toda a sua chegada.
+        </p>
+      </div>
+    ),
   },
 
-  // 5. PASSEIOS & EXPERIÊNCIAS EM JERICOACOARA
+  // 2. BAGAGEM E CRIANÇAS
   {
-    category: 'passeios-roteiros',
-    question: 'Qual a diferença entre o Passeio Lado Leste e o Lado Oeste?',
-    answer: 'O Litoral Leste é voltado para relaxamento e fotos icônicas: visita a Árvore da Preguiça, Praia do Preá, o famoso Buraco Azul e a Lagoa do Paraíso com os famosos clubes de praia (como o Alchymist). O Litoral Oeste é mais focado em aventura off-road: inclui travessia de balsa tradicional em Guriú, mangue seco com cavalos-marinhos e as dunas radicais da Lagoa de Tatajuba (com tirolesa e toboágua).',
+    id: 'franquia-bagagem',
+    category: 'bagagem-criancas',
+    question: 'Qual é a franquia de bagagem permitida nos transfers e passeios?',
+    answerText: 'No Transfer Privativo 4x4 (Hilux ou SW4), a franquia é ampla: até 2 malas despachadas grandes (até 23kg cada) mais bagagem de mão por passageiro. Equipamentos como pranchas de kitesurf e wingfoil são transportados com segurança (avise previamente). No Transfer Compartilhado, é permitida 1 mala média despachada (até 23kg) + 1 mochila ou bolsa de mão por passageiro.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          No <strong>Transfer Privativo 4x4 (Hilux ou SW4)</strong>, você tem total liberdade: até 2 malas despachadas (até 23kg cada) + bagagem de mão por passageiro. Pranchas de kitesurf e equipamentos esportivos são acomodados com segurança (basta nos avisar com antecedência).
+        </p>
+        <p>
+          No <strong>Transfer Compartilhado</strong>, para garantir o conforto de todos os viajantes, o limite é de 1 mala média despachada (até 23kg) + 1 bolsa ou mochila de mão por passageiro. Se você vai praticar kite no Preá, confira nosso{' '}
+          <Link to="/transfer-prea-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Transfer Preá Jericoacoara
+          </Link>.
+        </p>
+      </div>
+    ),
   },
   {
+    id: 'criancas-cadeirinha',
+    category: 'bagagem-criancas',
+    question: 'Crianças pagam tarifa de transfer? Há cadeirinha infantil ou bebê conforto?',
+    answerText: 'Bebês e crianças de colo até 2 anos incompletos viajam gratuitamente no colo de um adulto responsável. Crianças a partir de 2 anos completos ocupam assento individual conforme as normas de trânsito e legislação rodoviária. Para transfers privativos, disponibilizamos assento de elevação (booster) ou cadeirinha infantil mediante solicitação prévia no momento da reserva.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          <strong>Bebês de colo (até 2 anos incompletos)</strong> viajam sem custo no colo de um adulto responsável. Crianças a partir de 2 anos completos ocupam assento individual por determinação das leis de trânsito brasileiras e segurança dos passageiros.
+        </p>
+        <p>
+          Para transfers privativos, disponibilizamos <strong>cadeirinha infantil ou assento de elevação</strong> gratuitamente sob solicitação prévia no ato da reserva.
+        </p>
+      </div>
+    ),
+  },
+
+  // 3. PASSEIOS E ROTEIROS
+  {
+    id: 'diferenca-leste-oeste',
     category: 'passeios-roteiros',
-    question: 'O que está incluso e o que NÃO está incluso nos passeios?',
-    answer: 'INCLUSO (✔️): Veículo off-road selecionado (Buggy, Quadriciclo, SW4 ou Jardineira), guia/motorista credenciado, busca e retorno na sua pousada na Vila de Jericoacoara, travessia de balsa (quando aplicável ao privativo) e seguro passageiro. NÃO INCLUSO (✕): Entradas/day use de beach clubs (Alchymist, Lagun, Buraco Azul), refeições/bebidas, atrações opcionais (tirolesa, cavalos-marinhos) e a taxa de turismo sustentável da Vila.',
+    question: 'Qual a diferença entre o Passeio Lado Leste e o Passeio Lado Oeste de Jericoacoara?',
+    answerText: 'O Passeio Lado Leste é voltado para relaxamento e fotos clássicas: visita a Árvore da Preguiça, Praia do Preá, o famoso Buraco Azul e a Lagoa do Paraíso (com paradas nos melhores beach clubs, como o The Alchymist). O Passeio Lado Oeste é focado em aventura off-road: inclui travessia de balsa em Guriú, mangue seco com cavalos-marinhos e as dunas radicais da Lagoa de Tatajuba (com tirolesa e toboágua).',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          O <strong>Litoral Leste</strong> é focado em relaxamento, águas calmas e pontos fotográficos emblemáticos: Árvore da Preguiça, Praia do Preá, Buraco Azul e a famosa Lagoa do Paraíso (com tempo livre nos beach clubs como o The Alchymist).
+        </p>
+        <p>
+          O <strong>Litoral Oeste</strong> é o roteiro da adrenalina e natureza selvagem: travessia de balsa em Guriú, mangue seco com berçário de cavalos-marinhos e descidas emocionantes nas dunas móveis da Tatajuba (com tirolesa e toboágua). Conheça todas as opções em{' '}
+          <Link to="/passeios-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Passeios em Jericoacoara (Buggy, Quadriciclo e Jardineira)
+          </Link>.
+        </p>
+      </div>
+    ),
   },
   {
+    id: 'o-que-inclui-passeio',
     category: 'passeios-roteiros',
-    question: 'O que é a Taxa de Turismo Sustentável da Vila de Jericoacoara?',
-    answer: 'É um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara para a conservação e limpeza ambiental da vila. Ela deve ser paga individualmente por cada visitante (diretamente pelo site oficial da prefeitura ou no posto de controle na entrada da vila). O valor não faz parte do transporte nem das agências.',
+    question: 'O que está incluso e o que NÃO está incluso nos passeios de Buggy e Jardineira?',
+    answerText: 'INCLUSO: Veículo off-road regularizado (Buggy, Quadriciclo, Jardineira ou UTV), motorista/guia credenciado CADASTUR com vasta experiência nas dunas, embarque e desembarque na porta da sua pousada em Jericoacoara, seguro passageiro e paradas fotográficas. NÃO INCLUSO: Taxas de entrada de beach clubs privados (Alchymist, Lagun, Buraco Azul), atrações ecológicas opcionais (barco do cavalo-marinho no Guriú, tirolesa, toboágua), refeições e a Taxa de Turismo Sustentável da Vila.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          <strong>O que está Incluso (✔️):</strong> Veículo 4x4 revisado (Buggy, Jardineira, Quadriciclo ou UTV), motorista/guia nativo credenciado CADASTUR, busca e retorno na porta da sua pousada em Jeri e seguro passageiro APP integral.
+        </p>
+        <p>
+          <strong>O que NÃO está Incluso (✕):</strong> Day use ou ingressos em clubes particulares (Alchymist Club, Lagun Beach, Buraco Azul), barco do cavalo-marinho no Guriú, tirolesa/toboágua na Tatajuba, refeições e bebidas, além da Taxa de Turismo Sustentável da Vila. Veja os valores em{' '}
+          <Link to="/passeios-jericoacoara" className="text-[#2C7A7B] font-bold hover:underline">
+            Passeios em Jericoacoara
+          </Link>.
+        </p>
+      </div>
+    ),
   },
   {
+    id: 'taxa-turismo-sustentavel',
     category: 'passeios-roteiros',
-    question: 'Como funciona o Passeio de Helicóptero e o Passeio de UTV Can-Am?',
-    answer: 'São experiências de luxo com vagas altamente limitadas. O sobrevoo de helicóptero proporciona vistas panorâmicas da Pedra Furada, dunas móveis e lagoas. O UTV Can-Am Maverick permite que você mesmo pilote uma máquina de alta performance acompanhado por um instrutor experiente. As reservas dessas duas atrações são personalizadas via WhatsApp.',
+    question: 'O que é a Taxa de Turismo Sustentável de Jericoacoara e como pagar?',
+    answerText: 'A Taxa de Turismo Sustentável é um tributo ambiental municipal instituído pela Prefeitura de Jijoca de Jericoacoara para conservação do Parque Nacional e infraestrutura da Vila. Ela deve ser gerada e quitada individualmente pelo visitante no site oficial da Prefeitura de Jijoca ou nos postos de atendimento na entrada da vila. Nenhuma agência ou empresa de transfer pode embutir essa taxa nos serviços.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          A Taxa de Turismo Sustentável (TTS) é um tributo obrigatório instituído pelo município de Jijoca de Jericoacoara voltado à preservação do Parque Nacional e coleta de resíduos da Vila.
+        </p>
+        <p>
+          Ela deve ser gerada e paga diretamente pelo visitante no site oficial da Prefeitura de Jijoca de Jericoacoara (ou presencialmente no posto de controle na entrada da vila). O valor não pode ser cobrado ou embutido por agências de transporte.
+        </p>
+      </div>
+    ),
+  },
+
+  // 4. PAGAMENTOS E CANCELAMENTO
+  {
+    id: 'politica-cancelamento-oficial',
+    category: 'pagamentos-cancelamento',
+    question: 'Qual é a política oficial de cancelamento com 100% de reembolso em 7 dias?',
+    answerText: 'Nossa política garante 100% de reembolso integral para solicitações formalizadas com no mínimo 7 dias corridos de antecedência da data agendada do serviço (em conformidade com o Código de Defesa do Consumidor). Para cancelamentos entre 7 dias e 48 horas antes do embarque, você pode optar por 100% do valor em Voucher de Crédito (válido por 12 meses para remarcação) ou reembolso financeiro com retenção operacional de 50%. Com menos de 48 horas ou não comparecimento (no-show), o valor não é reembolsável devido à escala exclusiva do veículo e motorista credenciado.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          Nossa política de cancelamento é transparente e segue as normas do Código de Defesa do Consumidor:
+        </p>
+        <ul className="list-disc pl-5 space-y-1 mb-2">
+          <li>
+            <strong>Até 7 dias antes do serviço:</strong> 100% de reembolso financeiro integral, sem qualquer retenção ou multa.
+          </li>
+          <li>
+            <strong>Entre 7 dias e 48 horas antes:</strong> 100% convertido em Voucher de Crédito (válido por 12 meses para reagendamento livre) ou reembolso com retenção de 50% para custos operacionais.
+          </li>
+          <li>
+            <strong>Menos de 48 horas ou No-Show:</strong> sem reembolso, pois o veículo 4x4 e o motorista credenciado já estão travados e escalados para a data com bloqueio de novos passageiros.
+          </li>
+        </ul>
+      </div>
+    ),
+    highlight: true,
+  },
+  {
+    id: 'formas-pagamento-pix',
+    category: 'pagamentos-cancelamento',
+    question: 'Quais são as formas de pagamento aceitas e como funciona o desconto no PIX?',
+    answerText: 'Aceitamos PIX Dinâmico com 5% de desconto automático imediato no checkout, cartões de crédito em até 12x via Mercado Pago e cartões de crédito internacionais via Stripe para clientes estrangeiros (sem exigência de CPF). Também disponibilizamos a condição especial de pagamento de 50% de sinal online para confirmar a data e os 50% restantes quitados no momento do embarque.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          Oferecemos condições flexíveis e seguras de pagamento:
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>
+            <strong>PIX Dinâmico com 5% de desconto imediato:</strong> gerado automaticamente no checkout com confirmação em tempo real.
+          </li>
+          <li>
+            <strong>Cartão de Crédito em até 12x:</strong> processamento seguro via Mercado Pago.
+          </li>
+          <li>
+            <strong>Cartões Internacionais (Stripe):</strong> para turistas estrangeiros, sem necessidade de CPF brasileiro.
+          </li>
+          <li>
+            <strong>Sinal de 50%:</strong> pague 50% online para travar a data na agenda e os 50% restantes diretamente no embarque.
+          </li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'autoridade-cadastur-cnpj',
+    category: 'pagamentos-cancelamento',
+    question: 'A Jericoacoara Premium possui CNPJ e registro no CADASTUR?',
+    answerText: 'Sim! Somos uma empresa e agência 100% regularizada: CNPJ 51.790.615/0001-08 e CADASTUR 51.790.615/0001-08 emitido pelo Ministério do Turismo. Atendemos diariamente com suporte 24 horas no WhatsApp +55 (88) 98846-3182 cobrindo toda a região de Jericoacoara, Jijoca, Preá, Aeroporto de Cruz (JJD) e Fortaleza.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          Sim! A <strong>Jericoacoara Premium</strong> opera sob o <strong>CNPJ 51.790.615/0001-08</strong> e possui registro oficial ativo no <strong>CADASTUR 51.790.615/0001-08</strong> (Ministério do Turismo).
+        </p>
+        <p>
+          Atendemos presencialmente e com motoristas credenciados nas regiões de <strong>Jericoacoara, Jijoca de Jericoacoara, Praia do Preá, Aeroporto de Cruz (JJD) e Fortaleza</strong>, com suporte 24h via WhatsApp no número <strong>+55 (88) 98846-3182</strong>.
+        </p>
+      </div>
+    ),
   },
 ];
 
 const FaqPage = () => {
   const [activeCategory, setActiveCategory] = useState('todas');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedIndices, setExpandedIndices] = useState({ 0: true }); // Primeiro aberto por padrão
+  const [expandedIndices, setExpandedIndices] = useState({ 0: true });
 
   const toggleAccordion = (index) => {
     setExpandedIndices((prev) => ({
@@ -173,41 +311,53 @@ const FaqPage = () => {
       const matchesSearch =
         !q ||
         faq.question.toLowerCase().includes(q) ||
-        faq.answer.toLowerCase().includes(q);
+        faq.answerText.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
 
-  // Schema.org FAQPage JSON-LD para SEO
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: ALL_FAQ_DATA.map((item) => ({
-      '@type': 'Question',
-      name: item.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: item.answer,
-      },
-    })),
-  };
+  // Schema.org FAQPage e BreadcrumbList JSON-LD para SEO
+  const faqPageSchema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: 'https://www.jericoacoarapremium.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Perguntas Frequentes (FAQ)',
+          item: 'https://www.jericoacoarapremium.com/faq',
+        },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: ALL_FAQ_DATA.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answerText,
+        },
+      })),
+    },
+  ];
 
   return (
     <>
-      <Helmet>
-        <title>Perguntas Frequentes (FAQ) & Cancelamento | Jericoacoara Premium</title>
-        <meta
-          name="description"
-          content="Tire todas as suas dúvidas sobre transfer para Jericoacoara, passeios de buggy, formas de pagamento, bagagens, atrasos de voo e nossa política de cancelamento com 100% de reembolso com até 7 dias."
-        />
-        <meta name="keywords" content="faq jericoacoara, politica de cancelamento transfer jeri, duvidas transfer jericoacoara, reembolso transfer jeri, pagamento jeri premium, franquia de bagagem jeri" />
-        <link rel="canonical" href="https://jericoacoarapremium.com/faq" />
-        <meta property="og:title" content="Perguntas Frequentes (FAQ) | Jericoacoara Premium" />
-        <meta property="og:description" content="Central de Ajuda e Dúvidas Frequentes da Jericoacoara Premium. Política de Cancelamento transparente com 100% de reembolso em 7 dias." />
-        <meta property="og:url" content="https://jericoacoarapremium.com/faq" />
-        <meta property="og:type" content="website" />
-        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
-      </Helmet>
+      <SEOHead
+        title="FAQ Jericoacoara Premium | Dúvidas sobre Transfers, Passeios e Cancelamento"
+        description="Tire todas as suas dúvidas sobre bagagem, horários, atrasos de voo, taxa de turismo, crianças e política de cancelamento com reembolso garantido."
+        canonical="https://www.jericoacoarapremium.com/faq"
+        schema={faqPageSchema}
+      />
 
       <div className="min-h-screen bg-[#FDFBF7] flex flex-col text-gray-900 selection:bg-[#D4AF37]/30 selection:text-gray-950">
         <Header />
@@ -216,7 +366,6 @@ const FaqPage = () => {
           
           {/* HERO HEADER DA PÁGINA */}
           <section className="relative bg-gradient-to-b from-[#0B1517] via-[#0F1E20] to-[#142629] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-            {/* Elementos visuais de fundo */}
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#D4AF37]/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
@@ -228,15 +377,16 @@ const FaqPage = () => {
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-                Perguntas Frequentes <br className="hidden sm:inline" />
+                Perguntas Frequentes{' '}
+                <br className="hidden sm:inline" />
                 <span className="bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] bg-clip-text text-transparent">
                   (FAQ) & Políticas
                 </span>
               </h1>
 
               <p className="text-gray-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-8">
-                Tudo o que você precisa saber sobre nossos traslados, passeios exclusivos,
-                formas de pagamento seguras e nossa política transparente de cancelamento.
+                Tire suas dúvidas sobre transfers 4x4, passeios pelas dunas, bagagem, crianças,
+                formas de pagamento e nossa garantia oficial de reembolso.
               </p>
 
               {/* BARRA DE PESQUISA INTELIGENTE */}
@@ -277,6 +427,7 @@ const FaqPage = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-[#B48F1E]">Garantia Oficial</span>
+                      {' — '}
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">100% de Reembolso</span>
                     </div>
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mt-0.5">
@@ -287,7 +438,7 @@ const FaqPage = () => {
 
                 <button
                   onClick={() => {
-                    setActiveCategory('cancelamento');
+                    setActiveCategory('pagamentos-cancelamento');
                     setSearchQuery('');
                   }}
                   className="inline-flex items-center gap-2 text-xs font-bold text-[#B48F1E] hover:text-[#8C6D0F] bg-amber-50 hover:bg-amber-100/80 px-4 py-2 rounded-xl transition-colors cursor-pointer"
@@ -351,8 +502,43 @@ const FaqPage = () => {
             </div>
           </section>
 
+          {/* SINAIS CONCRETOS DE AUTORIDADE LOCAL */}
+          <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-[#2C7A7B] shrink-0" />
+                <div>
+                  <span className="font-bold text-gray-900 block">CADASTUR Regular</span>
+                  <span className="text-gray-500">51.790.615/0001-08</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <FileText className="w-5 h-5 text-[#2C7A7B] shrink-0" />
+                <div>
+                  <span className="font-bold text-gray-900 block">CNPJ Ativo</span>
+                  <span className="text-gray-500">51.790.615/0001-08</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Car className="w-5 h-5 text-[#2C7A7B] shrink-0" />
+                <div>
+                  <span className="font-bold text-gray-900 block">Cobertura Regional</span>
+                  <span className="text-gray-500">Jeri, Preá, Jijoca, JJD e FOR</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Clock className="w-5 h-5 text-[#2C7A7B] shrink-0" />
+                <div>
+                  <span className="font-bold text-gray-900 block">WhatsApp 24h</span>
+                  <span className="text-gray-500">+55 (88) 98846-3182</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* NAVEGAÇÃO POR CATEGORIAS (TABS / PILLS) */}
-          <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-8">
+          <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-8">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Categorias de Dúvidas</h2>
             <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none">
               {FAQ_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
@@ -371,9 +557,12 @@ const FaqPage = () => {
                     <Icon className={`w-4 h-4 ${isActive ? 'text-[#D4AF37]' : 'text-gray-400'}`} />
                     <span>{cat.label}</span>
                     {cat.badge && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-black">
-                        {cat.badge}
-                      </span>
+                      <>
+                        {' '}
+                        <span className="px-1.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-black">
+                          {cat.badge}
+                        </span>
+                      </>
                     )}
                   </button>
                 );
@@ -381,7 +570,7 @@ const FaqPage = () => {
             </div>
           </section>
 
-          {/* LISTA DE PERGUNTAS E RESPOSTAS (ACCORDION MODERNO) */}
+          {/* LISTA DE PERGUNTAS E RESPOSTAS (RENDERIZADAS DIRETAMENTE NO HTML) */}
           <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
             {filteredFaqs.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-3xl border border-gray-200 p-8">
@@ -405,8 +594,8 @@ const FaqPage = () => {
               filteredFaqs.map((faq, index) => {
                 const isOpen = Boolean(expandedIndices[index]);
                 return (
-                  <div
-                    key={faq.question}
+                  <article
+                    key={faq.id || faq.question}
                     className={`rounded-2xl transition-all duration-200 border ${
                       faq.highlight
                         ? 'bg-amber-50/40 border-amber-300/80 shadow-xs'
@@ -420,6 +609,7 @@ const FaqPage = () => {
                       onClick={() => toggleAccordion(index)}
                       className="w-full flex items-center justify-between gap-4 px-6 py-4 sm:py-5 text-left cursor-pointer group focus:outline-none"
                       aria-expanded={isOpen}
+                      aria-controls={`faq-answer-${index}`}
                     >
                       <div className="flex items-center gap-3">
                         {faq.highlight && (
@@ -427,9 +617,9 @@ const FaqPage = () => {
                             Destaque
                           </span>
                         )}
-                        <span className="font-bold text-gray-900 text-sm sm:text-base leading-snug group-hover:text-emerald-800 transition-colors">
+                        <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-snug group-hover:text-emerald-800 transition-colors">
                           {faq.question}
-                        </span>
+                        </h3>
                       </div>
 
                       <div
@@ -441,23 +631,16 @@ const FaqPage = () => {
                       </div>
                     </button>
 
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.div
-                          key="answer"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25, ease: 'easeInOut' }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-6 pb-5 pt-1 text-gray-600 text-sm sm:text-[15px] leading-relaxed border-t border-gray-100">
-                            {faq.answer}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                    {/* CONTEÚDO RENDERIZADO DIRETAMENTE NO HTML (ACESSIBILIDADE & GOOGLEBOT) */}
+                    <div
+                      id={`faq-answer-${index}`}
+                      className={`px-6 pb-5 pt-1 text-gray-600 text-sm sm:text-[15px] leading-relaxed border-t border-gray-100 ${
+                        isOpen ? 'block' : 'hidden'
+                      }`}
+                    >
+                      {faq.renderAnswer ? faq.renderAnswer() : <p>{faq.answerText}</p>}
+                    </div>
+                  </article>
                 );
               })
             )}
@@ -471,7 +654,7 @@ const FaqPage = () => {
               <div className="max-w-2xl relative z-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold mb-3 border border-emerald-500/30">
                   <Clock className="w-3.5 h-3.5" />
-                  Atendimento 24 Horas
+                  Atendimento 24 Horas no WhatsApp +55 (88) 98846-3182
                 </div>
 
                 <h3 className="text-2xl sm:text-3xl font-black mb-3 text-white">
@@ -479,7 +662,7 @@ const FaqPage = () => {
                 </h3>
 
                 <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">
-                  Nossos consultores especialistas em Jericoacoara estão disponíveis no WhatsApp
+                  Nossos consultores credenciados CADASTUR em Jericoacoara estão disponíveis no WhatsApp
                   para montar pacotes combinados, verificar horários de voos e garantir as melhores tarifas.
                 </p>
 
@@ -489,7 +672,7 @@ const FaqPage = () => {
                     className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#D4AF37] hover:bg-[#C5A028] text-gray-950 font-black text-sm transition-all duration-300 hover:scale-105 shadow-lg shadow-[#D4AF37]/20 cursor-pointer"
                   >
                     <MessageCircle className="w-4 h-4 fill-current" />
-                    <span>Falar com Concierge no WhatsApp</span>
+                    <span>Falar no WhatsApp Oficial</span>
                   </button>
 
                   <Link

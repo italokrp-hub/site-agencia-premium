@@ -11,8 +11,8 @@ export const translations = {
       whatsappBtn: '(88) 98846-3182',
     },
     hero: {
-      badge: '🏆 Agência #1 de Jericoacoara',
-      title: 'Experiências Excepcionais em',
+      badge: 'Agência Credenciada CADASTUR • Jericoacoara',
+      title: 'Passeios e Transfers em',
       subtitle: 'Transfer, Passeios e Serviços Exclusivos',
       description: 'Conforto, segurança e atendimento personalizado para tornar sua viagem inesquecível',
       titleHighlight: 'Sua Experiência Inesquecível',
@@ -502,7 +502,7 @@ export const translations = {
       whatsappBtn: '+55 (88) 98846-3182',
     },
     hero: {
-      badge: '🏆 #1 Travel Agency in Jericoacoara',
+      badge: 'CADASTUR Registered Agency • Jericoacoara',
       title: 'Exceptional Experiences in',
       subtitle: 'Transfers, Tours & Exclusive VIP Services',
       description: 'Comfort, safety, and personalized assistance to make your trip truly unforgettable',
@@ -989,7 +989,7 @@ export const translations = {
       whatsappBtn: '+55 (88) 98846-3182',
     },
     hero: {
-      badge: '🏆 Agencia #1 en Jericoacoara',
+      badge: 'Agencia Acreditada CADASTUR • Jericoacoara',
       title: 'Experiencias Excepcionales en',
       subtitle: 'Transfers, Tours y Servicios Exclusivos',
       description: 'Confort, seguridad y atención personalizada para hacer tu viaje verdaderamente inolvidable',

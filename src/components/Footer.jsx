@@ -39,9 +39,11 @@ const Footer = () => {
             <div className="bg-white/5 rounded-lg p-3 border border-white/10">
               <div className="flex items-center gap-2 text-[#D4AF37] mb-1">
                 <CheckCircle className="w-4 h-4" aria-hidden="true" />
-                <span className="text-xs font-bold uppercase tracking-wider">Cadastur</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Cadastur & CNPJ</span>
               </div>
-              <p className="text-sm font-mono text-gray-300">51.790.615/0001-08</p>
+              <p className="text-xs font-mono text-gray-300">CNPJ: 51.790.615/0001-08</p>
+              <p className="text-xs font-mono text-gray-300">CADASTUR: 51.790.615/0001-08</p>
+              <p className="text-[11px] text-gray-400 mt-1">Jericoacoara, Jijoca, Preá, Cruz (JJD) e Fortaleza</p>
             </div>
           </div>
 
@@ -52,14 +54,14 @@ const Footer = () => {
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-sm text-gray-400">WhatsApp</p>
+                  <p className="text-sm text-gray-400">WhatsApp 24h</p>
                   <button 
                     onClick={handleWhatsApp}
                     data-tracking="whatsapp-cta-footer"
-                    className="text-white hover:text-[#D4AF37] transition-colors text-left font-semibold cursor-pointer"
-                    aria-label="WhatsApp Jericoacoara Premium"
+                    className="text-white hover:text-[#D4AF37] transition-colors text-left font-semibold cursor-pointer block"
+                    aria-label="WhatsApp Jericoacoara Premium +55 88 98846-3182"
                   >
-                    {t('nav.whatsappBtn')}
+                    +55 (88) 98846-3182
                   </button>
                 </div>
               </div>
@@ -131,6 +133,7 @@ const Footer = () => {
               <Link to="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</Link>
               <Link to="/faq" className="hover:text-[#D4AF37] text-[#D4AF37]/90 font-semibold transition-colors flex items-center gap-1.5 pt-1">
                 <span>Perguntas Frequentes (FAQ)</span>
+                {' '}
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#D4AF37]/20 text-[#D4AF37] font-bold">7 Dias</span>
               </Link>
             </div>

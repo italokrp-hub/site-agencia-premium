@@ -280,16 +280,16 @@ const Pricing = () => {
                             <div>
                               <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                                 {formatPrice(sharedPrice)}
-                              </span>
+                              </span>{' '}
                               <p className="text-xs text-zinc-500 mt-1">por pessoa (Jardineira)</p>
                             </div>
                           ) : (
                             <div>
                               <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                                 {formatPrice(startingPrice)}
-                              </span>
+                              </span>{' '}
                               <p className="text-xs text-zinc-500 mt-1">
-                                a partir de (por veículo Buggy ou Quadri)
+                                a partir de por veículo (Buggy ou Quadri)
                               </p>
                             </div>
                           )}

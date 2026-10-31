@@ -53,6 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import SEOHead from '@/components/SEOHead';
 
 export default function Reservas() {
   const {
@@ -103,6 +104,7 @@ export default function Reservas() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+      <SEOHead title="Gestão de Reservas | Jericoacoara Premium" noindex={true} />
       {/* Top Header / Navbar do Painel PMS */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

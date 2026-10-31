@@ -20,7 +20,7 @@ const CLEAN_CONTENT_REGEX = {
 const EXTRACTION_REGEX = {
   route: /<Route\s+[^>]*>/g,
   path: /path=["']([^"']+)["']/,
-  element: /element=\{<(\w+)[^}]*\/?\s*>\}/,
+  element: /element=\{<(\w+)/,
   helmet: /<Helmet[^>]*?>([\s\S]*?)<\/Helmet>/i,
   helmetTest: /<Helmet[\s\S]*?<\/Helmet>/i,
   title: /<title[^>]*?>\s*(.*?)\s*<\/title>/i,
@@ -101,6 +101,30 @@ function findReactFiles(dir) {
 }
 
 function extractHelmetData(content, filePath, routes) {
+  // Ignore private / transactional / noindex pages
+  if (content.includes('noindex') || content.includes('noindex={true}')) {
+    return null;
+  }
+
+  const fileName = path.basename(filePath, path.extname(filePath));
+  const canonicalMatch = content.match(/canonical=["']https:\/\/[^/]+([^"']+)["']/i);
+  const url = canonicalMatch 
+    ? canonicalMatch[1] 
+    : (routes.has(fileName) 
+      ? routes.get(fileName) 
+      : (fileName === 'App' ? '/' : generateFallbackUrl(fileName)));
+
+  // Check for SEOHead or SEOLayout title and description props
+  const seoTitleMatch = content.match(/<(?:SEOHead|SEOLayout)[\s\S]*?title=["']([^"']+)["']/i);
+  const seoDescMatch = content.match(/<(?:SEOHead|SEOLayout)[\s\S]*?description=["']([^"']+)["']/i);
+  if (seoTitleMatch && seoDescMatch) {
+    return {
+      url,
+      title: cleanText(seoTitleMatch[1]) || 'Untitled Page',
+      description: cleanText(seoDescMatch[1]) || 'No description available'
+    };
+  }
+
   const cleanedContent = cleanContent(content);
   
   if (!EXTRACTION_REGEX.helmetTest.test(cleanedContent)) {
@@ -116,11 +140,6 @@ function extractHelmetData(content, filePath, routes) {
   
   const title = cleanText(titleMatch?.[1]);
   const description = cleanText(descMatch?.[1]);
-  
-  const fileName = path.basename(filePath, path.extname(filePath));
-  const url = routes.length && routes.has(fileName) 
-    ? routes.get(fileName) 
-    : generateFallbackUrl(fileName);
   
   return {
     url,

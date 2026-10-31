@@ -34,11 +34,57 @@ const PasseiosJeri = () => {
     });
   };
 
+  const passeiosSchema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: 'https://www.jericoacoarapremium.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Passeios em Jericoacoara',
+          item: 'https://www.jericoacoarapremium.com/passeios-jericoacoara',
+        },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Passeios em Jericoacoara: Lado Leste, Oeste, Buggy e UTV',
+      serviceType: 'Passeios Turísticos e Off-Road',
+      description: 'Explore a Lagoa do Paraíso, Pedra Furada, Mangue Seco e Tatajuba com guias credenciados em Jericoacoara. Opções privativas e compartilhadas com reserva online.',
+      provider: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        url: 'https://www.jericoacoarapremium.com/',
+        telephone: '+5588988463182',
+      },
+      areaServed: {
+        '@type': 'City',
+        name: 'Jericoacoara',
+      },
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'BRL',
+        lowPrice: '75.00',
+        highPrice: '450.00',
+        offerCount: '4',
+      },
+    },
+  ];
+
   return (
     <SEOLayout 
-      title="Passeios em Jericoacoara: Lado Leste e Lado Oeste | Jericoacoara Premium"
-      description="Conheça a Lagoa do Paraíso, Buraco Azul, Tatajuba e Pedra Furada com os passeios exclusivos de 4x4 e buggy. Roteiros compartilhados (Econômico) e privativos."
-      canonical="https://jericoacoarapremium.com/passeios-jericoacoara"
+      title="Passeios em Jericoacoara: Lado Leste, Oeste, Buggy e UTV | Jericoacoara Premium"
+      description="Explore a Lagoa do Paraíso, Pedra Furada, Mangue Seco e Tatajuba com guias credenciados em Jericoacoara. Opções privativas e compartilhadas com reserva online."
+      canonical="https://www.jericoacoarapremium.com/passeios-jericoacoara"
+      schema={passeiosSchema}
     >
       {/* Hero Section */}
       <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
@@ -57,7 +103,7 @@ const PasseiosJeri = () => {
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}
               className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
             >
-              {t('seoPasseios.heroTitle', { defaultValue: 'Explore as Maravilhas de' })} <span className="text-[#D4AF37]">Jericoacoara</span>
+              Passeios em Jericoacoara: Lado Leste, Oeste, Buggy e UTV
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
@@ -102,7 +148,8 @@ const PasseiosJeri = () => {
                 <h3 className="text-2xl font-bold mb-2">{t('seoPasseios.lesteSharedTitle', { defaultValue: 'Compartilhado em Jardineira' })}</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(tourLesteShared?.options?.shared?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /{t('tours.perPerson', { defaultValue: 'pessoa' })}</span>
+                  {' '}
+                  <span className="text-sm opacity-80 text-gray-500">por pessoa</span>
                 </div>
                 <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> {t('tours.locationsIncluded', { defaultValue: 'Incluso no roteiro:' })}</h4>
                 <ul className="space-y-2 mb-8">
@@ -124,7 +171,8 @@ const PasseiosJeri = () => {
                 <h3 className="text-2xl font-bold mb-2">Privativo (Exclusivo)</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(buggyLesteOpt?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /veículo</span>
+                  {' '}
+                  <span className="text-sm opacity-80 text-gray-500">por veículo</span>
                   <p className="text-xs text-gray-500 mt-1">Buggy (até 4 pax) / Quadriciclo (até 2 pax)</p>
                 </div>
                 <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Vantagens Premium:</h4>
@@ -170,7 +218,8 @@ const PasseiosJeri = () => {
                 <h3 className="text-2xl font-bold mb-2">Compartilhado em Jardineira</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-[#2C7A7B]">{formatPrice(tourOesteShared?.options?.shared?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /pessoa</span>
+                  {' '}
+                  <span className="text-sm opacity-80 text-gray-500">por pessoa</span>
                 </div>
                 <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Incluso no roteiro:</h4>
                 <ul className="space-y-2 mb-8">
@@ -197,7 +246,8 @@ const PasseiosJeri = () => {
                 <h3 className="text-2xl font-bold mb-2">Privativo (Exclusivo)</h3>
                 <div className="mb-6">
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(buggyOesteOpt?.price)}</span>
-                  <span className="text-sm opacity-80 text-gray-500"> /veículo</span>
+                  {' '}
+                  <span className="text-sm opacity-80 text-gray-500">por veículo</span>
                   <p className="text-xs text-gray-500 mt-1">Buggy (até 4 pax) / Quadriciclo (até 2 pax)</p>
                 </div>
                 <h4 className="font-bold text-[#2C7A7B] mb-3 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Vantagens Premium:</h4>

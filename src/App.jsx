@@ -1,8 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
 import { LanguageProvider } from '@/i18n/LanguageContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import SEOHead from '@/components/SEOHead';
 
 // Layout (Loaded synchronously for critical initial render)
 import Header from '@/components/Header';
@@ -16,20 +16,26 @@ import ImmersiveHero from '@/components/sections/ImmersiveHero';
 import ExperienceSelector from '@/components/sections/ExperienceSelector';
 import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
 
-// Safe lazy loader with auto-retry and cache-busting reload recovery.
+// Synchronous import for FAQ to completely eliminate chunk loading / MIME type errors on footer navigation
+import FaqPage from '@/pages/FaqPage';
+
+// Robust lazy loader with chunk-load auto-retry and cache-busting reload recovery.
 // Completely prevents and handles:
 // - TypeError: Failed to fetch dynamically imported module
 // - TypeError: 'text/html' is not a valid JavaScript MIME type
 // - ChunkLoadError after new production deployments
-function safeLazy(importFn, retriesLeft = 2, interval = 1000) {
+function lazyWithRetry(importFn) {
   return lazy(() => {
     return new Promise((resolve, reject) => {
-      const execute = (remainingRetries) => {
+      const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+      const retryKey = `chunk_retry_${pathname}`;
+
+      const execute = (retriesLeft) => {
         importFn()
           .then((module) => {
             if (typeof window !== 'undefined') {
               try {
-                sessionStorage.removeItem(`lazy_retry_${window.location.pathname}`);
+                sessionStorage.removeItem(retryKey);
               } catch (_) {}
             }
             resolve(module);
@@ -45,12 +51,11 @@ function safeLazy(importFn, retriesLeft = 2, interval = 1000) {
               errorMsg.includes('ChunkLoadError');
 
             if (isMimeOrChunkError && typeof window !== 'undefined') {
-              const storageKey = `lazy_retry_${window.location.pathname}`;
               try {
-                const lastAttempt = sessionStorage.getItem(storageKey);
+                const lastAttempt = sessionStorage.getItem(retryKey);
                 const now = Date.now();
                 if (!lastAttempt || now - parseInt(lastAttempt, 10) > 15000) {
-                  sessionStorage.setItem(storageKey, now.toString());
+                  sessionStorage.setItem(retryKey, now.toString());
                   window.location.reload();
                   return;
                 }
@@ -60,73 +65,100 @@ function safeLazy(importFn, retriesLeft = 2, interval = 1000) {
               }
             }
 
-            if (remainingRetries > 0) {
+            if (retriesLeft > 0) {
               setTimeout(() => {
-                execute(remainingRetries - 1);
-              }, interval);
+                execute(retriesLeft - 1);
+              }, 1000);
             } else {
               reject(error);
             }
           });
       };
 
-      execute(retriesLeft);
+      execute(2);
     });
   });
 }
 
 // Below-the-fold homepage sections (Lazy loaded for Performance)
-const ToursExplorer = safeLazy(() => import('@/components/sections/ToursExplorer'));
-const TransfersSection = safeLazy(() => import('@/components/sections/TransfersSection'));
-const ExploreJericoMap = safeLazy(() => import('@/components/sections/ExploreJericoMap'));
-const TravelPlanner = safeLazy(() => import('@/components/sections/TravelPlanner'));
-const PremiumExperiences = safeLazy(() => import('@/components/sections/PremiumExperiences'));
-const TrustSection = safeLazy(() => import('@/components/sections/TrustSection'));
-const TestimonialsSection = safeLazy(() => import('@/components/sections/TestimonialsSection'));
-const FAQSection = safeLazy(() => import('@/components/sections/FAQSection'));
-const FinalCTA = safeLazy(() => import('@/components/sections/FinalCTA'));
-const JeriDuneTrail = safeLazy(() => import('@/components/effects/JeriDuneTrail'));
+const ToursExplorer = lazyWithRetry(() => import('@/components/sections/ToursExplorer'));
+const TransfersSection = lazyWithRetry(() => import('@/components/sections/TransfersSection'));
+const ExploreJericoMap = lazyWithRetry(() => import('@/components/sections/ExploreJericoMap'));
+const TravelPlanner = lazyWithRetry(() => import('@/components/sections/TravelPlanner'));
+const PremiumExperiences = lazyWithRetry(() => import('@/components/sections/PremiumExperiences'));
+const TrustSection = lazyWithRetry(() => import('@/components/sections/TrustSection'));
+const TestimonialsSection = lazyWithRetry(() => import('@/components/sections/TestimonialsSection'));
+const FAQSection = lazyWithRetry(() => import('@/components/sections/FAQSection'));
+const FinalCTA = lazyWithRetry(() => import('@/components/sections/FinalCTA'));
+const JeriDuneTrail = lazyWithRetry(() => import('@/components/effects/JeriDuneTrail'));
 
 // Secondary & Admin routes (Lazy loaded)
-const Reservas = safeLazy(() => import('@/pages/agencia/Reservas'));
-const VoucherPage = safeLazy(() => import('@/pages/VoucherPage'));
-const ObrigadoPage = safeLazy(() => import('@/pages/ObrigadoPage'));
-const FaqPage = safeLazy(() => import('@/pages/FaqPage'));
-const PlanejamentoUeinerJajah = safeLazy(() => import('@/components/PlanejamentoUeinerJajah'));
+const Reservas = lazyWithRetry(() => import('@/pages/agencia/Reservas'));
+const VoucherPage = lazyWithRetry(() => import('@/pages/VoucherPage'));
+const ObrigadoPage = lazyWithRetry(() => import('@/pages/ObrigadoPage'));
+const PlanejamentoUeinerJajah = lazyWithRetry(() => import('@/components/PlanejamentoUeinerJajah'));
 
 // SEO Landing Pages (Lazy loaded)
-const TransferFortalezaJeri = safeLazy(() => import('@/pages/seo/TransferFortalezaJeri'));
-const TransferAeroportoJeri = safeLazy(() => import('@/pages/seo/TransferAeroportoJeri'));
-const TransferJijocaJeri = safeLazy(() => import('@/pages/seo/TransferJijocaJeri'));
-const TransferPreaJeri = safeLazy(() => import('@/pages/seo/TransferPreaJeri'));
-const PasseiosJeri = safeLazy(() => import('@/pages/seo/PasseiosJeri'));
+const TransferFortalezaJeri = lazyWithRetry(() => import('@/pages/seo/TransferFortalezaJeri'));
+const TransferAeroportoJeri = lazyWithRetry(() => import('@/pages/seo/TransferAeroportoJeri'));
+const TransferJijocaJeri = lazyWithRetry(() => import('@/pages/seo/TransferJijocaJeri'));
+const TransferPreaJeri = lazyWithRetry(() => import('@/pages/seo/TransferPreaJeri'));
+const PasseiosJeri = lazyWithRetry(() => import('@/pages/seo/PasseiosJeri'));
 
 function SectionFallback() {
   return <div className="py-12 bg-white flex items-center justify-center min-h-[120px]" />;
 }
 
+const HOME_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'TravelAgency',
+  name: 'Jericoacoara Premium',
+  legalName: 'Jericoacoara Premium Transfer e Turismo',
+  taxID: '51.790.615/0001-08',
+  url: 'https://www.jericoacoarapremium.com/',
+  logo: 'https://www.jericoacoarapremium.com/images/logo.webp',
+  image: 'https://www.jericoacoarapremium.com/images/hero-jeri-mobile.webp',
+  description: 'Agência credenciada CADASTUR especializada em transfers 4x4 privativos e compartilhados e passeios exclusivos em Jericoacoara.',
+  telephone: '+5588988463182',
+  email: 'contato@jericoacoarapremium.com',
+  priceRange: '$$',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Vila de Jericoacoara',
+    addressLocality: 'Jericoacoara',
+    addressRegion: 'CE',
+    postalCode: '62598-000',
+    addressCountry: 'BR',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: -2.7956,
+    longitude: -40.514,
+  },
+  areaServed: [
+    { '@type': 'City', name: 'Jericoacoara' },
+    { '@type': 'City', name: 'Jijoca de Jericoacoara' },
+    { '@type': 'City', name: 'Praia do Preá' },
+    { '@type': 'City', name: 'Cruz' },
+    { '@type': 'City', name: 'Fortaleza' },
+  ],
+  openingHoursSpecification: {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    opens: '00:00',
+    closes: '23:59',
+  },
+};
+
 function LandingPage() {
   return (
     <>
-      <Helmet>
-        <title>Jericoacoara Premium | Exclusividade, Conforto & Segurança em Passeios e Transfers</title>
-        <meta
-          name="description"
-          content="Seu receptivo exclusivo em Jericoacoara. Transfers privativos 4x4, passeios personalizados, helicóptero e experiências de alto padrão com conforto e segurança."
-        />
-        <meta name="keywords" content="Jericoacoara Premium, transfer privativo jericoacoara, transfer 4x4 jeri, passeios exclusivos jericoacoara, helicoptero jericoacoara, receptivo de luxo jericoacoara, conforto e seguranca, Transfer VIP Jericoacoara, Ceará" />
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <link rel="canonical" href="https://jericoacoarapremium.com/" />
-        <meta property="og:url" content="https://jericoacoarapremium.com/" />
-        <meta property="og:title" content="Jericoacoara Premium | Exclusividade, Conforto & Segurança em Passeios e Transfers" />
-        <meta property="og:description" content="Seu receptivo exclusivo em Jericoacoara. Transfers privativos 4x4, passeios personalizados, helicóptero e experiências de alto padrão com conforto e segurança." />
-        <meta property="og:image" content="https://jericoacoarapremium.com/images/hero-jeri-mobile.webp" />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Jericoacoara Premium | Exclusividade, Conforto & Segurança em Passeios e Transfers" />
-        <meta name="twitter:description" content="Seu receptivo exclusivo em Jericoacoara. Transfers privativos 4x4, passeios personalizados, helicóptero e experiências de alto padrão com conforto e segurança." />
-        <meta name="twitter:url" content="https://jericoacoarapremium.com/" />
-      </Helmet>
+      <SEOHead
+        title="Passeios e Transfers em Jericoacoara | Jericoacoara Premium"
+        description="Reserve transfers 4x4 privativos e compartilhados e passeios em Jericoacoara com agência credenciada CADASTUR, veículos revisados e suporte 24h via WhatsApp."
+        canonical="https://www.jericoacoarapremium.com/"
+        schema={HOME_SCHEMA}
+      />
 
       <div className="min-h-screen bg-white">
         <Header />
@@ -248,7 +280,7 @@ function App() {
               <Route path="/planejamento-reiner" element={<PlanejamentoUeinerJajah />} />
               <Route path="/planejamento-ueiner-jajah" element={<PlanejamentoUeinerJajah />} />
               <Route path="/planejamento-rainer" element={<PlanejamentoUeinerJajah />} />
-              
+
               {/* SEO Landing Pages */}
               <Route path="/transfer-fortaleza-jericoacoara" element={<TransferFortalezaJeri />} />
               <Route path="/transfer-aeroporto-jericoacoara" element={<TransferAeroportoJeri />} />

@@ -142,7 +142,8 @@ const TransfersSection = () => {
                               </div>
                               <div className="text-right">
                                 <span className="text-white font-bold text-sm">{formatPrice(sharedOpt.oneWay)}</span>
-                                <span className="text-white/40 text-[10px] block">/{t('tours.perPerson')}</span>
+                                {' '}
+                                <span className="text-white/40 text-[10px] block">por pessoa</span>
                               </div>
                             </div>
 
@@ -156,7 +157,8 @@ const TransfersSection = () => {
                               </div>
                               <div className="text-right">
                                 <span className="text-[#D4AF37] font-bold text-base">{formatPrice(sharedOpt.roundTrip)}</span>
-                                <span className="text-white/40 text-[10px] block">/{t('tours.perPerson')}</span>
+                                {' '}
+                                <span className="text-white/40 text-[10px] block">por pessoa</span>
                               </div>
                             </div>
                           </div>

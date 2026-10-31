@@ -26,11 +26,57 @@ const TransferAeroportoJeri = () => {
     });
   };
 
+  const cruzSchema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: 'https://www.jericoacoarapremium.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Transfer Aeroporto Jericoacoara (JJD)',
+          item: 'https://www.jericoacoarapremium.com/transfer-aeroporto-jericoacoara',
+        },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Transfer do Aeroporto de Jericoacoara (JJD) para a Vila',
+      serviceType: 'Transfer Aeroportuário 4x4',
+      description: 'Chegue com tranquilidade: transfer receptivo do Aeroporto Regional de Jericoacoara (Cruz/JJD) direto para sua pousada na Vila ou Preá com acompanhamento de voo.',
+      provider: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        url: 'https://www.jericoacoarapremium.com/',
+        telephone: '+5588988463182',
+      },
+      areaServed: [
+        { '@type': 'AdministrativeArea', name: 'Aeroporto Regional de Jericoacoara (JJD - Cruz)' },
+        { '@type': 'City', name: 'Jericoacoara' },
+      ],
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'BRL',
+        lowPrice: '100.00',
+        highPrice: '350.00',
+        offerCount: '2',
+      },
+    },
+  ];
+
   return (
     <SEOLayout 
-      title="Transfer Aeroporto Jericoacoara (JJD) para a Vila | Jericoacoara Premium"
-      description="Desembarque com tranquilidade no Aeroporto Regional de Jericoacoara (Cruz). Transfer direto para sua pousada em veículos 4x4 com conforto e pontualidade."
-      canonical="https://jericoacoarapremium.com/transfer-aeroporto-jericoacoara"
+      title="Transfer do Aeroporto de Jericoacoara (JJD) para a Vila | 4x4 Oficial"
+      description="Chegue com tranquilidade: transfer receptivo do Aeroporto Regional de Jericoacoara (Cruz/JJD) direto para sua pousada na Vila ou Preá com acompanhamento de voo."
+      canonical="https://www.jericoacoarapremium.com/transfer-aeroporto-jericoacoara"
+      schema={cruzSchema}
     >
       <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gray-900">
         <div className="absolute inset-0 z-0">
@@ -50,7 +96,7 @@ const TransferAeroportoJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight max-w-4xl mx-auto"
           >
-            {t('seoTransfers.cruzTitle', { defaultValue: 'Transfer do Aeroporto de Jericoacoara direto para sua Pousada' })}
+            Transfer do Aeroporto de Jericoacoara (JJD) para a Vila
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
@@ -122,7 +168,8 @@ const TransferAeroportoJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Saindo do Aeroporto JJD</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(cruzTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por pessoa (trecho)</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
@@ -154,7 +201,8 @@ const TransferAeroportoJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Hilux / SW4 Exclusiva</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(cruzTransfer?.options?.private?.tiers?.[0]?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /veículo (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por veículo (trecho)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>

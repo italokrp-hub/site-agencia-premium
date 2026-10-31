@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /reservas
 Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+Disallow: /planejamento-
 
-Sitemap: https://jericoacoarapremium.com/sitemap.xml
-
+Sitemap: https://www.jericoacoarapremium.com/sitemap.xml

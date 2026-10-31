@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, CheckCircle, ShieldCheck, Map, Check, Shield, Tag } from 'lucide-react';
+import { MessageCircle, CheckCircle, Map, Check, Shield, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
@@ -26,11 +26,57 @@ const TransferJijocaJeri = () => {
     });
   };
 
+  const jijocaSchema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: 'https://www.jericoacoarapremium.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Transfer Jijoca para Jericoacoara',
+          item: 'https://www.jericoacoarapremium.com/transfer-jijoca-jericoacoara',
+        },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Transfer Jijoca para Jericoacoara: Hilux e Jardineira 4x4 Credenciada',
+      serviceType: 'Transfer Turístico 4x4 Off-Road',
+      description: 'Travessia oficial pelas dunas de Jijoca até a sua pousada na Vila de Jericoacoara em veículos 4x4 autorizados, opções privativas ou compartilhadas.',
+      provider: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        url: 'https://www.jericoacoarapremium.com/',
+        telephone: '+5588988463182',
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Jijoca de Jericoacoara' },
+        { '@type': 'City', name: 'Jericoacoara' },
+      ],
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'BRL',
+        lowPrice: '60.00',
+        highPrice: '300.00',
+        offerCount: '2',
+      },
+    },
+  ];
+
   return (
     <SEOLayout 
-      title="Transfer Jijoca para Jericoacoara 4x4 | Jericoacoara Premium"
-      description="Deixe seu carro seguro em Jijoca e viaje até a Vila de Jericoacoara em veículo 4x4 credenciado. Embarque na porta da pousada."
-      canonical="https://jericoacoarapremium.com/transfer-jijoca-jericoacoara"
+      title="Transfer Jijoca para Jericoacoara | Hilux e Jardineira 4x4 Credenciada"
+      description="Travessia oficial pelas dunas de Jijoca até a sua pousada na Vila de Jericoacoara em veículos 4x4 autorizados, opções privativas ou compartilhadas."
+      canonical="https://www.jericoacoarapremium.com/transfer-jijoca-jericoacoara"
+      schema={jijocaSchema}
     >
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
@@ -48,7 +94,7 @@ const TransferJijocaJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
           >
-            {t('seoTransfers.jijocaTitle', { defaultValue: 'Transfer Jijoca Jericoacoara' })}
+            Transfer Jijoca para Jericoacoara
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
@@ -115,7 +161,8 @@ const TransferJijocaJeri = () => {
                 <p className="opacity-70 text-sm mt-1">Jardineira 4x4 (Jijoca ↔ Jeri)</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold">{formatPrice(jijocaTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por pessoa (trecho)</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
@@ -147,7 +194,8 @@ const TransferJijocaJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Veículo Exclusivo (Hilux/SW4/Jardineira)</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold">{formatPrice(jijocaTransfer?.options?.private?.tiers?.[0]?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /veículo (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por veículo (trecho)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>

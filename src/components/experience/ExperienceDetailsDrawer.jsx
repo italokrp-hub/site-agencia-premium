@@ -130,6 +130,7 @@ function PriceSection({ item, category, isWhatsAppOnly, t }) {
         <span className="text-2xl font-extrabold text-[#2C7A7B]">
           {formatPrice(priceInfo.price)}
         </span>
+        {' '}
         <span className="text-sm text-gray-400">{priceInfo.label}</span>
       </div>
       {pix5pct && (

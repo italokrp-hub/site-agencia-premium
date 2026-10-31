@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, CheckCircle, ShieldCheck, Map, Check, Info, Tag } from 'lucide-react';
+import { MessageCircle, CheckCircle, ShieldCheck, Map, Check, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
@@ -27,11 +27,57 @@ const TransferFortalezaJeri = () => {
     });
   };
 
+  const fortalezaSchema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: 'https://www.jericoacoarapremium.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Transfer Fortaleza para Jericoacoara',
+          item: 'https://www.jericoacoarapremium.com/transfer-fortaleza-jericoacoara',
+        },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Transfer Fortaleza para Jericoacoara: 4x4 Privativo e Compartilhado',
+      serviceType: 'Transfer Turístico 4x4',
+      description: 'Reserve seu transfer de Fortaleza (Aeroporto FOR ou hotéis) para Jericoacoara em veículo 4x4 credenciado, com seguro, conforto e suporte 24h via WhatsApp.',
+      provider: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        url: 'https://www.jericoacoarapremium.com/',
+        telephone: '+5588988463182',
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Fortaleza' },
+        { '@type': 'City', name: 'Jericoacoara' },
+      ],
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'BRL',
+        lowPrice: '175.00',
+        highPrice: '1200.00',
+        offerCount: '3',
+      },
+    },
+  ];
+
   return (
     <SEOLayout 
-      title="Transfer Fortaleza Jericoacoara Privativo 4x4 e Ônibus | Jericoacoara Premium"
-      description="Transfer seguro e confortável de Fortaleza para Jericoacoara. Opções Econômicas (Ônibus), Compartilhado (4x4) e Privativo. Reserve já!"
-      canonical="https://jericoacoarapremium.com/transfer-fortaleza-jericoacoara"
+      title="Transfer Fortaleza para Jericoacoara | 4x4 Privativo e Compartilhado"
+      description="Reserve seu transfer de Fortaleza (Aeroporto FOR ou hotéis) para Jericoacoara em veículo 4x4 credenciado, com seguro, conforto e suporte 24h via WhatsApp."
+      canonical="https://www.jericoacoarapremium.com/transfer-fortaleza-jericoacoara"
+      schema={fortalezaSchema}
     >
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
@@ -49,7 +95,7 @@ const TransferFortalezaJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
           >
-            {t('seoTransfers.fortalezaTitle', { defaultValue: 'Transfer Fortaleza Jericoacoara' })}
+            Transfer Fortaleza para Jericoacoara
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
@@ -131,7 +177,8 @@ const TransferFortalezaJeri = () => {
               <div className="bg-gray-900 text-white p-4 text-center">
                 <div>
                   <span className="text-3xl font-bold text-[#D4AF37]">{formatPrice(busTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por pessoa (trecho)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-1">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
@@ -161,7 +208,8 @@ const TransferFortalezaJeri = () => {
                 <p className="opacity-70 text-sm mt-1">Hilux / SW4 Compartilhada</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold">{formatPrice(sharedTransfer?.options?.shared?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /pessoa (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por pessoa (trecho)</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>
@@ -190,7 +238,8 @@ const TransferFortalezaJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Veículo Exclusivo (Até 4 pax)</p>
                 <div className="mt-4">
                   <span className="text-3xl font-bold">{formatPrice(sharedTransfer?.options?.private?.tiers?.[0]?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /veículo (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por veículo (trecho)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>

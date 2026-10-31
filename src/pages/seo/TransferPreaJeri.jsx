@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, CheckCircle, ShieldCheck, Map, Check, Shield, Tag } from 'lucide-react';
+import { MessageCircle, CheckCircle, Map, Check, Shield, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
@@ -26,11 +26,55 @@ const TransferPreaJeri = () => {
     });
   };
 
+  const preaSchema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: 'https://www.jericoacoarapremium.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Transfer Preá e Jericoacoara',
+          item: 'https://www.jericoacoarapremium.com/transfer-prea-jericoacoara',
+        },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Transfer Preá e Jericoacoara: Transporte 4x4 Privativo e Seguro',
+      serviceType: 'Transfer Turístico 4x4',
+      description: 'Transporte rápido e seguro em 4x4 entre a Praia do Preá, Aeroporto JJD e a Vila de Jericoacoara para turistas e praticantes de kitesurf.',
+      provider: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        url: 'https://www.jericoacoarapremium.com/',
+        telephone: '+5588988463182',
+      },
+      areaServed: [
+        { "@type": "City", "name": "Praia do Preá" },
+        { "@type": "City", "name": "Jericoacoara" },
+      ],
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'BRL',
+        price: '250.00',
+      },
+    },
+  ];
+
   return (
     <SEOLayout 
-      title="Transfer Preá para Jericoacoara 4x4 | Jericoacoara Premium"
-      description="Deslocamento rápido e confortável entre a Praia do Preá e a Vila de Jeri via praia e dunas do Parque Nacional."
-      canonical="https://jericoacoarapremium.com/transfer-prea-jericoacoara"
+      title="Transfer Preá e Jericoacoara | Transporte 4x4 Privativo e Seguro"
+      description="Transporte rápido e seguro em 4x4 entre a Praia do Preá, Aeroporto JJD e a Vila de Jericoacoara para turistas e praticantes de kitesurf."
+      canonical="https://www.jericoacoarapremium.com/transfer-prea-jericoacoara"
+      schema={preaSchema}
     >
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
@@ -48,7 +92,7 @@ const TransferPreaJeri = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
           >
-            {t('seoTransfers.preaTitle', { defaultValue: 'Transfer Preá Jericoacoara' })}
+            Transfer Preá e Jericoacoara
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
@@ -118,7 +162,8 @@ const TransferPreaJeri = () => {
                 <p className="opacity-90 text-sm mt-1">Hilux / SW4 (Até 4 pax)</p>
                 <div className="mt-4">
                   <span className="text-4xl font-bold">{formatPrice(preaTransfer?.options?.private?.tiers?.[0]?.oneWay)}</span>
-                  <span className="text-sm opacity-80"> /veículo (trecho)</span>
+                  {' '}
+                  <span className="text-sm opacity-80">por veículo (trecho)</span>
                 </div>
                 <p className="text-xs text-white/70 mt-2">Ida e Volta: selecione a opção no checkout para agendar o retorno</p>
               </div>

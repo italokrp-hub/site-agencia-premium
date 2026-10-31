@@ -105,7 +105,7 @@ const ObrigadoPage = () => {
       <Helmet>
         <title>Redirecionando para o Atendimento | Jericoacoara Premium</title>
         <meta name="description" content="Aguarde um momento enquanto redirecionamos você para o atendimento oficial via WhatsApp da Jericoacoara Premium." />
-        <meta name="robots" content="noindex, follow" />
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="min-h-screen bg-[#0F1A1C] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">

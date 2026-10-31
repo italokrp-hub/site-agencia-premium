@@ -214,6 +214,7 @@ const ToursExplorer = () => {
                         <span className="text-xs text-gray-600 block">{t('tours.from')}</span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-xl font-extrabold text-[#2C7A7B]">{formatPrice(startPrice)}</span>
+                          {' '}
                           <span className="text-xs text-gray-600">{priceLabel}</span>
                         </div>
                       </div>
