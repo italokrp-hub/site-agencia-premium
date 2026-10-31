@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageCircle, MapPin, Star, Check, Clock } from 'lucide-react';
+import { MessageCircle, MapPin, Star, Check, Clock, ArrowRight, Sparkles, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openWhatsApp } from '@/utils/whatsapp';
 import SEOLayout from '@/components/layout/SEOLayout';
@@ -127,6 +128,41 @@ const PasseiosJeri = () => {
         </div>
       </section>
 
+      {/* Navegação Rápida entre Roteiros Dedicados */}
+      <section className="py-8 bg-[#0F1A1C] text-white border-y border-white/10">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <p className="text-xs uppercase tracking-wider text-[#D4AF37] font-semibold">Páginas Exclusivas dos Passeios</p>
+              <h2 className="text-lg font-bold text-white mt-0.5">Explore os roteiros detalhados parada a parada</h2>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link 
+                to="/passeio-lado-leste-jericoacoara"
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-[#D4AF37] hover:text-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all border border-white/10"
+              >
+                <span>Passeio Lado Leste</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link 
+                to="/passeio-lado-oeste-jericoacoara"
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-[#D4AF37] hover:text-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all border border-white/10"
+              >
+                <span>Passeio Lado Oeste</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link 
+                to="/passeio-buggy-utv-jericoacoara"
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-[#D4AF37] hover:text-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all border border-white/10"
+              >
+                <span>Buggy, UTV & Quadri</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Roteiros (Leste) */}
       <section id="roteiros" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-6xl">
@@ -193,6 +229,16 @@ const PasseiosJeri = () => {
                 </Button>
               </div>
             </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              to="/passeio-lado-leste-jericoacoara"
+              className="inline-flex items-center gap-2 text-[#2C7A7B] hover:text-teal-800 font-bold text-sm bg-teal-50 hover:bg-teal-100 px-6 py-3 rounded-full transition-colors border border-teal-200"
+            >
+              <span>Ver Guia e Roteiro Completo do Passeio Lado Leste</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
@@ -268,6 +314,16 @@ const PasseiosJeri = () => {
               </div>
             </div>
           </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              to="/passeio-lado-oeste-jericoacoara"
+              className="inline-flex items-center gap-2 text-[#2C7A7B] hover:text-teal-800 font-bold text-sm bg-teal-50 hover:bg-teal-100 px-6 py-3 rounded-full transition-colors border border-teal-200"
+            >
+              <span>Ver Guia e Roteiro Completo do Passeio Lado Oeste</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -332,6 +388,16 @@ const PasseiosJeri = () => {
                 </Button>
               </div>
             </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              to="/passeio-buggy-utv-jericoacoara"
+              className="inline-flex items-center gap-2 text-[#D4AF37] hover:text-amber-400 font-bold text-sm bg-gray-900 hover:bg-black px-6 py-3 rounded-full transition-colors border border-[#D4AF37]/30"
+            >
+              <span>Ver Comparativo Completo: Buggy vs UTV vs Quadriciclo</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

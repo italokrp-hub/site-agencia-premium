@@ -131,6 +131,9 @@ const Footer = () => {
               <Link to="/transfer-jijoca-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Jijoca ↔ Jeri</Link>
               <Link to="/transfer-prea-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Transfer Preá ↔ Jeri</Link>
               <Link to="/passeios-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeios em Jericoacoara</Link>
+              <Link to="/passeio-lado-leste-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeio Lado Leste</Link>
+              <Link to="/passeio-lado-oeste-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Passeio Lado Oeste</Link>
+              <Link to="/passeio-buggy-utv-jericoacoara" className="hover:text-[#D4AF37] transition-colors">Buggy, UTV e Quadriciclo</Link>
               <Link to="/faq" className="hover:text-[#D4AF37] text-[#D4AF37]/90 font-semibold transition-colors flex items-center gap-1.5 pt-1">
                 <span>Perguntas Frequentes (FAQ)</span>
                 {' '}

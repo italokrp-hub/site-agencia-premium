@@ -104,6 +104,9 @@ const TransferAeroportoJeri = lazyWithRetry(() => import('@/pages/seo/TransferAe
 const TransferJijocaJeri = lazyWithRetry(() => import('@/pages/seo/TransferJijocaJeri'));
 const TransferPreaJeri = lazyWithRetry(() => import('@/pages/seo/TransferPreaJeri'));
 const PasseiosJeri = lazyWithRetry(() => import('@/pages/seo/PasseiosJeri'));
+const PasseioLadoLesteJeri = lazyWithRetry(() => import('@/pages/PasseioLadoLesteJeri'));
+const PasseioLadoOesteJeri = lazyWithRetry(() => import('@/pages/PasseioLadoOesteJeri'));
+const PasseioBuggyUtvJeri = lazyWithRetry(() => import('@/pages/PasseioBuggyUtvJeri'));
 
 function SectionFallback() {
   return <div className="py-12 bg-white flex items-center justify-center min-h-[120px]" />;
@@ -287,6 +290,9 @@ function App() {
               <Route path="/transfer-jijoca-jericoacoara" element={<TransferJijocaJeri />} />
               <Route path="/transfer-prea-jericoacoara" element={<TransferPreaJeri />} />
               <Route path="/passeios-jericoacoara" element={<PasseiosJeri />} />
+              <Route path="/passeio-lado-leste-jericoacoara" element={<PasseioLadoLesteJeri />} />
+              <Route path="/passeio-lado-oeste-jericoacoara" element={<PasseioLadoOesteJeri />} />
+              <Route path="/passeio-buggy-utv-jericoacoara" element={<PasseioBuggyUtvJeri />} />
             </Routes>
           </Suspense>
         </BrowserRouter>
