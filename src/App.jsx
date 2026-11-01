@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from '@/i18n/LanguageContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -106,6 +106,43 @@ const PasseioLadoLesteJeri = lazyWithRetry(() => import('@/pages/PasseioLadoLest
 const PasseioLadoOesteJeri = lazyWithRetry(() => import('@/pages/PasseioLadoOesteJeri'));
 const PasseioBuggyUtvJeri = lazyWithRetry(() => import('@/pages/PasseioBuggyUtvJeri'));
 const RoteiroJericoacoara = lazyWithRetry(() => import('@/pages/RoteiroJericoacoara'));
+
+function DeferredJeriDuneTrail() {
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+
+    let timer;
+    const trigger = () => {
+      setShouldRender(true);
+      window.removeEventListener('scroll', trigger);
+      window.removeEventListener('wheel', trigger);
+      window.removeEventListener('touchmove', trigger);
+      clearTimeout(timer);
+    };
+
+    window.addEventListener('scroll', trigger, { passive: true, once: true });
+    window.addEventListener('wheel', trigger, { passive: true, once: true });
+    window.addEventListener('touchmove', trigger, { passive: true, once: true });
+    timer = setTimeout(trigger, 4000);
+
+    return () => {
+      window.removeEventListener('scroll', trigger);
+      window.removeEventListener('wheel', trigger);
+      window.removeEventListener('touchmove', trigger);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  if (!shouldRender) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <JeriDuneTrail />
+    </Suspense>
+  );
+}
 
 function SectionFallback() {
   return <div className="py-12 bg-white flex items-center justify-center min-h-[120px]" />;
@@ -244,9 +281,7 @@ function LandingPage() {
           </ErrorBoundary>
         </main>
         <Footer />
-        <Suspense fallback={null}>
-          <JeriDuneTrail />
-        </Suspense>
+        <DeferredJeriDuneTrail />
         <WhatsAppFloat />
         <Toaster />
       </div>

@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, Calendar, MessageCircle, ShieldCheck, Car, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HeroSearch from '@/components/hero/HeroSearch';
-import BookingModal from '@/components/BookingModal';
 import { transfersData, toursData } from '@/data/catalog';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { openWhatsApp as triggerWhatsApp } from '@/utils/whatsapp';
+
+const BookingModal = lazy(() => import('@/components/BookingModal'));
 
 const ImmersiveHero = () => {
   const [bookingItem, setBookingItem] = useState(null);
@@ -192,13 +193,15 @@ const ImmersiveHero = () => {
 
       {/* Booking Modal Integrado */}
       {bookingItem && (
-        <BookingModal
-          item={bookingItem}
-          open={Boolean(bookingItem)}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setBookingItem(null);
-          }}
-        />
+        <Suspense fallback={null}>
+          <BookingModal
+            item={bookingItem}
+            open={Boolean(bookingItem)}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) setBookingItem(null);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Scroll indicator */}

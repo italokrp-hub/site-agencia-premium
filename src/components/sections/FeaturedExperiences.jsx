@@ -5,7 +5,6 @@ import { ArrowRight, Check, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toursData, transfersData, formatPrice } from '@/data/catalog';
 import { renderTourTitle } from '@/utils/titleHelper';
-import BookingModal from '@/components/BookingModal';
 import ExperienceDetailsDrawer from '@/components/experience/ExperienceDetailsDrawer';
 
 // Curated featured items — referencing catalog IDs, no prices hardcoded
