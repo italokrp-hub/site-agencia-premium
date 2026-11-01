@@ -1,5 +1,95 @@
+# Motores de busca tradicionais (Google, Bing, Yahoo, etc.)
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# Google Gemini / AI Overviews
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# Anthropic Claude
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# Amazon / Alexa
+User-agent: Amazonbot
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# Apple Intelligence / Siri
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# ByteDance
+User-agent: Bytespider
+Allow: /
+Disallow: /api/
+Disallow: /reservas
+Disallow: /agencia/
+Disallow: /voucher/
+Disallow: /obrigado
+
+# Common Crawl
+User-agent: CCBot
+Allow: /
+Disallow: /api/
 Disallow: /reservas
 Disallow: /agencia/
 Disallow: /voucher/
