@@ -8,16 +8,12 @@ import SEOHead from '@/components/SEOHead';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
-import PromoModal from '@/components/PromoModal';
 import { Toaster } from '@/components/ui/toaster';
 
 // Above-the-fold critical homepage sections
 import ImmersiveHero from '@/components/sections/ImmersiveHero';
 import ExperienceSelector from '@/components/sections/ExperienceSelector';
 import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
-
-// Synchronous import for FAQ to completely eliminate chunk loading / MIME type errors on footer navigation
-import FaqPage from '@/pages/FaqPage';
 
 // Robust lazy loader with chunk-load auto-retry and cache-busting reload recovery.
 // Completely prevents and handles:
@@ -93,6 +89,8 @@ const FinalCTA = lazyWithRetry(() => import('@/components/sections/FinalCTA'));
 const JeriDuneTrail = lazyWithRetry(() => import('@/components/effects/JeriDuneTrail'));
 
 // Secondary & Admin routes (Lazy loaded)
+const PromoModal = lazyWithRetry(() => import('@/components/PromoModal'));
+const FaqPage = lazyWithRetry(() => import('@/pages/FaqPage'));
 const Reservas = lazyWithRetry(() => import('@/pages/agencia/Reservas'));
 const VoucherPage = lazyWithRetry(() => import('@/pages/VoucherPage'));
 const ObrigadoPage = lazyWithRetry(() => import('@/pages/ObrigadoPage'));
@@ -269,7 +267,9 @@ function App() {
     <ErrorBoundary>
       <LanguageProvider>
         <BrowserRouter>
-          <PromoModal />
+          <Suspense fallback={null}>
+            <PromoModal />
+          </Suspense>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />

@@ -94,6 +94,8 @@ const PasseiosJeri = () => {
             className="w-full h-full object-cover"
             alt="Passeios em Jericoacoara Lagoa do Paraíso e Dunas"
             src="/images/tours/passeio-leste.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"
@@ -358,6 +360,8 @@ const PasseiosJeri = () => {
                 <img 
                   src={tourUtv?.image || '/images/passeio-utv-maverick.webp'} 
                   alt="Passeio de UTV Can-Am Maverick nas dunas de Jericoacoara" 
+                  width="600"
+                  height="400"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                   loading="lazy"
                   decoding="async"
@@ -389,6 +393,8 @@ const PasseiosJeri = () => {
                 <img 
                   src={tourHelicoptero?.image || '/images/voo-helicoptero-jeri.webp'} 
                   alt="Voo Panorâmico de Helicóptero sobre a Pedra Furada e Dunas de Jericoacoara" 
+                  width="600"
+                  height="400"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                   loading="lazy"
                   decoding="async"

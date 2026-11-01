@@ -38,6 +38,8 @@ const Hero = () => {
           className="w-full h-full object-cover"
           alt="Praia de Jericoacoara ao pôr do sol com dunas"
           src="/images/hero-dunas.webp"
+          width="1920"
+          height="1080"
           loading="eager"
           fetchPriority="high"
           decoding="async"

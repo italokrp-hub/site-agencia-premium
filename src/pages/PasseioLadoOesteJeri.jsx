@@ -180,6 +180,8 @@ const PasseioLadoOesteJeri = () => {
             className="w-full h-full object-cover"
             alt="Passeio Lado Oeste Dunas de Tatajuba em Jericoacoara"
             src="/images/tours/passeio-oeste.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"

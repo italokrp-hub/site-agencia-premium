@@ -138,6 +138,8 @@ const TransferPreaJeri = () => {
             className="w-full h-full object-cover"
             alt="Veículo 4x4 nas dunas e orla da Praia do Preá"
             src="/images/transfer-4x4-dunas.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"

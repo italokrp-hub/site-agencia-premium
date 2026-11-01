@@ -257,7 +257,8 @@ export default function HeroSearch({ onSearch }) {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between text-left group cursor-pointer focus:outline-none"
+                      aria-label="Selecionar local de partida"
+                      className="w-full flex items-center justify-between min-h-[44px] py-1 text-left group cursor-pointer focus:outline-none"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <originObj.icon className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -265,12 +266,12 @@ export default function HeroSearch({ onSearch }) {
                           <p className="text-xs sm:text-sm font-bold text-white truncate">
                             {originObj.name}
                           </p>
-                          <p className="text-[10px] text-white/50 truncate">
+                          <p className="text-[10px] text-gray-300 truncate">
                             {originObj.subtitle}
                           </p>
                         </div>
                       </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-white/40 group-hover:text-white transition-colors shrink-0 ml-1" />
+                      <ChevronDown className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors shrink-0 ml-1" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -300,7 +301,7 @@ export default function HeroSearch({ onSearch }) {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-semibold truncate">{loc.name}</p>
-                              <p className="text-[10px] text-white/50 truncate">{loc.subtitle}</p>
+                              <p className="text-[10px] text-gray-300 truncate">{loc.subtitle}</p>
                             </div>
                             {isSelected && <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />}
                           </button>
@@ -318,7 +319,7 @@ export default function HeroSearch({ onSearch }) {
                   onClick={handleSwap}
                   title="Inverter Origem e Destino"
                   aria-label="Inverter Origem e Destino"
-                  className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-white/10 hover:bg-[#D4AF37] text-white hover:text-gray-950 border border-white/20 flex items-center justify-center shadow-md transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/10 hover:bg-[#D4AF37] text-white hover:text-gray-950 border border-white/20 flex items-center justify-center shadow-md transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer touch-manipulation"
                 >
                   <ArrowLeftRight
                     className={`w-4 h-4 transition-transform duration-300 ${
@@ -337,7 +338,8 @@ export default function HeroSearch({ onSearch }) {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between text-left group cursor-pointer focus:outline-none"
+                      aria-label="Selecionar local de destino"
+                      className="w-full flex items-center justify-between min-h-[44px] py-1 text-left group cursor-pointer focus:outline-none"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <destinationObj.icon className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -345,12 +347,12 @@ export default function HeroSearch({ onSearch }) {
                           <p className="text-xs sm:text-sm font-bold text-white truncate">
                             {destinationObj.name}
                           </p>
-                          <p className="text-[10px] text-white/50 truncate">
+                          <p className="text-[10px] text-gray-300 truncate">
                             {destinationObj.subtitle}
                           </p>
                         </div>
                       </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-white/40 group-hover:text-white transition-colors shrink-0 ml-1" />
+                      <ChevronDown className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors shrink-0 ml-1" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -373,7 +375,7 @@ export default function HeroSearch({ onSearch }) {
                             onClick={() => setDestination(loc.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
                               isDisabled
-                                ? 'opacity-30 cursor-not-allowed text-white/40'
+                                ? 'opacity-30 cursor-not-allowed text-white/70'
                                 : isSelected
                                 ? 'bg-[#D4AF37]/15 text-[#D4AF37] font-bold'
                                 : 'hover:bg-white/10 text-white/90'
@@ -384,7 +386,7 @@ export default function HeroSearch({ onSearch }) {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-semibold truncate">{loc.name}</p>
-                              <p className="text-[10px] text-white/50 truncate">{loc.subtitle}</p>
+                              <p className="text-[10px] text-gray-300 truncate">{loc.subtitle}</p>
                             </div>
                             {isSelected && <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />}
                           </button>
@@ -397,20 +399,21 @@ export default function HeroSearch({ onSearch }) {
 
               {/* 4. Datas (Ida e Volta Opcional) */}
               <div className="lg:col-span-3 px-3 py-2 lg:border-r border-white/10 flex flex-col justify-center min-h-[56px] hover:bg-white/5 rounded-xl transition-colors">
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D4AF37]">
+                <div className="flex items-center justify-between mb-1 gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#D4AF37]">
                     {hasReturn ? 'Ida & Volta' : 'Data de Ida'}
                   </span>
                   <button
                     type="button"
                     onClick={() => setHasReturn((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                    aria-label={hasReturn ? 'Remover viagem de volta' : 'Adicionar viagem de volta'}
+                    className="inline-flex items-center gap-1.5 min-h-[44px] min-w-[44px] py-2 px-3 text-xs font-bold text-emerald-300 hover:text-emerald-200 transition-colors cursor-pointer rounded-lg hover:bg-white/10 touch-manipulation"
                   >
                     <div
-                      className={`w-3 h-3 rounded-xs border flex items-center justify-center transition-colors ${
+                      className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center transition-colors ${
                         hasReturn
-                          ? 'bg-emerald-500 border-emerald-400 text-gray-950'
-                          : 'border-white/30 bg-white/10'
+                          ? 'bg-emerald-400 border-emerald-300 text-gray-950'
+                          : 'border-white/40 bg-white/10'
                       }`}
                     >
                       {hasReturn && <Check className="w-2.5 h-2.5 stroke-[3]" />}
@@ -425,7 +428,8 @@ export default function HeroSearch({ onSearch }) {
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="flex-1 flex items-center gap-2 text-left cursor-pointer focus:outline-none"
+                        aria-label="Selecionar data de ida"
+                        className="flex-1 flex items-center gap-2 min-h-[44px] py-2 px-2 text-left cursor-pointer focus:outline-none rounded-lg hover:bg-white/5 touch-manipulation"
                       >
                         <CalendarIcon className="w-4 h-4 text-[#D4AF37] shrink-0" />
                         <span className="text-xs sm:text-sm font-bold text-white truncate">
@@ -461,14 +465,15 @@ export default function HeroSearch({ onSearch }) {
                   {/* Seletor Data Volta (se habilitado) */}
                   {hasReturn && (
                     <>
-                      <span className="text-white/30 text-xs">→</span>
+                      <span className="text-white/40 text-xs shrink-0">→</span>
                       <Popover open={isRetOpen} onOpenChange={setIsRetOpen}>
                         <PopoverTrigger asChild>
                           <button
                             type="button"
-                            className="flex-1 flex items-center gap-2 text-left cursor-pointer focus:outline-none animate-in fade-in"
+                            aria-label="Selecionar data de retorno"
+                            className="flex-1 flex items-center gap-2 min-h-[44px] py-2 px-2 text-left cursor-pointer focus:outline-none animate-in fade-in rounded-lg hover:bg-white/5 touch-manipulation"
                           >
-                            <CalendarIcon className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <CalendarIcon className="w-4 h-4 text-emerald-300 shrink-0" />
                             <span className="text-xs sm:text-sm font-bold text-white truncate">
                               {format(returnDate, "dd 'de' MMM", { locale: ptBR })}
                             </span>
@@ -478,7 +483,7 @@ export default function HeroSearch({ onSearch }) {
                           align="start"
                           className="z-[200] p-3 bg-[#0d1618] border border-white/15 text-white rounded-2xl shadow-2xl backdrop-blur-xl"
                         >
-                          <div className="px-2 py-1 text-xs font-bold text-emerald-400 mb-2">
+                          <div className="px-2 py-1 text-xs font-bold text-emerald-300 mb-2">
                             Selecione a data de retorno
                           </div>
                           <Calendar
@@ -509,7 +514,8 @@ export default function HeroSearch({ onSearch }) {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between text-left group cursor-pointer focus:outline-none"
+                      aria-label="Selecionar passageiros"
+                      className="w-full flex items-center justify-between min-h-[44px] py-1 text-left group cursor-pointer focus:outline-none"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <Users className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -517,7 +523,7 @@ export default function HeroSearch({ onSearch }) {
                           {passengersSummary}
                         </span>
                       </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-white/40 group-hover:text-white transition-colors shrink-0 ml-1" />
+                      <ChevronDown className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors shrink-0 ml-1" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -532,27 +538,29 @@ export default function HeroSearch({ onSearch }) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-bold text-white">Adultos</p>
-                        <p className="text-[10px] text-white/50">A partir de 12 anos</p>
+                        <p className="text-[10px] text-gray-300">A partir de 12 anos</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          aria-label="Diminuir adultos"
                           onClick={() => setAdults((prev) => Math.max(1, prev - 1))}
                           disabled={adults <= 1}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-sm font-bold text-white min-w-[1.2rem] text-center">
                           {adults}
                         </span>
                         <button
                           type="button"
+                          aria-label="Aumentar adultos"
                           onClick={() => setAdults((prev) => Math.min(10, prev + 1))}
                           disabled={adults >= 10}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -561,32 +569,34 @@ export default function HeroSearch({ onSearch }) {
                     <div className="flex items-center justify-between pt-2 border-t border-white/10">
                       <div>
                         <p className="text-xs font-bold text-white">Crianças</p>
-                        <p className="text-[10px] text-white/50">2 a 11 anos</p>
+                        <p className="text-[10px] text-gray-300">2 a 11 anos</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          aria-label="Diminuir crianças"
                           onClick={() => setChildren((prev) => Math.max(0, prev - 1))}
                           disabled={children <= 0}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-sm font-bold text-white min-w-[1.2rem] text-center">
                           {children}
                         </span>
                         <button
                           type="button"
+                          aria-label="Aumentar crianças"
                           onClick={() => setChildren((prev) => Math.min(6, prev + 1))}
                           disabled={children >= 6}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-[10px] text-white/40 pt-1 leading-tight">
+                    <p className="text-[10px] text-gray-300 pt-1 leading-tight">
                       * Bebês de até 2 anos viajam gratuitamente no colo de um adulto responsável.
                     </p>
 
@@ -605,13 +615,13 @@ export default function HeroSearch({ onSearch }) {
 
             {/* 6. Botão de Busca CTA (Linha de Ação) */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-4 text-[11px] text-white/60">
+              <div className="flex items-center gap-4 text-[11px] text-white/80">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" /> Frota 100% Climatizada & Vistoriada
                 </span>
                 <span className="hidden sm:inline text-white/20">•</span>
                 <span className="hidden sm:flex items-center gap-1.5">
-                  <Car className="w-3.5 h-3.5 text-emerald-400" /> Embarque no Aeroporto ou Hotel
+                  <Car className="w-3.5 h-3.5 text-emerald-300" /> Embarque no Aeroporto ou Hotel
                 </span>
               </div>
 
@@ -640,12 +650,12 @@ export default function HeroSearch({ onSearch }) {
                   Ponto de Partida
                 </span>
                 <div className="flex items-center gap-2 min-w-0">
-                  <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <MapPin className="w-4 h-4 text-emerald-300 shrink-0" />
                   <div className="truncate">
                     <p className="text-xs sm:text-sm font-bold text-white truncate">
                       Jericoacoara (Vila)
                     </p>
-                    <p className="text-[10px] text-white/50 truncate">
+                    <p className="text-[10px] text-gray-300 truncate">
                       Buscamos no seu hotel / pousada
                     </p>
                   </div>
@@ -661,7 +671,8 @@ export default function HeroSearch({ onSearch }) {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between text-left group cursor-pointer focus:outline-none"
+                      aria-label="Selecionar roteiro de passeio"
+                      className="w-full flex items-center justify-between min-h-[44px] py-1 text-left group cursor-pointer focus:outline-none"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <selectedTourObj.icon className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -669,12 +680,12 @@ export default function HeroSearch({ onSearch }) {
                           <p className="text-xs sm:text-sm font-bold text-white truncate">
                             {selectedTourObj.title}
                           </p>
-                          <p className="text-[10px] text-emerald-400 truncate">
+                          <p className="text-[10px] text-emerald-300 truncate">
                             {selectedTourObj.badge}
                           </p>
                         </div>
                       </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-white/40 group-hover:text-white transition-colors shrink-0 ml-1" />
+                      <ChevronDown className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors shrink-0 ml-1" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -709,7 +720,7 @@ export default function HeroSearch({ onSearch }) {
                                   {tour.badge}
                                 </span>
                               </div>
-                              <p className="text-[10px] text-white/50 truncate">{tour.description}</p>
+                              <p className="text-[10px] text-gray-300 truncate">{tour.description}</p>
                             </div>
                             {isSelected && <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />}
                           </button>
@@ -729,7 +740,8 @@ export default function HeroSearch({ onSearch }) {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center gap-2 text-left cursor-pointer focus:outline-none"
+                      aria-label="Selecionar data do passeio"
+                      className="w-full flex items-center gap-2 min-h-[44px] py-2 px-1 text-left cursor-pointer focus:outline-none rounded-lg hover:bg-white/5"
                     >
                       <CalendarIcon className="w-4 h-4 text-[#D4AF37] shrink-0" />
                       <span className="text-xs sm:text-sm font-bold text-white truncate">
@@ -769,7 +781,8 @@ export default function HeroSearch({ onSearch }) {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between text-left group cursor-pointer focus:outline-none"
+                      aria-label="Selecionar quantidade de passageiros"
+                      className="w-full flex items-center justify-between min-h-[44px] py-1 text-left group cursor-pointer focus:outline-none"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <Users className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -777,7 +790,7 @@ export default function HeroSearch({ onSearch }) {
                           {passengersSummary}
                         </span>
                       </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-white/40 group-hover:text-white transition-colors shrink-0 ml-1" />
+                      <ChevronDown className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors shrink-0 ml-1" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -791,27 +804,29 @@ export default function HeroSearch({ onSearch }) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-bold text-white">Adultos</p>
-                        <p className="text-[10px] text-white/50">A partir de 12 anos</p>
+                        <p className="text-[10px] text-gray-300">A partir de 12 anos</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          aria-label="Diminuir adultos"
                           onClick={() => setAdults((prev) => Math.max(1, prev - 1))}
                           disabled={adults <= 1}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-sm font-bold text-white min-w-[1.2rem] text-center">
                           {adults}
                         </span>
                         <button
                           type="button"
+                          aria-label="Aumentar adultos"
                           onClick={() => setAdults((prev) => Math.min(10, prev + 1))}
                           disabled={adults >= 10}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -819,27 +834,29 @@ export default function HeroSearch({ onSearch }) {
                     <div className="flex items-center justify-between pt-2 border-t border-white/10">
                       <div>
                         <p className="text-xs font-bold text-white">Crianças</p>
-                        <p className="text-[10px] text-white/50">2 a 11 anos</p>
+                        <p className="text-[10px] text-gray-300">2 a 11 anos</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          aria-label="Diminuir crianças"
                           onClick={() => setChildren((prev) => Math.max(0, prev - 1))}
                           disabled={children <= 0}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-sm font-bold text-white min-w-[1.2rem] text-center">
                           {children}
                         </span>
                         <button
                           type="button"
+                          aria-label="Aumentar crianças"
                           onClick={() => setChildren((prev) => Math.min(6, prev + 1))}
                           disabled={children >= 6}
-                          className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 flex items-center justify-center transition-colors cursor-pointer"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -859,13 +876,13 @@ export default function HeroSearch({ onSearch }) {
 
             {/* 5. Botão de Busca CTA */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-4 text-[11px] text-white/60">
+              <div className="flex items-center gap-4 text-[11px] text-white/80">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" /> Buggy, Quadriciclo ou 4x4 Exclusivo
                 </span>
                 <span className="hidden sm:inline text-white/20">•</span>
                 <span className="hidden sm:flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Guias & Pilotos Credenciados
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" /> Guias & Pilotos Credenciados
                 </span>
               </div>
 

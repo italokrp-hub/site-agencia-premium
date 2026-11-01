@@ -140,6 +140,8 @@ const TransferJijocaJeri = () => {
             className="w-full h-full object-cover"
             alt="Veículo 4x4 em Jijoca de Jericoacoara nas dunas"
             src="/images/transfer-4x4-dunas.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"

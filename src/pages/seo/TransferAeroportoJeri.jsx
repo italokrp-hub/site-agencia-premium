@@ -140,6 +140,8 @@ const TransferAeroportoJeri = () => {
             className="w-full h-full object-cover opacity-60"
             alt="Veículo 4x4 no Aeroporto Regional de Jericoacoara Cruz JJD"
             src="/images/transfer-hilux.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"

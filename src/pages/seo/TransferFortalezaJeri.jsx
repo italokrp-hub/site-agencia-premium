@@ -141,6 +141,8 @@ const TransferFortalezaJeri = () => {
             className="w-full h-full object-cover"
             alt="Veículo 4x4 Toyota Hilux nas dunas de Jericoacoara"
             src="/images/transfer-4x4-dunas.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"
@@ -389,6 +391,8 @@ const TransferFortalezaJeri = () => {
                 <img
                   src={busTransfer?.image || "/images/onibus-transfer-jericoacoara-premium.webp"}
                   alt="Transfer de Ônibus Jericoacoara Premium - Fortaleza para Jeri"
+                  width="600"
+                  height="350"
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                   loading="lazy"
                   decoding="async"

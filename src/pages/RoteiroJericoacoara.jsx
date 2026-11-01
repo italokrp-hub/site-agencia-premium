@@ -132,6 +132,8 @@ const RoteiroJericoacoara = () => {
           <img
             src="/images/hero-dunas.webp"
             alt="Pôr do Sol nas Dunas de Jericoacoara — Guia Oficial de Viagem"
+            width="1920"
+            height="1080"
             className="w-full h-full object-cover"
             loading="eager"
             fetchPriority="high"

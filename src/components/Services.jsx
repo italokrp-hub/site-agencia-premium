@@ -84,6 +84,8 @@ const Services = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     alt={service.title}
                     src={service.image}
+                    width="600"
+                    height="400"
                     loading="lazy"
                     decoding="async"
                   />

@@ -226,6 +226,8 @@ const ExperienceDetailsDrawer = ({ item, open, onClose, onBook }) => {
         <img
           src={image}
           alt={title}
+          width="800"
+          height="256"
           className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImageLoaded(true)}
           loading="eager"

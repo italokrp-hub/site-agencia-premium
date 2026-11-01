@@ -35,7 +35,7 @@ export default function PromoModal() {
     };
   }, [isOpen, handleClose]);
 
-  // Exibição com delay de 2,5s após o carregamento da página
+  // Exibição do modal somente após interação real do usuário (evita sequestro de LCP pelo Lighthouse)
   useEffect(() => {
     // Permite override via URL query param (?promo=true) para testes em desenvolvimento
     let forceShow = false;
@@ -58,11 +58,34 @@ export default function PromoModal() {
       }
     }
 
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-    }, DELAY_MS);
+    if (forceShow) {
+      const timer = setTimeout(() => setIsOpen(true), 500);
+      return () => clearTimeout(timer);
+    }
 
-    return () => clearTimeout(timer);
+    let timer = null;
+    const interactionEvents = ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'];
+
+    const handleUserInteraction = () => {
+      interactionEvents.forEach((event) => {
+        window.removeEventListener(event, handleUserInteraction);
+      });
+
+      timer = setTimeout(() => {
+        setIsOpen(true);
+      }, DELAY_MS);
+    };
+
+    interactionEvents.forEach((event) => {
+      window.addEventListener(event, handleUserInteraction, { once: true, passive: true });
+    });
+
+    return () => {
+      interactionEvents.forEach((event) => {
+        window.removeEventListener(event, handleUserInteraction);
+      });
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleCtaClick = () => {
@@ -127,8 +150,10 @@ export default function PromoModal() {
           <img
             src="/images/promo-reveillon-2027.webp"
             alt="Pacote Réveillon 2027 em Jericoacoara - 10% OFF no PIX - Jericoacoara Premium"
+            width="540"
+            height="810"
             className="w-full h-auto object-contain select-none pointer-events-none"
-            loading="eager"
+            loading="lazy"
             decoding="async"
           />
         </a>

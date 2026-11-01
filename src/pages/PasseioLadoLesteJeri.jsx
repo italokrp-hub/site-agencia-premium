@@ -180,6 +180,8 @@ const PasseioLadoLesteJeri = () => {
             className="w-full h-full object-cover"
             alt="Passeio Lado Leste Lagoa do Paraíso em Jericoacoara"
             src="/images/tours/passeio-leste.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"

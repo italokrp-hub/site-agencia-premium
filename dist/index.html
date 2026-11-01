@@ -15,8 +15,7 @@
 				border-width: 0;
 			}
 		</style>
-		<!-- Google tag (gtag.js) - Google Ads: AW-18434748779 -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18434748779"></script>
+		<!-- Deferred Google Tag Manager & Google Ads (Eliminates main-thread blocking & lowers TBT) -->
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
@@ -24,12 +23,45 @@
 			gtag('js', new Date());
 			gtag('config', 'AW-18434748779');
 
-			// Google Tag Manager
-			(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-			new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-			j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-			'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-			})(window,document,'script','dataLayer','GTM-PRVR3DK9');
+			function loadThirdPartyAnalytics() {
+				if (window.__analyticsLoaded) return;
+				window.__analyticsLoaded = true;
+
+				// Google Ads (gtag.js)
+				var gtagScript = document.createElement('script');
+				gtagScript.async = true;
+				gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18434748779';
+				document.head.appendChild(gtagScript);
+
+				// Google Tag Manager
+				(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+				new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+				j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+				'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+				})(window,document,'script','dataLayer','GTM-PRVR3DK9');
+			}
+
+			// Load on first real user interaction or during idle after page load
+			var interactionList = ['scroll', 'touchstart', 'mousemove', 'keydown', 'click'];
+			function onUserActivity() {
+				interactionList.forEach(function(evt) {
+					window.removeEventListener(evt, onUserActivity, { passive: true });
+				});
+				loadThirdPartyAnalytics();
+			}
+			interactionList.forEach(function(evt) {
+				window.addEventListener(evt, onUserActivity, { once: true, passive: true });
+			});
+
+			window.addEventListener('load', function() {
+				if ('requestIdleCallback' in window) {
+					requestIdleCallback(function() {
+						setTimeout(loadThirdPartyAnalytics, 3000);
+					}, { timeout: 4000 });
+				} else {
+					setTimeout(loadThirdPartyAnalytics, 3500);
+				}
+			});
 		</script>
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -37,7 +69,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Passeios e Transfers em Jericoacoara | Jericoacoara Premium</title>
 		<meta name="description" content="Reserve transfers 4x4 privativos e compartilhados e passeios em Jericoacoara com agência credenciada CADASTUR, veículos revisados e suporte 24h via WhatsApp." />
-		<meta name="keywords" content="Jericoacoara Premium, transfer privativo Jericoacoara, transfer 4x4 Jeri, passeios exclusivos Jericoacoara, helicóptero Jericoacoara, receptivo de luxo Jericoacoara, conforto e segurança, Transfer VIP Jericoacoara, Ceará" />
 		<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 		<link rel="canonical" href="https://www.jericoacoarapremium.com/" />
 		
@@ -49,7 +80,7 @@
 		<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" /></noscript>
 		
 		<!-- Preload Hero LCP Image (mobile) -->
-		<link rel="preload" as="image" href="/images/hero-jeri-mobile.webp" type="image/webp" fetchpriority="high" media="(max-width: 768px)" />
+		<link rel="preload" as="image" href="/images/hero-jeri-mobile.webp" type="image/webp" fetchpriority="high" />
 		
 		<!-- Open Graph / Facebook / WhatsApp -->
 		<meta property="og:type" content="website" />
@@ -65,101 +96,230 @@
 		<meta property="twitter:description" content="Reserve transfers 4x4 privativos e compartilhados e passeios em Jericoacoara com agência credenciada CADASTUR, veículos revisados e suporte 24h via WhatsApp." />
 		<meta property="twitter:image" content="https://www.jericoacoarapremium.com/images/hero-jeri-mobile.webp" />
 
-		<!-- JSON-LD Schema.org: TravelAgency -->
-		<script type="application/ld+json">
-		{
-			"@context": "https://schema.org",
-			"@type": "TravelAgency",
-			"name": "Jericoacoara Premium",
-			"image": "https://www.jericoacoarapremium.com/images/logo.webp",
-			"url": "https://www.jericoacoarapremium.com/",
-			"telephone": "+5588988463182",
-			"priceRange": "$$",
-			"address": {
-				"@type": "PostalAddress",
-				"addressLocality": "Jericoacoara",
-				"addressRegion": "CE",
-				"addressCountry": "BR"
-			},
-			"areaServed": ["Jericoacoara", "Fortaleza", "Cruz", "Camocim", "Jijoca"],
-			"offers": {
-				"@type": "AggregateOffer",
-				"offerCount": "10",
-				"lowPrice": "50.00",
-				"highPrice": "2200.00",
-				"priceCurrency": "BRL"
-			},
-			"hasOfferCatalog": {
-				"@type": "OfferCatalog",
-				"name": "Serviços de Turismo e Transfer Econômico e VIP",
-				"itemListElement": [
-					{
-						"@type": "Offer",
-						"itemOffered": {
-							"@type": "Service",
-							"name": "Transfer Compartilhado Econômico (Fortaleza ↔ Jericoacoara)"
-						}
-					},
-					{
-						"@type": "Offer",
-						"itemOffered": {
-							"@type": "Service",
-							"name": "Transfer VIP 4x4 (Fortaleza ↔ Jericoacoara)"
-						}
-					},
-					{
-						"@type": "Offer",
-						"itemOffered": {
-							"@type": "Service",
-							"name": "Passeio de Buggy Lado Leste e Oeste"
-						}
-					}
-				]
-			}
-		}
+		<!-- Route-specific Structured Data (synchronized by prerender-routes.js & SEOHead.jsx) -->
+		<script id="route-jsonld" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  "name": "Jericoacoara Premium",
+  "legalName": "Jericoacoara Premium Transfer e Turismo",
+  "taxID": "51.790.615/0001-08",
+  "url": "https://www.jericoacoarapremium.com/",
+  "logo": "https://www.jericoacoarapremium.com/images/logo.webp",
+  "image": "https://www.jericoacoarapremium.com/images/hero-jeri-mobile.webp",
+  "description": "Agência credenciada CADASTUR especializada em transfers 4x4 privativos e compartilhados e passeios exclusivos em Jericoacoara.",
+  "telephone": "+5588988463182",
+  "email": "contato@jericoacoarapremium.com",
+  "priceRange": "$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Vila de Jericoacoara",
+    "addressLocality": "Jericoacoara",
+    "addressRegion": "CE",
+    "postalCode": "62598-000",
+    "addressCountry": "BR"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": -2.7956,
+    "longitude": -40.514
+  },
+  "areaServed": [
+    {
+      "@type": "City",
+      "name": "Jericoacoara"
+    },
+    {
+      "@type": "City",
+      "name": "Jijoca de Jericoacoara"
+    },
+    {
+      "@type": "City",
+      "name": "Praia do Preá"
+    },
+    {
+      "@type": "City",
+      "name": "Cruz"
+    },
+    {
+      "@type": "City",
+      "name": "Fortaleza"
+    }
+  ],
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "opens": "00:00",
+    "closes": "23:59"
+  }
+}
 		</script>
-
-		<!-- JSON-LD Schema.org: FAQPage -->
-		<script type="application/ld+json">
-		{
-			"@context": "https://schema.org",
-			"@type": "FAQPage",
-			"mainEntity": [
-				{
-					"@type": "Question",
-					"name": "Qual o transfer mais barato para Jericoacoara?",
-					"acceptedAnswer": {
-						"@type": "Answer",
-						"text": "O transfer mais barato para Jericoacoara é a opção compartilhada de ônibus/van regular (a partir de R$ 175,00 por pessoa de Fortaleza) ou a jardineira compartilhada saindo de Jijoca (a partir de R$ 50,00 por pessoa). É a alternativa mais econômica com total segurança, ar-condicionado e suporte 24h."
-					}
-				},
-				{
-					"@type": "Question",
-					"name": "Como funciona o transfer compartilhado mais econômico?",
-					"acceptedAnswer": {
-						"@type": "Answer",
-						"text": "No transfer compartilhado mais econômico, você viaja em veículos modernos dividindo o trajeto com outros passageiros. Garantimos a opção de melhor custo-benefício com motoristas credenciados, pontualidade e desembarque seguro na vila de Jeri."
-					}
-				},
-				{
-					"@type": "Question",
-					"name": "É seguro e confiável reservar passeios e transfer com antecedência?",
-					"acceptedAnswer": {
-						"@type": "Answer",
-						"text": "Sim, é 100% seguro e recomendado! Nossa agência é cadastrada no Cadastur (CNPJ 51.790.615/0001-08), com reserva 100% garantida, motoristas credenciados, suporte via WhatsApp 24h e pagamentos protegidos."
-					}
-				}
-			]
-		}
-		</script>
-		<script type="module" crossorigin src="/assets/index-Dt5JAICD.js"></script>
-		<link rel="stylesheet" crossorigin href="/assets/index-O7YmgYhF.css">
+		<script type="module" crossorigin src="/assets/index-B8Mo_cwn.js"></script>
+		<link rel="modulepreload" crossorigin href="/assets/vendor-react-K9n-NsRa.js">
+		<link rel="modulepreload" crossorigin href="/assets/vendor-icons-BmTgLRHg.js">
+		<link rel="modulepreload" crossorigin href="/assets/vendor-supabase-D_TQYbCj.js">
+		<link rel="stylesheet" crossorigin href="/assets/index-fgBR4Ao0.css">
 	</head>
 	<body>
 		<!-- Google Tag Manager (noscript) -->
 		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PRVR3DK9"
 		height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 		<!-- End Google Tag Manager (noscript) -->
-		<div id="root"></div>
+		<div id="root"><header class="bg-[#0B1517] text-white border-b border-emerald-900/40 sticky top-0 z-50 py-3.5 px-4 sm:px-6">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2 text-white font-bold text-lg tracking-wider" aria-label="Jericoacoara Premium Home">
+          <span class="text-[#D4AF37]">JERICOACOARA</span>
+          <span class="text-xs uppercase bg-[#D4AF37]/20 text-[#D4AF37] px-2 py-0.5 rounded font-black tracking-widest border border-[#D4AF37]/30">PREMIUM</span>
+        </a>
+        <nav aria-label="Navegação Principal" class="hidden md:flex items-center gap-6 text-sm text-gray-200">
+          <a href="/passeios-jericoacoara" class="hover:text-[#D4AF37] transition-colors">Passeios</a>
+          <a href="/transfer-fortaleza-jericoacoara" class="hover:text-[#D4AF37] transition-colors">Transfer Fortaleza</a>
+          <a href="/transfer-aeroporto-jericoacoara" class="hover:text-[#D4AF37] transition-colors">Transfer Aeroporto</a>
+          <a href="/roteiro-jericoacoara" class="hover:text-[#D4AF37] transition-colors">Roteiro Jeri</a>
+          <a href="/faq" class="hover:text-[#D4AF37] transition-colors">FAQ</a>
+        </nav>
+        <a href="https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-lg transition-colors shadow">
+          Reservar via WhatsApp
+        </a>
+      </div>
+    </header>
+  
+      <main class="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <section class="text-center mb-12">
+          <span class="inline-block px-3 py-1 bg-[#D4AF37]/15 border border-[#D4AF37]/30 text-[#D4AF37] rounded-full text-xs font-bold uppercase tracking-wider mb-4">Agência Credenciada CADASTUR</span>
+          <h1 class="text-3xl sm:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+            Passeios e Transfers em Jericoacoara com Conforto, Pontualidade e Segurança
+          </h1>
+          <p class="text-base sm:text-lg text-gray-700 max-w-3xl mx-auto">
+            Reserve transfers 4x4 privativos ou compartilhados e os passeios mais cobiçados de Jericoacoara com agência credenciada CADASTUR (CADASTUR: 51.790.615/0001-08 | Jericoacoara Premium Receptivo & Turismo). Frotas modernas de Hilux 4x4, SW4 e Jardineiras com motoristas profissionais e suporte 24h via WhatsApp.
+          </p>
+          <div class="mt-6 flex flex-wrap justify-center gap-4">
+            <a href="https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition shadow">
+              Falar com Concierge no WhatsApp
+            </a>
+            <a href="/roteiro-jericoacoara" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-6 py-3 rounded-xl transition">
+              Ver Roteiro Recomendado (3 a 7 Dias)
+            </a>
+          </div>
+        </section>
+
+        <!-- Serviços de Transfer -->
+        <section class="mb-14">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Transfers Oficiais em Jericoacoara</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Fortaleza ↔ Jeri</h3>
+              <p class="text-xs text-gray-600 mb-3">Opção regular compartilhada a partir de <strong>R$ 175,00 por pessoa</strong> ou Hilux 4x4 privativa a partir de <strong>R$ 900,00 por veículo</strong>.</p>
+              <a href="/transfer-fortaleza-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Ver detalhes do transfer Fortaleza →</a>
+            </article>
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Aeroporto Cruz (JJD) ↔ Jeri</h3>
+              <p class="text-xs text-gray-600 mb-3">Recepção no saguão e monitoramento de voo. Compartilhado por <strong>R$ 100,00 por pessoa</strong> ou Hilux privativa por <strong>R$ 275,00 por veículo</strong>.</p>
+              <a href="/transfer-aeroporto-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Ver detalhes do Aeroporto JJD →</a>
+            </article>
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Jijoca ↔ Jericoacoara</h3>
+              <p class="text-xs text-gray-600 mb-3">Travessia segura pelas dunas. Compartilhado por <strong>R$ 60,00 por pessoa</strong> ou Jardineira privativa por <strong>R$ 250,00 por veículo</strong>.</p>
+              <a href="/transfer-jijoca-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Ver detalhes do transfer Jijoca →</a>
+            </article>
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Preá ↔ Jericoacoara</h3>
+              <p class="text-xs text-gray-600 mb-3">Ligação rápida à beira-mar para kitesurfistas e pousadas no Preá. Jardineira privativa por <strong>R$ 250,00 por veículo</strong>.</p>
+              <a href="/transfer-prea-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Ver detalhes do transfer Preá →</a>
+            </article>
+          </div>
+        </section>
+
+        <!-- Passeios Principais -->
+        <section class="mb-14">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b pb-2">Passeios Mais Desejados de Jericoacoara</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Passeio Lado Leste</h3>
+              <p class="text-xs text-gray-600 mb-3">Lagoa do Paraíso, Buraco Azul, Árvore da Preguiça e Preá. A partir de <strong>R$ 75,00 por pessoa</strong> compartilhado ou <strong>R$ 450,00 por veículo</strong> em Buggy privativo.</p>
+              <a href="/passeio-lado-leste-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Ver roteiro completo Lado Leste →</a>
+            </article>
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Passeio Lado Oeste</h3>
+              <p class="text-xs text-gray-600 mb-3">Dunas de Tatajuba, Mangue Seco com cavalos-marinhos e balsa de Guriú. A partir de <strong>R$ 80,00 por pessoa</strong> compartilhado ou <strong>R$ 500,00 por veículo</strong> em Buggy privativo.</p>
+              <a href="/passeio-lado-oeste-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Ver roteiro completo Lado Oeste →</a>
+            </article>
+            <article class="bg-white border rounded-xl p-5 shadow-sm">
+              <h3 class="font-bold text-gray-900 text-lg mb-2">Buggy, UTV & Quadriciclo</h3>
+              <p class="text-xs text-gray-600 mb-3">Experiência off-road privativa nas dunas e lagoas. Veículos revisados e guias nativos credenciados a partir de <strong>R$ 450,00 por veículo</strong>.</p>
+              <a href="/passeio-buggy-utv-jericoacoara" class="text-emerald-700 text-xs font-bold underline">Comparar Buggy, UTV e Quadri →</a>
+            </article>
+          </div>
+        </section>
+
+        <!-- Perguntas Frequentes -->
+        <section class="bg-gray-50 border rounded-2xl p-6 sm:p-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Perguntas Frequentes (FAQ)</h2>
+          <div class="space-y-4 text-sm text-gray-700">
+            <div>
+              <p class="font-bold text-gray-900">Qual o transfer mais econômico para Jericoacoara?</p>
+              <p>O transfer compartilhado de ônibus/van regular a partir de R$ 175,00 por pessoa de Fortaleza, ou a jardineira compartilhada saindo de Jijoca por R$ 60,00 por pessoa.</p>
+            </div>
+            <div>
+              <p class="font-bold text-gray-900">Como funciona o cancelamento com 100% de reembolso?</p>
+              <p>Cancelamentos solicitados com até 7 dias de antecedência da viagem têm direito a 100% de reembolso integral sem multas nem burocracia.</p>
+            </div>
+            <div>
+              <p class="font-bold text-gray-900">A agência é credenciada pelo Ministério do Turismo?</p>
+              <p>Sim! Somos credenciados pelo CADASTUR sob o CNPJ 51.790.615/0001-08, oferecendo total conformidade legal, seguro passageiro e atendimento 24h.</p>
+            </div>
+          </div>
+          <div class="mt-6 text-center">
+            <a href="/faq" class="inline-block text-xs font-bold text-emerald-800 underline">Acessar Central Completa de Dúvidas (FAQ) →</a>
+          </div>
+        </section>
+      </main>
+      
+    <footer class="bg-[#0B1517] text-gray-300 border-t border-emerald-950/60 pt-12 pb-8 px-4 sm:px-6 mt-16">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-10 text-sm">
+        <div>
+          <p class="font-bold text-white text-base mb-2">Jericoacoara Premium</p>
+          <p class="text-xs text-gray-400 mb-3">Receptivo de luxo, transfers 4x4 privativos e compartilhados, e passeios exclusivos no Parque Nacional de Jericoacoara.</p>
+          <p class="text-xs text-[#D4AF37] font-semibold">CADASTUR: 51.790.615/0001-08 | Jericoacoara Premium Receptivo & Turismo</p>
+        </div>
+        <div>
+          <p class="font-semibold text-white mb-3">Passeios Exclusivos</p>
+          <ul class="space-y-2 text-xs">
+            <li><a href="/passeios-jericoacoara" class="hover:text-[#D4AF37]">Todos os Passeios em Jericoacoara</a></li>
+            <li><a href="/passeio-lado-leste-jericoacoara" class="hover:text-[#D4AF37]">Passeio Lado Leste (Lagoa do Paraíso)</a></li>
+            <li><a href="/passeio-lado-oeste-jericoacoara" class="hover:text-[#D4AF37]">Passeio Lado Oeste (Tatajuba & Mangue Seco)</a></li>
+            <li><a href="/passeio-buggy-utv-jericoacoara" class="hover:text-[#D4AF37]">Passeios de Buggy, UTV e Quadriciclo</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="font-semibold text-white mb-3">Transfers 4x4 Oficiais</p>
+          <ul class="space-y-2 text-xs">
+            <li><a href="/transfer-fortaleza-jericoacoara" class="hover:text-[#D4AF37]">Transfer Fortaleza ↔ Jericoacoara</a></li>
+            <li><a href="/transfer-aeroporto-jericoacoara" class="hover:text-[#D4AF37]">Transfer Aeroporto Cruz (JJD) ↔ Jeri</a></li>
+            <li><a href="/transfer-jijoca-jericoacoara" class="hover:text-[#D4AF37]">Transfer Jijoca ↔ Jericoacoara</a></li>
+            <li><a href="/transfer-prea-jericoacoara" class="hover:text-[#D4AF37]">Transfer Preá ↔ Jericoacoara</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="font-semibold text-white mb-3">Planejamento & Dúvidas</p>
+          <ul class="space-y-2 text-xs">
+            <li><a href="/roteiro-jericoacoara" class="hover:text-[#D4AF37]">Roteiro Jericoacoara (3, 5 e 7 Dias)</a></li>
+            <li><a href="/faq" class="hover:text-[#D4AF37]">Perguntas Frequentes (FAQ 7 Dias)</a></li>
+            <li><a href="https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="hover:text-[#D4AF37]">Atendimento 24h via WhatsApp</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto pt-6 border-t border-gray-800/60 text-center text-xs text-gray-500">
+        <p>© 2026 Jericoacoara Premium. Todos os direitos reservados. Garantia Oficial — 100% de Reembolso até 7 dias antes da viagem.</p>
+      </div>
+    </footer></div>
 	</body>
 </html>

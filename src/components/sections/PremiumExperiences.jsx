@@ -81,6 +81,8 @@ const PremiumExperiences = () => {
                 <img
                   src={tour.image}
                   alt={displayTitle}
+                  width="600"
+                  height="500"
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"

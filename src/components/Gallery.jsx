@@ -114,6 +114,8 @@ const Gallery = () => {
                 <img
                   src={images[currentIndex].image}
                   alt={images[currentIndex].title}
+                  width="800"
+                  height="500"
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -188,7 +190,7 @@ const Gallery = () => {
                       : 'border-transparent opacity-60 hover:opacity-100 hover:scale-100'
                   }`}
                 >
-                  <img src={item.image} alt={item.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <img src={item.image} alt={item.title} width="96" height="64" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   {idx === currentIndex && (
                     <div className="absolute inset-0 bg-[#2C7A7B]/10" />
                   )}
@@ -241,6 +243,8 @@ const Gallery = () => {
                 <img
                   src={selectedImage.image}
                   alt={selectedImage.title}
+                  width="1200"
+                  height="800"
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-contain"

@@ -221,6 +221,8 @@ const PasseioBuggyUtvJeri = () => {
             className="w-full h-full object-cover"
             alt="Passeio de Buggy e UTV nas dunas de Jericoacoara"
             src="/images/passeio-utv-maverick.webp"
+            width="1920"
+            height="1080"
             loading="eager"
             fetchPriority="high"
             decoding="async"
