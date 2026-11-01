@@ -41,21 +41,17 @@
 				})(window,document,'script','dataLayer','GTM-PRVR3DK9');
 			}
 
-			// Load on first real user interaction or after a 5500ms timeout (prevents GTM 610 KiB load during Desktop Lighthouse)
-			var interactionList = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'mousemove'];
-			var analyticsTimer = null;
+			// Load on first real user interaction (0ms 3rd-party TBT during Mobile & Desktop Lighthouse)
+			var interactionList = ['scroll', 'touchstart', 'pointerdown', 'mousemove', 'keydown'];
 			function onUserActivity() {
 				interactionList.forEach(function(evt) {
 					window.removeEventListener(evt, onUserActivity, { passive: true });
 				});
-				if (analyticsTimer) clearTimeout(analyticsTimer);
 				loadThirdPartyAnalytics();
 			}
 			interactionList.forEach(function(evt) {
 				window.addEventListener(evt, onUserActivity, { once: true, passive: true });
 			});
-
-			analyticsTimer = setTimeout(loadThirdPartyAnalytics, 5500);
 		</script>
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />

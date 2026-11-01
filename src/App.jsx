@@ -10,10 +10,12 @@ import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import { Toaster } from '@/components/ui/toaster';
 
-// Above-the-fold critical homepage sections
+// Above-the-fold critical homepage sections (Loaded synchronously)
 import ImmersiveHero from '@/components/sections/ImmersiveHero';
-import ExperienceSelector from '@/components/sections/ExperienceSelector';
-import FeaturedExperiences from '@/components/sections/FeaturedExperiences';
+
+// Below-the-fold homepage sections (Lazy loaded for Performance)
+const ExperienceSelector = lazyWithRetry(() => import('@/components/sections/ExperienceSelector'));
+const FeaturedExperiences = lazyWithRetry(() => import('@/components/sections/FeaturedExperiences'));
 
 // Robust lazy loader with chunk-load auto-retry and cache-busting reload recovery.
 // Completely prevents and handles:
@@ -190,6 +192,40 @@ const HOME_SCHEMA = {
 };
 
 function LandingPage() {
+  const [showBelowFold, setShowBelowFold] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    const trigger = () => {
+      setShowBelowFold(true);
+      window.removeEventListener('scroll', trigger);
+      window.removeEventListener('touchstart', trigger);
+      window.removeEventListener('pointerdown', trigger);
+      window.removeEventListener('wheel', trigger);
+      if (timer) clearTimeout(timer);
+    };
+
+    window.addEventListener('scroll', trigger, { passive: true, once: true });
+    window.addEventListener('touchstart', trigger, { passive: true, once: true });
+    window.addEventListener('pointerdown', trigger, { passive: true, once: true });
+    window.addEventListener('wheel', trigger, { passive: true, once: true });
+
+    const rafId = requestAnimationFrame(() => {
+      timer = setTimeout(() => {
+        setShowBelowFold(true);
+      }, 120);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (timer) clearTimeout(timer);
+      window.removeEventListener('scroll', trigger);
+      window.removeEventListener('touchstart', trigger);
+      window.removeEventListener('pointerdown', trigger);
+      window.removeEventListener('wheel', trigger);
+    };
+  }, []);
+
   return (
     <>
       <SEOHead
@@ -207,78 +243,88 @@ function LandingPage() {
             <ImmersiveHero />
           </ErrorBoundary>
 
-          {/* 2. Experience Selector */}
-          <ErrorBoundary>
-            <ExperienceSelector />
-          </ErrorBoundary>
+          {showBelowFold ? (
+            <>
+              {/* 2. Experience Selector */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <ExperienceSelector />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 3. Featured Experiences */}
-          <ErrorBoundary>
-            <FeaturedExperiences />
-          </ErrorBoundary>
+              {/* 3. Featured Experiences */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <FeaturedExperiences />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 4. Tours Explorer */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <ToursExplorer />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 4. Tours Explorer */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <ToursExplorer />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 5. Transfers Section */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <TransfersSection />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 5. Transfers Section */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <TransfersSection />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 6. Explore Jericoacoara Map */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <ExploreJericoMap />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 6. Explore Jericoacoara Map */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <ExploreJericoMap />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 7. Jeri Travel Planner */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <TravelPlanner />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 7. Jeri Travel Planner */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <TravelPlanner />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 8. Premium Experiences */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <PremiumExperiences />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 8. Premium Experiences */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <PremiumExperiences />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 9. Trust Section */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <TrustSection />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 9. Trust Section */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <TrustSection />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 10. Testimonials */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <TestimonialsSection />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 10. Testimonials */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <TestimonialsSection />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 11. FAQ */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <FAQSection />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 11. FAQ */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <FAQSection />
+                </Suspense>
+              </ErrorBoundary>
 
-          {/* 12. Final CTA */}
-          <ErrorBoundary>
-            <Suspense fallback={<SectionFallback />}>
-              <FinalCTA />
-            </Suspense>
-          </ErrorBoundary>
+              {/* 12. Final CTA */}
+              <ErrorBoundary>
+                <Suspense fallback={<SectionFallback />}>
+                  <FinalCTA />
+                </Suspense>
+              </ErrorBoundary>
+            </>
+          ) : (
+            <SectionFallback />
+          )}
         </main>
         <Footer />
         <DeferredJeriDuneTrail />
