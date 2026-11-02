@@ -8,6 +8,7 @@ import SEOHead from '@/components/SEOHead';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import ScrollToTop from '@/components/ScrollToTop';
 import { Toaster } from '@/components/ui/toaster';
 
 // Above-the-fold critical homepage sections (Loaded synchronously)
@@ -93,6 +94,8 @@ const JeriDuneTrail = lazyWithRetry(() => import('@/components/effects/JeriDuneT
 // Secondary & Admin routes (Lazy loaded)
 const PromoModal = lazyWithRetry(() => import('@/components/PromoModal'));
 const FaqPage = lazyWithRetry(() => import('@/pages/FaqPage'));
+const PrivacyPolicy = lazyWithRetry(() => import('@/pages/PrivacyPolicy'));
+const TermsOfUse = lazyWithRetry(() => import('@/pages/TermsOfUse'));
 const Reservas = lazyWithRetry(() => import('@/pages/agencia/Reservas'));
 const VoucherPage = lazyWithRetry(() => import('@/pages/VoucherPage'));
 const ObrigadoPage = lazyWithRetry(() => import('@/pages/ObrigadoPage'));
@@ -348,6 +351,7 @@ function App() {
     <ErrorBoundary>
       <LanguageProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Suspense fallback={null}>
             <PromoModal />
           </Suspense>
@@ -355,6 +359,10 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/faq" element={<FaqPage />} />
+              <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+              <Route path="/privacidade" element={<PrivacyPolicy />} />
+              <Route path="/termos-de-uso" element={<TermsOfUse />} />
+              <Route path="/termos" element={<TermsOfUse />} />
               <Route path="/obrigado" element={<ObrigadoPage />} />
               <Route path="/voucher/:code" element={<VoucherPage />} />
               <Route path="/agencia/reservas" element={<Reservas />} />

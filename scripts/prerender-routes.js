@@ -81,8 +81,13 @@ function getFooter(currentPath) {
           </ul>
         </div>
       </div>
-      <div class="max-w-7xl mx-auto pt-6 border-t border-gray-800/60 text-center text-xs text-gray-500">
-        <p>© 2026 Jericoacoara Premium. Todos os direitos reservados. Garantia Oficial — 100% de Reembolso até 7 dias antes da viagem.</p>
+      <div class="max-w-7xl mx-auto pt-6 border-t border-gray-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-xs text-gray-500">
+        <p>© 2026 Jericoacoara Premium. Todos os direitos reservados. CNPJ: 51.790.615/0001-08.</p>
+        <div class="flex flex-wrap justify-center sm:justify-end gap-5">
+          <a href="/faq" class="hover:text-[#D4AF37] transition-colors">FAQ & Cancelamento</a>
+          <a href="/politica-de-privacidade" class="hover:text-[#D4AF37] transition-colors">Política de Privacidade</a>
+          <a href="/termos-de-uso" class="hover:text-[#D4AF37] transition-colors">Termos de Uso</a>
+        </div>
       </div>
     </footer>
   `;
@@ -1415,6 +1420,217 @@ const ROUTES = [
         </section>
       </main>
       ${getFooter('/faq')}
+    `
+  },
+
+  // 12. Política de Privacidade
+  {
+    path: '/politica-de-privacidade',
+    title: 'Política de Privacidade e LGPD | Jericoacoara Premium',
+    description: 'Conheça a Política de Privacidade e Tratamento de Dados da Jericoacoara Premium (CNPJ 51.790.615/0001-08). Transparência, segurança e conformidade estrita com a LGPD.',
+    canonical: `${SITE_URL}/politica-de-privacidade`,
+    ogImage: `${SITE_URL}/images/hero-jeri-mobile.webp`,
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Política de Privacidade | Jericoacoara Premium',
+      description: 'Política de Privacidade e Proteção de Dados (LGPD) da Jericoacoara Premium Receptivo & Turismo Ltda. CNPJ: 51.790.615/0001-08.',
+      url: `${SITE_URL}/politica-de-privacidade`,
+      publisher: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        legalName: 'Jericoacoara Premium Receptivo & Turismo Ltda.',
+        taxID: '51.790.615/0001-08',
+        url: `${SITE_URL}/`,
+        telephone: '+5588988463182',
+        email: 'contato@jericoacoarapremium.com',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Vila de Jericoacoara',
+          addressLocality: 'Jericoacoara',
+          addressRegion: 'CE',
+          postalCode: '62598-000',
+          addressCountry: 'BR'
+        }
+      }
+    },
+    semanticBody: `
+      ${getHeaderNav()}
+      <main class="min-h-screen bg-[#0B1517] text-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <nav aria-label="Breadcrumb" class="text-xs text-gray-400 mb-6 flex items-center gap-2">
+            <a href="/" class="hover:text-[#D4AF37]">Início</a>
+            <span>›</span>
+            <span class="text-[#D4AF37] font-semibold">Política de Privacidade</span>
+          </nav>
+
+          <header class="mb-10 pb-8 border-b border-slate-800">
+            <span class="text-xs font-bold uppercase tracking-widest text-[#D4AF37] bg-[#D4AF37]/10 px-3 py-1 rounded-full border border-[#D4AF37]/20">Segurança & LGPD</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-3">Política de Privacidade & Proteção de Dados</h1>
+            <p class="text-gray-300 text-sm sm:text-base leading-relaxed">A Jericoacoara Premium Receptivo & Turismo Ltda. (CNPJ 51.790.615/0001-08) preza pela total transparência e proteção dos dados pessoais de seus clientes, de acordo com a Lei Federal nº 13.709/2018 (LGPD).</p>
+          </header>
+
+          <div class="space-y-8 text-sm leading-relaxed text-gray-300">
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">1. Identificação do Controlador</h2>
+              <p class="mb-2"><strong>Razão Social:</strong> Jericoacoara Premium Receptivo & Turismo Ltda.</p>
+              <p class="mb-2"><strong>CNPJ:</strong> 51.790.615/0001-08 | <strong>CADASTUR:</strong> 51.790.615/0001-08</p>
+              <p class="mb-2"><strong>Endereço:</strong> Vila de Jericoacoara, Jijoca de Jericoacoara - CE, CEP 62598-000</p>
+              <p><strong>Contato de Privacidade:</strong> contato@jericoacoarapremium.com | WhatsApp: +55 (88) 98846-3182</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">2. Princípios e Conformidade com a LGPD</h2>
+              <p>Tratamos seus dados pautados na boa-fé e nos princípios da finalidade, adequação, necessidade, livre acesso, segurança e prevenção contra incidentes, limitando o tratamento ao essencial para a prestação de serviços turísticos e cumprimento de deveres legais.</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">3. Dados Pessoais Coletados e Finalidades</h2>
+              <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Identificação e Segurança:</strong> Nome completo, CPF ou passaporte (para emissão de voucher, seguro obrigatório contra acidentes pessoais APP e fiscalização nos postos do ICMBio e Prefeitura).</li>
+                <li><strong>Comunicação e Operação:</strong> Telefone/WhatsApp e e-mail para envio de voucher, confirmação de horários e coordenação do embarque.</li>
+                <li><strong>Logística de Viagem:</strong> Dados de voo (número e horários) para monitoramento em tempo real de atrasos no Aeroporto de Fortaleza (FOR) e Jericoacoara (JJD - Cruz), além do hotel/pousada de embarque e desembarque.</li>
+              </ul>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">4. Pagamentos e Segurança Financeira</h2>
+              <p>Não armazenamos dados confidenciais de cartão de crédito. As transações financeiras são intermediadas por processadoras e gateways seguros certificados PCI-DSS (Mercado Pago, Stripe e PIX Banco Central), com criptografia TLS/SSL de ponta a ponta.</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">5. Compartilhamento Operacional e Retenção</h2>
+              <p class="mb-2">Não comercializamos dados com terceiros. O compartilhamento ocorre exclusivamente com motoristas credenciados pelo Cadastur (para identificação no embarque), seguradora de passageiros e órgãos públicos quando legalmente requisitado.</p>
+              <p>Os registros fiscais e contratuais são mantidos pelo prazo legal de 5 anos (Código Tributário Nacional e CDC) e descartados com segurança ao término da obrigação.</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">6. Direitos do Titular (Art. 18 LGPD)</h2>
+              <p>Você possui o direito de confirmar a existência de tratamento, acessar seus dados, solicitar correções, requerer a exclusão ou anonimização de dados desnecessários e revogar o consentimento a qualquer momento, pelo canal contato@jericoacoarapremium.com.</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">7. Garantia de Cancelamento Integrada (7 Dias)</h2>
+              <p>Conforme o CDC e nossas regras operacionais: cancelamento solicitado com até 7 dias de antecedência garante 100% de reembolso integral; entre 7 dias e 48 horas garante crédito integral em voucher (12 meses) ou 50% de reembolso; com menos de 48h ou no-show, não há reembolso devido à reserva exclusiva de veículos e guias.</p>
+            </section>
+          </div>
+
+          <div class="mt-10 p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center">
+            <h3 class="text-white font-bold mb-2">Dúvidas sobre seus dados?</h3>
+            <p class="text-xs text-gray-400 mb-4">Fale diretamente com nossa equipe no WhatsApp 24h.</p>
+            <a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl inline-block transition">
+              Atendimento via WhatsApp
+            </a>
+          </div>
+        </div>
+      </main>
+      ${getFooter('/politica-de-privacidade')}
+    `
+  },
+
+  // 13. Termos de Uso
+  {
+    path: '/termos-de-uso',
+    title: 'Termos de Uso e Regras de Contratação | Jericoacoara Premium',
+    description: 'Termos de Uso e Condições Gerais dos serviços de transfers 4x4 e passeios turísticos da Jericoacoara Premium (CNPJ 51.790.615/0001-08). Regras claras, prazos e direitos do passageiro.',
+    canonical: `${SITE_URL}/termos-de-uso`,
+    ogImage: `${SITE_URL}/images/hero-jeri-mobile.webp`,
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Termos de Uso | Jericoacoara Premium',
+      description: 'Termos de Uso, condições de contratação de transfers e passeios em Jericoacoara com a Jericoacoara Premium Receptivo & Turismo Ltda. CNPJ: 51.790.615/0001-08.',
+      url: `${SITE_URL}/termos-de-uso`,
+      publisher: {
+        '@type': 'TravelAgency',
+        name: 'Jericoacoara Premium',
+        legalName: 'Jericoacoara Premium Receptivo & Turismo Ltda.',
+        taxID: '51.790.615/0001-08',
+        url: `${SITE_URL}/`,
+        telephone: '+5588988463182',
+        email: 'contato@jericoacoarapremium.com',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Vila de Jericoacoara',
+          addressLocality: 'Jericoacoara',
+          addressRegion: 'CE',
+          postalCode: '62598-000',
+          addressCountry: 'BR'
+        }
+      }
+    },
+    semanticBody: `
+      ${getHeaderNav()}
+      <main class="min-h-screen bg-[#0B1517] text-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <nav aria-label="Breadcrumb" class="text-xs text-gray-400 mb-6 flex items-center gap-2">
+            <a href="/" class="hover:text-[#D4AF37]">Início</a>
+            <span>›</span>
+            <span class="text-[#D4AF37] font-semibold">Termos de Uso</span>
+          </nav>
+
+          <header class="mb-10 pb-8 border-b border-slate-800">
+            <span class="text-xs font-bold uppercase tracking-widest text-[#D4AF37] bg-[#D4AF37]/10 px-3 py-1 rounded-full border border-[#D4AF37]/20">Regras Contratuais</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-3">Termos de Uso & Condições Gerais</h1>
+            <p class="text-gray-300 text-sm sm:text-base leading-relaxed">Condições contratuais para prestação de serviços de transfers terrestres 4x4, passeios turísticos e receptivo pela Jericoacoara Premium Receptivo & Turismo Ltda. (CNPJ 51.790.615/0001-08, CADASTUR 51.790.615/0001-08).</p>
+          </header>
+
+          <div class="space-y-8 text-sm leading-relaxed text-gray-300">
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">1. Objeto e Serviços</h2>
+              <p>A Jericoacoara Premium presta serviços de transfers terrestres 4x4 (privativos e compartilhados), transporte executivo aeroportuário (Fortaleza FOR e Jericoacoara JJD) e passeios turísticos off-road no Parque Nacional de Jericoacoara (Litoral Leste e Oeste).</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">2. Regras de Transfers 4x4</h2>
+              <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Transfer Privativo:</strong> Veículo exclusivo para o seu grupo, flexibilidade de horários, rota direta e busca/desembarque na porta da pousada na Vila de Jericoacoara.</li>
+                <li><strong>Transfer Compartilhado:</strong> Horários pré-determinados com tolerância máxima de 10 minutos para embarque, combinando trecho rodoviário em van/ônibus e transbordo em jardineira 4x4 para a travessia das dunas.</li>
+                <li><strong>Atrasos de Voo:</strong> Monitoramos o status dos voos em tempo real. No transfer privativo, oferecemos tolerância gratuita de até 1 hora de espera no aeroporto sem acréscimo.</li>
+              </ul>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">3. Bagagem e Transporte de Crianças</h2>
+              <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Franquia de Bagagem:</strong> Privativo permite até 2 malas despachadas (até 23kg cada) + bagagem de mão por passageiro. Compartilhado permite 1 mala média (até 23kg) + 1 mochila de mão por passageiro. Pranchas de kitesurf devem ser avisadas previamente.</li>
+                <li><strong>Crianças:</strong> Colo gratuito até 2 anos incompletos. A partir de 2 anos, assento individual obrigatório pelo Código de Trânsito Brasileiro. Cadeirinhas infantis podem ser solicitadas gratuitamente com antecedência no transfer privativo.</li>
+              </ul>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">4. Regras dos Passeios, Inclusões e Exclusões</h2>
+              <p class="mb-2"><strong>Incluso:</strong> Veículo off-road revisado (Buggy, Jardineira ou UTV), motorista/guia credenciado Cadastur, seguro passageiro (APP) e busca na pousada em Jericoacoara.</p>
+              <p class="mb-2"><strong>Não Incluso:</strong> Entradas/day-use em clubes privados (The Alchymist, Buraco Azul, Lagun Beach), atrações opcionais (tirolesa, toboágua, barco cavalo-marinho), alimentação e bebidas.</p>
+              <p><strong>Taxa de Turismo Sustentável (TTS):</strong> Tributo cobrado pela Prefeitura de Jijoca de Jericoacoara de responsabilidade do visitante, não incluso no valor dos passeios.</p>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">5. Política de Cancelamento e Reembolso (Garantia de 7 Dias)</h2>
+              <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Até 7 dias antes do serviço:</strong> 100% de reembolso integral sem retenções.</li>
+                <li><strong>Entre 7 dias e 48 horas antes:</strong> Crédito integral em voucher válido por 12 meses para reagendamento ou reembolso com 50% de retenção de custos operacionais.</li>
+                <li><strong>Menos de 48 horas ou não comparecimento (no-show):</strong> Sem reembolso, tendo em vista o bloqueio antecipado e exclusivo do veículo 4x4 e do motorista.</li>
+              </ul>
+            </section>
+
+            <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
+              <h2 class="text-lg font-bold text-white mb-2">6. Conduta, Preservação e Foro</h2>
+              <p class="mb-2">É dever do passageiro respeitar as normas do Parque Nacional de Jericoacoara (ICMBio), não descartar lixo nas dunas, usar o cinto de segurança e portar documento de identificação com foto.</p>
+              <p>Fica eleito o Foro da Comarca de Jijoca de Jericoacoara / Fortaleza - CE para dirimir eventuais litígios decorrentes da contratação dos serviços.</p>
+            </section>
+          </div>
+
+          <div class="mt-10 p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center">
+            <h3 class="text-white font-bold mb-2">Dúvidas sobre os Termos de Uso?</h3>
+            <p class="text-xs text-gray-400 mb-4">Converse com nosso concierge via WhatsApp.</p>
+            <a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl inline-block transition">
+              Atendimento via WhatsApp
+            </a>
+          </div>
+        </div>
+      </main>
+      ${getFooter('/termos-de-uso')}
     `
   }
 ];

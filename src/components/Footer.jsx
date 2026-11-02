@@ -156,12 +156,12 @@ const Footer = () => {
               <Link to="/faq" className="hover:text-[#D4AF37] transition-colors">
                 FAQ & Cancelamento
               </Link>
-              <a href="#privacidade" className="hover:text-[#D4AF37] transition-colors">
+              <Link to="/politica-de-privacidade" className="hover:text-[#D4AF37] transition-colors">
                 {t('footer.privacy')}
-              </a>
-              <a href="#termos" className="hover:text-[#D4AF37] transition-colors">
+              </Link>
+              <Link to="/termos-de-uso" className="hover:text-[#D4AF37] transition-colors">
                 {t('footer.terms')}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
