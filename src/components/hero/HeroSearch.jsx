@@ -597,7 +597,7 @@ export default function HeroSearch({ onSearch }) {
                     </div>
 
                     <p className="text-[10px] text-gray-300 pt-1 leading-tight">
-                      * Bebês de até 2 anos viajam gratuitamente no colo de um adulto responsável.
+                      * Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual (dispositivo de retenção sob solicitação).
                     </p>
 
                     <Button

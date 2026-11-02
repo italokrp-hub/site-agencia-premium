@@ -149,15 +149,23 @@ export const ALL_FAQ_DATA = [
   {
     id: 'criancas-cadeirinha',
     category: 'bagagem-criancas',
-    question: 'Crianças pagam tarifa de transfer? Há cadeirinha infantil ou bebê conforto?',
-    answerText: 'Bebês e crianças de colo até 2 anos incompletos viajam gratuitamente no colo de um adulto responsável. Crianças a partir de 2 anos completos ocupam assento individual conforme as normas de trânsito e legislação rodoviária. Para transfers privativos, disponibilizamos assento de elevação (booster) ou cadeirinha infantil mediante solicitação prévia no momento da reserva.',
+    question: 'Como funciona o transporte de crianças e a exigência de cadeirinha nos transfers e passeios?',
+    answerText: 'Em cumprimento estrito às normas do CONTRAN/CTB e órgãos fiscalizadores, é terminantemente proibido o transporte de crianças ou bebês no colo em qualquer veículo. Toda criança, independentemente da idade, ocupa um assento individual e deve utilizar o dispositivo de retenção regulamentado adequado (bebê conforto, cadeirinha ou assento de elevação), disponibilizado gratuitamente mediante solicitação prévia no momento da reserva.',
     renderAnswer: () => (
       <div>
         <p className="mb-2">
-          <strong>Bebês de colo (até 2 anos incompletos)</strong> viajam sem custo no colo de um adulto responsável. Crianças a partir de 2 anos completos ocupam assento individual por determinação das leis de trânsito brasileiras e segurança dos passageiros.
+          <strong>Transporte Seguro e Obrigatório por Lei:</strong> Em cumprimento rigoroso às resoluções do CONTRAN e Código de Trânsito Brasileiro (CTB), <strong>é expressamente proibido transportar crianças ou bebês no colo</strong> em transfers (privativos ou compartilhados) e passeios off-road.
         </p>
+        <p className="mb-2">
+          Toda criança, desde recém-nascida, ocupa um <strong>assento individual obrigatório</strong> devidamente equipado com cinto de segurança e o dispositivo de retenção adequado à sua idade e peso:
+        </p>
+        <ul className="list-disc pl-5 space-y-1 mb-2 text-xs">
+          <li><strong>Bebê Conforto:</strong> para bebês de até 1 ano (ou até 13 kg);</li>
+          <li><strong>Cadeirinha:</strong> para crianças de 1 a 4 anos (ou de 9 a 18 kg);</li>
+          <li><strong>Assento de Elevação (Booster):</strong> para crianças de 4 a 10 anos (ou até 1,45m de altura).</li>
+        </ul>
         <p>
-          Para transfers privativos, disponibilizamos <strong>cadeirinha infantil ou assento de elevação</strong> gratuitamente sob solicitação prévia no ato da reserva.
+          Para transfers privativos, disponibilizamos <strong>cadeirinha infantil, assento de elevação ou bebê conforto gratuitamente</strong> mediante solicitação prévia no ato da reserva.
         </p>
       </div>
     ),
@@ -205,15 +213,61 @@ export const ALL_FAQ_DATA = [
   {
     id: 'taxa-turismo-sustentavel',
     category: 'passeios-roteiros',
-    question: 'O que é a Taxa de Turismo Sustentável de Jericoacoara e como pagar?',
-    answerText: 'A Taxa de Turismo Sustentável é um tributo ambiental municipal instituído pela Prefeitura de Jijoca de Jericoacoara para conservação do Parque Nacional e infraestrutura da Vila. Ela deve ser gerada e quitada individualmente pelo visitante no site oficial da Prefeitura de Jijoca ou nos postos de atendimento na entrada da vila. Nenhuma agência ou empresa de transfer pode embutir essa taxa nos serviços.',
+    question: 'O que é a Taxa de Turismo Sustentável (TTS) de Jericoacoara, quanto custa e quem tem direito à isenção?',
+    answerText: 'A Taxa de Turismo Sustentável (TTS) é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara no valor de R$ 41,50 por pessoa (válido por até 10 dias de estadia). Têm direito à isenção por lei municipal: crianças com até 12 anos, idosos com mais de 60 anos, Pessoas com Deficiência (PCD mediante laudo médico), moradores de Jijoca de Jericoacoara e seus familiares diretos, trabalhadores/prestadores de serviço com vínculo comprovado e proprietários de imóveis na vila. A emissão ou pedido de isenção deve ser feito previamente no site oficial da Prefeitura de Jijoca de Jericoacoara ou nos postos fiscais de atendimento.',
     renderAnswer: () => (
       <div>
         <p className="mb-2">
-          A Taxa de Turismo Sustentável (TTS) é um tributo obrigatório instituído pelo município de Jijoca de Jericoacoara voltado à preservação do Parque Nacional e coleta de resíduos da Vila.
+          A <strong>Taxa de Turismo Sustentável (TTS)</strong> é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara (Lei Municipal nº 440/2015) para preservação do Parque Nacional e manutenção da vila:
         </p>
-        <p>
-          Ela deve ser gerada e paga diretamente pelo visitante no site oficial da Prefeitura de Jijoca de Jericoacoara (ou presencialmente no posto de controle na entrada da vila). O valor não pode ser cobrado ou embutido por agências de transporte.
+        <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 mb-3 text-xs">
+          <p className="font-bold text-amber-900 mb-1">Valor Oficial para Pagantes: R$ 41,50 por pessoa</p>
+          <p className="text-gray-700">Válido para estadias de até 10 dias corridos por visitante. Dias adicionais possuem acréscimo diário tabelado pela prefeitura.</p>
+        </div>
+        <p className="font-bold text-gray-900 mb-1.5 text-xs uppercase tracking-wider">Quem tem direito à isenção por lei municipal:</p>
+        <ul className="list-disc pl-5 space-y-1 mb-3 text-xs text-gray-700">
+          <li><strong>Crianças com até 12 anos de idade</strong>;</li>
+          <li><strong>Idosos com mais de 60 anos de idade</strong>;</li>
+          <li><strong>Pessoas com Deficiência (PCD)</strong>, mediante apresentação de laudo médico;</li>
+          <li><strong>Moradores residentes</strong> no município de Jijoca de Jericoacoara e seus familiares diretos;</li>
+          <li><strong>Trabalhadores e prestadores de serviço</strong> com vínculo empregatício ou atuação profissional comprovada no local;</li>
+          <li><strong>Proprietários de imóveis ou estabelecimentos</strong> na vila.</li>
+        </ul>
+        <p className="text-xs text-gray-600">
+          <strong>Comprovação e Emissão:</strong> É obrigatória a apresentação de documento oficial com foto, laudo médico (PCD) ou comprovante de vínculo/residência. O pagamento ou requerimento de isenção deve ser realizado no <strong>site oficial da Prefeitura de Jijoca de Jericoacoara</strong> ou nos postos fiscais de atendimento na entrada do município.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'isencao-beach-clubs-atrativos',
+    category: 'passeios-roteiros',
+    question: 'Como funcionam as isenções de entrada em Beach Clubs e atrativos turísticos (Lagun Beach, Buraco Azul e Alchymist)?',
+    answerText: 'As isenções aplicam-se exclusivamente aos ingressos de entrada em atrativos específicos (e NÃO ao transporte): no Lagun Beach e Buraco Azul (Caiçara - Cruz/CE), crianças (geralmente até 10 anos), idosos acima de 60 anos e Pessoas com Deficiência (PCD comprovada) possuem isenção de entrada. Já o Alchymist Beach Club (Lagoa do Paraíso) NÃO possui isenção de entrada por idade ou PCD, cobrando ingresso integral segundo tabela própria.',
+    renderAnswer: () => (
+      <div>
+        <p className="mb-2">
+          As isenções aplicam-se <strong>exclusivamente aos ingressos de entrada em atrativos específicos</strong> (e não ao serviço de transporte da agência):
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs my-3">
+          <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200">
+            <strong className="text-emerald-900 block mb-1">Lagun Beach e Buraco Azul (Caiçara - Cruz/CE):</strong>
+            <p className="text-gray-700 mb-1">Têm direito à isenção de entrada no local:</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-gray-600 text-[11px]">
+              <li>Crianças (geralmente até 10 anos, conforme política da atração);</li>
+              <li>Idosos acima de 60 anos;</li>
+              <li>Pessoas com Deficiência (PCD), mediante documento comprobatório.</li>
+            </ul>
+          </div>
+          <div className="bg-amber-50/60 p-3 rounded-xl border border-amber-200">
+            <strong className="text-amber-900 block mb-1">Alchymist Beach Club (Lagoa do Paraíso):</strong>
+            <p className="text-gray-700 text-[11px] leading-relaxed">
+              <strong>NÃO possui isenção de entrada</strong> para faixas etárias ou PCD. A cobrança de day-use/ingresso é feita integralmente pelo estabelecimento segundo tabela própria.
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-600">
+          Lembramos que nos passeios da Jericoacoara Premium o valor contratado inclui o veículo 4x4, guia credenciado e seguro passageiro, ficando o day-use dos clubes como despesa opcional paga diretamente nos locais.
         </p>
       </div>
     ),

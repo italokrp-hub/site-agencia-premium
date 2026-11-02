@@ -52,8 +52,8 @@ const PasseioLadoLesteJeri = () => {
       a: "O passeio dura entre 6h e 7h. O embarque na sua pousada em Jericoacoara ocorre por volta das 09:00 da manhã, com retorno previsto para a vila entre 15:30 e 16:00, aproveitando o dia todo com calma."
     },
     {
-      q: "Os ingressos do Buraco Azul e dos Beach Clubs estão inclusos?",
-      a: "Não. As taxas de entrada e Day-Use dos clubes privados (como Buraco Azul cerca de R$ 30,00 ou Alchymist Beach Club cerca de R$ 40,00) são pagas diretamente nas bilheterias de cada estabelecimento por quem desejar ingressar. O acesso à praia e áreas públicas da Lagoa do Paraíso é livre."
+      q: "Os ingressos do Buraco Azul e dos Beach Clubs estão inclusos e como funcionam as isenções?",
+      a: "Não estão inclusos no transporte e são pagos nas bilheterias locais. Quanto às isenções de entrada: no Buraco Azul e Lagun Beach (Caiçara/Cruz), crianças (geralmente até 10 anos), idosos acima de 60 anos e Pessoas com Deficiência (PCD comprovada) possuem isenção de entrada. Já o Alchymist Beach Club (Lagoa do Paraíso) não possui isenção por faixa etária ou PCD, cobrando ingresso integral segundo tabela própria."
     },
     {
       q: "Qual a diferença entre fazer de Buggy, Quadriciclo ou Jardineira?",
@@ -61,7 +61,7 @@ const PasseioLadoLesteJeri = () => {
     },
     {
       q: "Crianças podem fazer o Passeio Lado Leste?",
-      a: "Sim! O Lado Leste é o passeio mais recomendado para famílias e crianças, pois as águas das lagoas são calmas, mornas, doces e sem ondas. Na Jardineira, crianças de colo até 2 anos completos não pagam. Em Buggys e SW4, crianças ocupam assento individual por normas de segurança."
+      a: "Sim! O Lado Leste é o passeio mais recomendado para famílias e crianças, pois as águas das lagoas são calmas, mornas, doces e sem ondas. Em cumprimento estrito às normas do CONTRAN/CTB, é proibido o transporte de crianças no colo: toda criança ocupa assento individual no veículo e utiliza dispositivo de retenção regulamentado. Para transfers privativos e SW4, disponibilizamos bebê conforto e cadeirinha sob pedido prévio."
     },
     {
       q: "O que devo levar no passeio?",
@@ -541,11 +541,11 @@ const PasseioLadoLesteJeri = () => {
               <ul className="space-y-4 text-sm text-gray-700">
                 <li className="flex items-start gap-3">
                   <span className="text-gray-400 font-bold shrink-0">—</span>
-                  <span>Ingresso do Buraco Azul / Lagun Beach (em torno de R$ 30,00 por pessoa).</span>
+                  <span>Ingresso do Buraco Azul / Lagun Beach (~R$ 30,00 por pessoa — isenção de entrada para crianças até 10 anos, idosos 60+ e PCD mediante comprovação).</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gray-400 font-bold shrink-0">—</span>
-                  <span>Day-Use do The Alchymist Beach Club (opcional para quem desejar entrar no clube).</span>
+                  <span>Day-Use do The Alchymist Beach Club (opcional — estabelecimento privado sem isenção de entrada por idade ou PCD).</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gray-400 font-bold shrink-0">—</span>
@@ -553,7 +553,7 @@ const PasseioLadoLesteJeri = () => {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gray-400 font-bold shrink-0">—</span>
-                  <span>Taxa de Turismo Sustentável (TTS) da Vila de Jericoacoara.</span>
+                  <span>Taxa de Turismo Sustentável (TTS) da Vila de Jericoacoara (R$ 41,50 até 10 dias — isenção municipal para menores de 12 anos, idosos 60+, PCD e moradores).</span>
                 </li>
               </ul>
             </div>

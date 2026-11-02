@@ -27,7 +27,7 @@ export const DEFAULT_SERVICE_DETAILS = {
     ],
     practicalInfo: {
       baggage: 'Privativo: até 2 malas despachadas (até 23kg cada) + 1 mala de mão por passageiro. Compartilhado: 1 mala média (até 23kg) + 1 mochila de mão por passageiro.',
-      children: 'Crianças de colo até 2 anos completos viajam gratuitamente no colo de um adulto. Crianças a partir de 2 anos ocupam assento individual regulamentado.',
+      children: 'Normas CONTRAN/CTB: É estritamente proibido transporte no colo. Toda criança, independentemente da idade, ocupa assento individual regulamentado e deve utilizar dispositivo de retenção (bebê conforto/cadeirinha disponibilizados sob solicitação prévia).',
       flightDelay: 'Tolerância gratuita de até 1 hora de espera no aeroporto em caso de atraso confirmado no voo monitorado.',
       cancellation: '100% de reembolso com até 7 dias de antecedência. De 7 dias a 48h: retenção de 50% ou voucher. Menos de 48h: sem reembolso.',
     },
@@ -50,7 +50,7 @@ export const DEFAULT_SERVICE_DETAILS = {
     practicalInfo: {
       baggage: 'Recomendado levar apenas bolsas pequenas, mochilas leves ou sacolas de praia.',
       whatToBring: 'Protetor solar, óculos escuros, roupa de banho, toalha, calçado confortável e documento com foto.',
-      children: 'Crianças até 2 anos no colo gratuitas em Jardineira compartilhada. Para buggy e quadriciclo, consulte restrições de idade e segurança.',
+      children: 'Regras CONTRAN/CTB: Proibido transporte no colo. Crianças de qualquer idade ocupam assento individual regulamentado no veículo com cinto e dispositivo de retenção adequado.',
       cancellation: '100% de reembolso com até 7 dias de antecedência. Menos de 48h ou no-show: não reembolsável.',
     },
   },
@@ -78,7 +78,7 @@ export const transfersData = [
     ],
     practicalInfo: {
       baggage: '1 mala de porão (até 23kg) + 1 mochila ou bolsa de mão por passageiro.',
-      children: 'Bebês até 2 anos no colo não pagam.',
+      children: 'Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual no veículo.',
       cancellation: 'Cancelamento gratuito com 100% de reembolso até 7 dias antes do embarque.',
     },
     options: {
@@ -115,7 +115,7 @@ export const transfersData = [
     ],
     practicalInfo: {
       baggage: 'Privativo: até 2 malas despachadas (23kg) + 1 mala de mão por passageiro. Compartilhado: 1 mala média + 1 de mão.',
-      children: 'Crianças de colo até 2 anos completos não pagam.',
+      children: 'Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual regulamentado (bebê conforto/cadeirinha sob solicitação prévia).',
       flightDelay: 'Tolerância gratuita de até 1 hora de espera no Aeroporto de Fortaleza.',
       cancellation: 'Reembolso de 100% até 7 dias antes da data do transfer.',
     },
@@ -150,7 +150,7 @@ export const transfersData = [
     ],
     practicalInfo: {
       baggage: '2 malas despachadas (23kg) + 1 de mão por passageiro.',
-      children: 'Crianças até 2 anos viajam no colo sem custo adicional.',
+      children: 'Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual regulamentado com dispositivo de retenção sob solicitação prévia.',
       flightDelay: 'Até 1h de espera gratuita inclusa sem cobrança extra.',
       cancellation: '100% de reembolso garantido até 7 dias antes do embarque.',
     },
@@ -185,7 +185,7 @@ export const transfersData = [
     ],
     practicalInfo: {
       baggage: '1 mala média por passageiro + 1 bolsa de mão.',
-      children: 'Crianças até 2 anos no colo viajam gratuitamente.',
+      children: 'Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual regulamentado.',
       cancellation: '100% de reembolso até 7 dias antes do serviço.',
     },
     options: {
@@ -216,7 +216,7 @@ export const transfersData = [
     ],
     practicalInfo: {
       baggage: 'Até 2 malas por passageiro no privativo (incluindo pranchas e equipamentos de kite sob consulta prévia).',
-      children: 'Crianças de colo até 2 anos grátis.',
+      children: 'Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual regulamentado.',
       cancellation: '100% de reembolso até 7 dias de antecedência.',
     },
     options: {
@@ -268,7 +268,7 @@ export const toursData = [
     ],
     practicalInfo: {
       whatToBring: 'Protetor solar, óculos de sol, roupa de banho, toalha e dinheiro/cartão para entradas opcionais.',
-      children: 'Crianças de colo até 2 anos completos viajam gratuitamente no colo de um adulto responsável.',
+      children: 'Regras CONTRAN/CTB: Proibido transporte no colo. Crianças ocupam assento individual regulamentado com cinto ou dispositivo de retenção.',
       cancellation: 'Cancelamento gratuito com 100% de reembolso solicitado com no mínimo 7 dias de antecedência.',
     },
     options: {
@@ -297,7 +297,7 @@ export const toursData = [
     ],
     practicalInfo: {
       whatToBring: 'Protetor solar, óculos escuros, toalhas, roupa de banho e documento com foto.',
-      children: 'Para quadriciclos, condutor maior de 18 anos. Em buggys e SW4, crianças menores contam como assento para segurança.',
+      children: 'Para quadriciclos, condutor maior de 18 anos. Em buggys e SW4, por lei (CONTRAN) crianças ocupam assento individual com cinto regulamentado.',
       cancellation: '100% de reembolso com até 7 dias de antecedência. Menos de 48h não reembolsável.',
     },
     options: {
@@ -335,7 +335,7 @@ export const toursData = [
     ],
     practicalInfo: {
       whatToBring: 'Roupa de banho, protetor solar, óculos escuros e dinheiro em espécie para atividades opcionais locais.',
-      children: 'Crianças de colo até 2 anos não pagam na Jardineira.',
+      children: 'Normas CONTRAN/CTB: Proibido transporte no colo. Toda criança ocupa assento individual na Jardineira.',
       cancellation: 'Reembolso integral (100%) até 7 dias antes do passeio.',
     },
     options: {
@@ -365,7 +365,7 @@ export const toursData = [
     ],
     practicalInfo: {
       whatToBring: 'Protetor solar, óculos escuros, toalhas, roupa de banho e câmera/celular para fotos incríveis.',
-      children: 'Crianças menores contam como assento no buggy/veículo privativo para fins de capacidade regulamentada.',
+      children: 'Por legislação de trânsito (CONTRAN), é proibido transporte no colo. Crianças ocupam assento individual no buggy/SW4.',
       cancellation: '100% de reembolso solicitado com até 7 dias de antecedência.',
     },
     options: {

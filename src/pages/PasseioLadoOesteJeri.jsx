@@ -66,6 +66,14 @@ const PasseioLadoOesteJeri = () => {
     {
       q: "Como é o almoço na Lagoa da Torta (Tatajuba)?",
       a: "O almoço é uma das experiências mais marcantes de Jeri: as barracas apresentam uma bandeja com peixes nobres (como Robalo e Pargo) e lagostas frescas pescadas no dia para você escolher na hora o seu prato grelhado, acompanhado de arroz, pirão e macaxeira, saboreando com os pés na água."
+    },
+    {
+      q: "Crianças podem participar do Passeio Lado Oeste e viajar no colo?",
+      a: "Sim, crianças são bem-vindas em nossos veículos! No entanto, por cumprimento rigoroso às resoluções do CONTRAN e Código de Trânsito Brasileiro (CTB), é expressamente proibido o transporte de crianças ou bebês no colo. Toda criança, independentemente da idade, ocupa um assento individual e deve utilizar o dispositivo de retenção regulamentado adequado (bebê conforto, cadeirinha ou assento de elevação), disponibilizado sem custo adicional mediante solicitação prévia no ato da reserva. Para famílias com bebês, recomendamos nossa Toyota SW4 4x4 climatizada."
+    },
+    {
+      q: "Como funcionam as gratuidades e isenções em atrativos locais e Beach Clubs?",
+      a: "As isenções aplicam-se exclusivamente ao ingresso de entrada em determinados atrativos e não ao serviço de transporte. Na região de Jericoacoara (Litoral Leste), atrativos como Buraco Azul e Lagun Beach (Caiçara - Cruz/CE) oferecem isenção de entrada para crianças (até 10 anos), idosos com mais de 60 anos e Pessoas com Deficiência (PCD) mediante comprovação. Já o Alchymist Beach Club não concede isenções de entrada, cobrando ingresso integral segundo sua tabela tarifária. No Lado Oeste, despesas como barco ecológico e descidas na duna são opcionais pagas diretamente no local."
     }
   ];
 
@@ -553,7 +561,7 @@ const PasseioLadoOesteJeri = () => {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gray-400 font-bold shrink-0">—</span>
-                  <span>Taxa de Turismo Sustentável (TTS) da Vila de Jericoacoara.</span>
+                  <span>Taxa de Turismo Sustentável (TTS) da Vila de Jericoacoara (R$ 41,50 até 10 dias — isenção para crianças até 12 anos, idosos 60+, PCD e moradores).</span>
                 </li>
               </ul>
             </div>

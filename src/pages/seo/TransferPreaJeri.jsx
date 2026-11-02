@@ -64,7 +64,7 @@ const TransferPreaJeri = () => {
     },
     {
       q: "A Taxa de Turismo Sustentável (TTS) é exigida no Preá?",
-      a: "A Praia do Preá pertence ao município de Cruz (onde não há taxa de turismo para circular). Porém, ao entrar e se hospedar na Vila de Jericoacoara (município de Jijoca), a Taxa de Turismo Sustentável (R$ 41,50 até 10 dias) é obrigatória e cobrada pela Prefeitura de Jijoca."
+      a: "A Praia do Preá pertence ao município de Cruz (onde não há taxa de turismo para circular). Porém, ao entrar e se hospedar na Vila de Jericoacoara (município de Jijoca), a Taxa de Turismo Sustentável (R$ 41,50 até 10 dias por pessoa) é cobrada pela Prefeitura de Jijoca. Estão isentos por lei: crianças até 12 anos, idosos acima de 60 anos, PCDs (com laudo médico), residentes locais, trabalhadores e donos de imóveis. O pagamento ou emissão de isenção deve ser feito previamente no site da prefeitura ou nos postos de fiscalização da entrada da vila."
     }
   ];
 
@@ -319,7 +319,7 @@ const TransferPreaJeri = () => {
               <ul className="text-sm text-gray-600 space-y-2 mt-2">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Crianças de até 2 anos no colo gratuitas.</span>
+                  <span>Normas CONTRAN/CTB: Proibido transporte no colo; assento individual obrigatório.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />

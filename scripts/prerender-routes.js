@@ -935,9 +935,9 @@ const ROUTES = [
         <section class="bg-white border rounded-2xl p-6 mb-8 text-sm text-gray-700 space-y-3">
           <h2 class="font-bold text-gray-900 text-base">Regras Transparentes de Operação</h2>
           <p><strong>Bagagem:</strong> No privativo, até 2 malas despachadas (23kg) + 1 de mão por passageiro. No compartilhado, 1 mala média de até 23kg + 1 mochila de mão por passageiro.</p>
-          <p><strong>Crianças:</strong> Crianças de colo até 2 anos completos viajam gratuitamente no colo de um adulto. Cadeirinhas infantis estão disponíveis sob solicitação prévia.</p>
+          <p><strong>Transporte de Crianças:</strong> Em cumprimento às normas do CONTRAN/CTB, é estritamente proibido o transporte de crianças no colo. Toda criança ocupa assento individual no veículo com dispositivo de retenção regulamentado (bebê conforto/cadeirinha disponibilizados sob solicitação prévia).</p>
           <p><strong>Atrasos de Voo:</strong> Monitoramos seu voo com tolerância gratuita de até 1 hora de espera no aeroporto sem custo extra.</p>
-          <p><strong>Taxa de Turismo (TTS):</strong> A taxa municipal da Prefeitura de Jijoca (R$ 41,50 por visitante) não está inclusa no valor do transfer e deve ser paga previamente online ou no posto de controle.</p>
+          <p><strong>Taxa de Turismo (TTS):</strong> Tributo da Prefeitura de Jijoca (R$ 41,50 para até 10 dias). Isenção para menores de 12 anos, maiores de 60 anos, PCD e moradores. Não inclusa no transfer e deve ser quitada no site da prefeitura.</p>
         </section>
 
         <section class="bg-gray-50 border rounded-2xl p-6 text-center mb-8">
@@ -1341,18 +1341,26 @@ const ROUTES = [
           },
           {
             '@type': 'Question',
-            name: 'Crianças pagam valor integral? É possível solicitar cadeirinha?',
+            name: 'Crianças podem viajar no colo? É disponibilizada cadeirinha/bebê conforto?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Crianças de colo de até 2 anos completos viajam gratuitamente no colo de um adulto. A partir de 2 anos, ocupam assento individual regulamentado. Disponibilizamos cadeirinha infantil e assento de elevação mediante solicitação prévia.'
+              text: 'Por estrito cumprimento às normas do CONTRAN, Código de Trânsito Brasileiro (CTB) e órgãos de fiscalização rodoviária, é expressamente proibido o transporte de crianças ou bebês no colo em qualquer veículo. Toda criança, independentemente da idade, ocupa assento individual regulamentado e deve utilizar o dispositivo de retenção apropriado (bebê conforto, cadeirinha ou assento de elevação), disponibilizado sem custo adicional mediante solicitação prévia no ato da reserva.'
             }
           },
           {
             '@type': 'Question',
-            name: 'O que é a Taxa de Turismo Sustentável (TTS) de Jericoacoara?',
+            name: 'O que é a Taxa de Turismo Sustentável (TTS) de Jericoacoara e quem tem direito à isenção?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'A TTS é um tributo municipal obrigatório cobrado pela Prefeitura de Jijoca de Jericoacoara de todos os visitantes (R$ 41,50 por pessoa por até 10 dias). Ela NÃO está inclusa nos valores de transfer ou passeios e pode ser gerada previamente no site oficial da prefeitura.'
+              text: 'A TTS é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara no valor padrão de R$ 41,50 por pessoa (para permanência de até 10 dias). Estão legalmente isentos da taxa: crianças com até 12 anos, idosos acima de 60 anos, Pessoas com Deficiência (PCD mediante laudo médico), moradores e seus parentes de 1º grau, trabalhadores locais e proprietários de imóveis na vila. A comprovação documental ou pagamento prévio deve ser realizado no site oficial da prefeitura ou nos postos de triagem de entrada. A taxa não está inclusa nos transfers ou passeios.'
+            }
+          },
+          {
+            '@type': 'Question',
+            name: 'Quem tem direito à isenção de entrada nos Beach Clubs e atrativos (Buraco Azul, Lagun Beach, Alchymist)?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'As gratuidades aplicam-se exclusivamente ao ingresso dos estabelecimentos e não cobrem custos de transporte. No Buraco Azul e no Lagun Beach (Caiçara - Cruz/CE), têm direito à isenção de entrada crianças (geralmente até 10 anos), idosos com mais de 60 anos e Pessoas com Deficiência (PCD), com documento comprobatório. Já o Alchymist Beach Club (Lagoa do Paraíso) não concede isenções de entrada, cobrando ingresso integral conforme sua tabela tarifária vigente.'
             }
           },
           {
@@ -1396,17 +1404,22 @@ const ROUTES = [
           </article>
 
           <article class="border rounded-2xl p-6 bg-white shadow-sm">
-            <h2 class="font-bold text-gray-900 text-lg mb-2">4. Crianças pagam valor integral? Como funciona a cadeirinha?</h2>
-            <p class="leading-relaxed">Crianças de colo de até 2 anos completos viajam gratuitamente no colo de um adulto responsável. A partir de 2 anos completos, ocupam assento individual. Cadeirinhas e assentos de elevação podem ser solicitados gratuitamente com aviso prévio.</p>
+            <h2 class="font-bold text-gray-900 text-lg mb-2">4. Crianças podem viajar no colo? Como funciona a cadeirinha?</h2>
+            <p class="leading-relaxed">Por estrito cumprimento às normas do CONTRAN, Código de Trânsito Brasileiro (CTB) e órgãos fiscalizadores, <strong>é terminantemente proibido o transporte de crianças ou bebês no colo</strong> em qualquer veículo (transfers ou passeios). Toda criança, independentemente da idade, ocupa um assento individual e deve utilizar o dispositivo de retenção regulamentado adequado (bebê conforto, cadeirinha ou assento de elevação), disponibilizado sem custo adicional mediante solicitação prévia no momento da reserva.</p>
           </article>
 
           <article class="border rounded-2xl p-6 bg-white shadow-sm">
-            <h2 class="font-bold text-gray-900 text-lg mb-2">5. O que é a Taxa de Turismo Sustentável (TTS) de Jericoacoara?</h2>
-            <p class="leading-relaxed">A TTS é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara (R$ 41,50 por visitante para até 10 dias de estadia). Ela não está inclusa no valor dos serviços e recomendamos o pagamento antecipado no site oficial da prefeitura para evitar filas no posto de controle.</p>
+            <h2 class="font-bold text-gray-900 text-lg mb-2">5. O que é a Taxa de Turismo Sustentável (TTS) de Jericoacoara e quem é isento?</h2>
+            <p class="leading-relaxed">A TTS é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara no valor padrão de <strong>R$ 41,50 por visitante</strong> (válido por até 10 dias). <strong>Possuem direito à isenção legal:</strong> crianças com até 12 anos, idosos acima de 60 anos, Pessoas com Deficiência (PCD com laudo médico), moradores e familiares diretos, trabalhadores locais e proprietários de imóveis na vila. A comprovação de isenção ou pagamento antecipado pode ser feita no site oficial da prefeitura ou nos postos de controle de entrada da vila. A taxa não está inclusa nos transfers ou passeios.</p>
           </article>
 
           <article class="border rounded-2xl p-6 bg-white shadow-sm">
-            <h2 class="font-bold text-gray-900 text-lg mb-2">6. A agência é credenciada pelo Ministério do Turismo?</h2>
+            <h2 class="font-bold text-gray-900 text-lg mb-2">6. Quem tem direito à isenção de entrada nos Beach Clubs e atrativos?</h2>
+            <p class="leading-relaxed">As isenções aplicam-se exclusivamente à entrada nos atrativos (não ao transporte). No <strong>Buraco Azul</strong> e no <strong>Lagun Beach</strong> (Caiçara - Cruz/CE), há isenção de entrada para crianças (até 10 anos), idosos (60+) e PCDs mediante documento comprobatório. Já o <strong>Alchymist Beach Club</strong> (Lagoa do Paraíso) não concede isenções de entrada, cobrando ingresso integral segundo sua tabela própria.</p>
+          </article>
+
+          <article class="border rounded-2xl p-6 bg-white shadow-sm">
+            <h2 class="font-bold text-gray-900 text-lg mb-2">7. A agência é credenciada pelo Ministério do Turismo?</h2>
             <p class="leading-relaxed">Sim! Somos registrados no CADASTUR sob o CNPJ <strong>51.790.615/0001-08</strong>. Nossos passageiros contam com seguro contra acidentes (APP), motoristas credenciados e assistência 24h via WhatsApp.</p>
           </article>
         </section>
@@ -1591,18 +1604,19 @@ const ROUTES = [
             </section>
 
             <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
-              <h2 class="text-lg font-bold text-white mb-2">3. Bagagem e Transporte de Crianças</h2>
+              <h2 class="text-lg font-bold text-white mb-2">3. Bagagem e Transporte de Crianças (Normas CONTRAN/CTB)</h2>
               <ul class="list-disc pl-5 space-y-2">
                 <li><strong>Franquia de Bagagem:</strong> Privativo permite até 2 malas despachadas (até 23kg cada) + bagagem de mão por passageiro. Compartilhado permite 1 mala média (até 23kg) + 1 mochila de mão por passageiro. Pranchas de kitesurf devem ser avisadas previamente.</li>
-                <li><strong>Crianças:</strong> Colo gratuito até 2 anos incompletos. A partir de 2 anos, assento individual obrigatório pelo Código de Trânsito Brasileiro. Cadeirinhas infantis podem ser solicitadas gratuitamente com antecedência no transfer privativo.</li>
+                <li><strong>Transporte de Crianças (Proibido no Colo):</strong> Em cumprimento às normas do CONTRAN, Código de Trânsito Brasileiro e fiscalização de transportes, é terminantemente proibido o transporte de bebês ou crianças no colo. Toda criança, independentemente da faixa etária, ocupa assento individual e deve utilizar dispositivo de retenção regulamentar (bebê conforto, cadeirinha ou assento de elevação), disponibilizado sem custo adicional mediante solicitação prévia na reserva.</li>
               </ul>
             </section>
 
             <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">
-              <h2 class="text-lg font-bold text-white mb-2">4. Regras dos Passeios, Inclusões e Exclusões</h2>
+              <h2 class="text-lg font-bold text-white mb-2">4. Regras dos Passeios, Inclusões, Exclusões e Isenções em Atrativos</h2>
               <p class="mb-2"><strong>Incluso:</strong> Veículo off-road revisado (Buggy, Jardineira ou UTV), motorista/guia credenciado Cadastur, seguro passageiro (APP) e busca na pousada em Jericoacoara.</p>
-              <p class="mb-2"><strong>Não Incluso:</strong> Entradas/day-use em clubes privados (The Alchymist, Buraco Azul, Lagun Beach), atrações opcionais (tirolesa, toboágua, barco cavalo-marinho), alimentação e bebidas.</p>
-              <p><strong>Taxa de Turismo Sustentável (TTS):</strong> Tributo cobrado pela Prefeitura de Jijoca de Jericoacoara de responsabilidade do visitante, não incluso no valor dos passeios.</p>
+              <p class="mb-2"><strong>Não Incluso:</strong> Entradas/day-use em clubes privados e lagoas, atrações opcionais (tirolesa, toboágua, barco cavalo-marinho), alimentação e bebidas.</p>
+              <p class="mb-2"><strong>Isenções de Entrada em Beach Clubs e Atrativos:</strong> No Lagun Beach e no Buraco Azul (Caiçara - Cruz/CE), possuem isenção de entrada crianças (geralmente até 10 anos), idosos acima de 60 anos e Pessoas com Deficiência (PCD), mediante documento e laudo. O Alchymist Beach Club (Lagoa do Paraíso) não concede isenções de entrada, cobrando ingresso integral segundo tabela própria. As isenções aplicam-se exclusivamente ao acesso ao atrativo, não ao transporte.</p>
+              <p><strong>Taxa de Turismo Sustentável (TTS):</strong> Tributo cobrado pela Prefeitura de Jijoca de Jericoacoara no valor de R$ 41,50 por pessoa (para permanência de até 10 dias). São legalmente isentos: crianças até 12 anos, idosos acima de 60 anos, PCDs (com laudo médico), residentes locais e parentes diretos, trabalhadores locais e proprietários de imóveis na vila. A comprovação e pagamento/isenção devem ser efetuados via portal oficial da prefeitura ou nos postos fiscais de controle, não estando inclusos nos serviços da agência.</p>
             </section>
 
             <section class="bg-slate-900/60 rounded-2xl p-6 border border-slate-800">

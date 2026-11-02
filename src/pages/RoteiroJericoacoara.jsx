@@ -48,8 +48,8 @@ const RoteiroJericoacoara = () => {
       a: "Jericoacoara tem sol praticamente o ano todo. Para encontrar as lagoas no nível máximo e águas cristalinas, o melhor período vai de junho a novembro. Entre julho e dezembro ocorrem os ventos constantes alísios, época perfeita para os praticantes de kitesurf e wingfoil. A estação das chuvas ocorre entre fevereiro e maio, com pancadas rápidas que logo abrem espaço para o sol."
     },
     {
-      q: "Como funciona o pagamento da Taxa de Turismo Sustentável (TTS)?",
-      a: "A taxa é cobrada pela Prefeitura Municipal de Jijoca de Jericoacoara no valor de R$ 41,50 para estadias de até 10 dias por visitante (dias adicionais têm custo extra de R$ 4,15/dia). Crianças menores de 12 anos e adultos acima de 60 anos são isentos mediante comprovação documental. O pagamento pode e deve ser realizado online com antecedência no portal oficial da Prefeitura de Jijoca para evitar filas na chegada."
+      q: "Como funciona o pagamento da Taxa de Turismo Sustentável (TTS) e quem é isento?",
+      a: "A taxa é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara no valor de R$ 41,50 para até 10 dias de estadia por pessoa (com acréscimo diário para períodos maiores). Têm direito à isenção por lei municipal: crianças até 12 anos, idosos com mais de 60 anos, Pessoas com Deficiência (PCD mediante laudo), moradores residentes e familiares diretos, trabalhadores com vínculo comprovado e proprietários de imóveis na vila. A comprovação com documento oficial ou laudo é obrigatória e a emissão deve ser feita previamente no portal da Prefeitura de Jijoca ou nos postos de controle."
     },
     {
       q: "É melhor fazer o Lado Leste ou o Lado Oeste primeiro?",
@@ -637,11 +637,11 @@ const RoteiroJericoacoara = () => {
               <ul className="text-xs text-gray-600 space-y-2 mt-auto">
                 <li className="flex items-start gap-1.5">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Isenção: menores de 12 anos e maiores de 60 anos.</span>
+                  <span>Isenção: até 12 anos, 60+ anos, PCD (com laudo), moradores e trabalhadores locais.</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Pague online no site da prefeitura para evitar filas.</span>
+                  <span>Emissão online no portal oficial da Prefeitura de Jijoca com documento com foto.</span>
                 </li>
               </ul>
             </div>

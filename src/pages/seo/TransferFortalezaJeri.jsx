@@ -65,7 +65,7 @@ const TransferFortalezaJeri = () => {
     },
     {
       q: "A Taxa de Turismo Sustentável (TTS) de Jericoacoara está inclusa?",
-      a: "Não. A Taxa de Turismo Sustentável é um tributo cobrado diretamente pela Prefeitura Municipal de Jijoca de Jericoacoara (R$ 41,50 para até 10 dias de estadia por visitante, com isenção para crianças menores de 12 anos e idosos acima de 60 anos). O pagamento deve ser realizado online com antecedência no site oficial da Prefeitura de Jijoca ou no posto de controle na entrada da Vila."
+      a: "Não. A Taxa de Turismo Sustentável é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara (R$ 41,50 para até 10 dias de estadia por pessoa). Têm direito à isenção por lei municipal: crianças até 12 anos, idosos acima de 60 anos, PCD com laudo médico, moradores locais e seus familiares, trabalhadores com vínculo comprovado e proprietários de imóveis na vila. O pagamento ou requerimento de isenção deve ser feito previamente no site oficial da Prefeitura de Jijoca ou no posto de controle na entrada da Vila."
     }
   ];
 
@@ -286,7 +286,7 @@ const TransferFortalezaJeri = () => {
               <ul className="text-sm text-gray-600 space-y-2 mt-2">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Crianças de colo até 2 anos completos não pagam assento no compartilhado.</span>
+                  <span>Normas CONTRAN/CTB: Proibido transporte no colo; toda criança ocupa assento individual regulamentado.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />

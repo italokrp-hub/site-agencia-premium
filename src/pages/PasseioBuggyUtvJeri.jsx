@@ -64,7 +64,7 @@ const PasseioBuggyUtvJeri = () => {
     },
     {
       q: "Os passeios de Buggy são seguros para crianças e idosos?",
-      a: "Sim. Todos os nossos bugueiros são credenciados pela Prefeitura e pelo Parque Nacional, treinados em direção preventiva nas dunas. Para famílias com bebês de colo ou idosos que preferem não pegar vento e poeira direta, recomendamos nossa Toyota SW4 4x4 climatizada."
+      a: "Sim. Todos os nossos bugueiros são credenciados pela Prefeitura e pelo Parque Nacional, com direção preventiva nas dunas. Por lei de trânsito (CONTRAN), é proibido transporte de crianças no colo; todas devem ocupar assento individual com cinto regulamentado. Para famílias com bebês, crianças pequenas ou idosos que preferem não pegar vento e poeira direta com cadeirinha/bebê conforto instalado, recomendamos nossa Toyota SW4 4x4 climatizada."
     },
     {
       q: "Qual a antecedência recomendada para reservar?",

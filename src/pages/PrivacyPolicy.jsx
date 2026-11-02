@@ -258,7 +258,7 @@ export default function PrivacyPolicy() {
                     <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
                       <strong className="text-white text-sm block mb-1">A. Dados de Identificação do Passageiro Principal e Acompanhantes</strong>
                       <p className="text-gray-300">
-                        Nome completo, número de CPF ou Passaporte (obrigatório para seguro APP e fiscalizações rodoviárias ARCE/ANTT/Cadastur) e data de nascimento/faixa etária (para crianças, visando fornecimento adequado de cadeirinha ou bebê conforto).
+                        Nome completo, número de CPF ou Passaporte (obrigatório para seguro APP e fiscalizações rodoviárias ARCE/ANTT/Cadastur) e data de nascimento/faixa etária (para crianças, visando a alocação obrigatória de assento individual e dispositivo de retenção regulamentado pelo CONTRAN/CTB, como bebê conforto, cadeirinha ou assento de elevação).
                       </p>
                     </div>
                     <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">

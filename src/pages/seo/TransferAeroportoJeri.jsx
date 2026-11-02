@@ -64,7 +64,7 @@ const TransferAeroportoJeri = () => {
     },
     {
       q: "A Taxa de Turismo Sustentável (TTS) está inclusa no valor do transfer?",
-      a: "Não. A Taxa de Turismo Sustentável é municipal e regulamentada pela Prefeitura de Jijoca de Jericoacoara (R$ 41,50 até 10 dias por visitante). A taxa deve ser gerada no site oficial da prefeitura pelo viajante antes do embarque ou quitada no posto físico."
+      a: "Não. A Taxa de Turismo Sustentável é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara (R$ 41,50 até 10 dias por visitante pagante). Possuem direito à isenção legal por lei municipal: crianças com até 12 anos, idosos acima de 60 anos, PCDs (com laudo médico), moradores e familiares diretos, trabalhadores locais e proprietários de imóveis na vila. A emissão com isenção ou pagamento prévio deve ser efetuada no site oficial da prefeitura ou nos postos de triagem na entrada da vila."
     }
   ];
 
@@ -303,7 +303,7 @@ const TransferAeroportoJeri = () => {
               <ul className="text-sm text-gray-600 space-y-2 mt-2">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Crianças até 2 anos completos viajam gratuitamente no colo de um adulto.</span>
+                  <span>Normas CONTRAN/CTB: Proibido transporte no colo; toda criança ocupa assento individual.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />

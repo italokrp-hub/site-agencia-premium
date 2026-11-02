@@ -64,7 +64,7 @@ const TransferJijocaJeri = () => {
     },
     {
       q: "A Taxa de Turismo Sustentável (TTS) de Jijoca está inclusa?",
-      a: "Não. A Taxa de Turismo Sustentável é municipal (R$ 41,50 até 10 dias por visitante) e deve ser paga pelo viajante via internet no portal da Prefeitura de Jijoca ou no posto de fiscalização na entrada da vila."
+      a: "Não. A Taxa de Turismo Sustentável é um tributo municipal da Prefeitura de Jijoca de Jericoacoara (R$ 41,50 até 10 dias por visitante pagante). Possuem direito à isenção por lei: crianças até 12 anos, idosos acima de 60 anos, PCDs (com laudo médico), moradores e familiares diretos, trabalhadores locais e proprietários de imóveis na vila. A taxa ou comprovante de isenção deve ser emitida no portal oficial da Prefeitura de Jijoca ou apresentada no posto de fiscalização na entrada da vila."
     }
   ];
 
@@ -307,7 +307,7 @@ const TransferJijocaJeri = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Crianças até 2 anos no colo não pagam assento individual.</span>
+                  <span>Normas CONTRAN/CTB: Proibido transporte no colo; toda criança ocupa assento individual.</span>
                 </li>
               </ul>
             </div>

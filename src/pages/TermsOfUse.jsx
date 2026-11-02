@@ -259,11 +259,11 @@ export default function TermsOfUse() {
                     <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
                       <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm mb-2">
                         <Baby className="w-4 h-4" />
-                        <span>Crianças e Assentos</span>
+                        <span>Transporte de Crianças & Dispositivos de Retenção (Obrigatório por Lei)</span>
                       </div>
-                      <p className="mb-2"><strong>Crianças até 2 anos incompletos:</strong> viajam gratuitamente no colo de um adulto responsável.</p>
-                      <p className="mb-2"><strong>A partir de 2 anos completos:</strong> ocupam assento individual regulamentado pelo Código de Trânsito Brasileiro (CTB).</p>
-                      <p className="text-gray-400 text-[11px]">Cadeirinhas infantis e assentos de elevação são disponibilizados gratuitamente em transfers privativos mediante solicitação prévia na reserva.</p>
+                      <p className="mb-2"><strong>Proibição Estrita de Colo:</strong> Em cumprimento rigoroso às normas do CONTRAN/CTB e órgãos fiscalizadores de trânsito, é estritamente proibido o transporte de crianças ou bebês no colo em qualquer veículo (transfers ou passeios).</p>
+                      <p className="mb-2"><strong>Assento Individual Obrigatório:</strong> Toda criança, independentemente da idade, ocupa assento individual regulamentado e deve utilizar o dispositivo de retenção adequado (bebê conforto, cadeirinha ou assento de elevação).</p>
+                      <p className="text-gray-400 text-[11px]">Dispositivos de retenção certificados são disponibilizados gratuitamente em transfers privativos mediante solicitação prévia no ato da reserva.</p>
                     </div>
                   </div>
                 </section>
@@ -343,6 +343,34 @@ export default function TermsOfUse() {
                       </ul>
                     </div>
                   </div>
+
+                  {/* REGRAS DE ISENÇÃO EM ATRATIVOS E BEACH CLUBS */}
+                  <div className="mt-4 p-4 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-gray-300 space-y-2">
+                    <div className="flex items-center gap-2 text-[#D4AF37] font-bold text-sm">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Regras de Isenção em Ingressos de Atrativos & Beach Clubs</span>
+                    </div>
+                    <p className="text-gray-400">
+                      As isenções aplicam-se <strong>exclusivamente aos ingressos de entrada nos atrativos específicos</strong> (e não ao serviço de transporte da agência):
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        <strong className="text-white block mb-1">Lagun Beach e Buraco Azul (Caiçara - Cruz/CE):</strong>
+                        <p className="text-gray-300">Têm direito à isenção de entrada:</p>
+                        <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[11px] text-gray-400">
+                          <li>Crianças (geralmente até 10 anos, conforme política do local);</li>
+                          <li>Idosos acima de 60 anos;</li>
+                          <li>Pessoas com Deficiência (PCD), mediante comprovação oficial.</li>
+                        </ul>
+                      </div>
+                      <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        <strong className="text-white block mb-1">Alchymist Beach Club (Lagoa do Paraíso):</strong>
+                        <p className="text-gray-300 text-[11px] leading-relaxed">
+                          <strong>NÃO possui isenção de entrada</strong> para faixas etárias ou PCD. A cobrança de ingresso/day-use é feita integralmente pelo estabelecimento segundo tabela própria vigente.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </section>
 
                 {/* 7. TAXA DE TURISMO (TTS) */}
@@ -351,18 +379,38 @@ export default function TermsOfUse() {
                     <div className="w-9 h-9 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37]">
                       <Scale className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl font-bold text-white">7. Taxa de Turismo Sustentável (TTS)</h2>
+                    <h2 className="text-xl font-bold text-white">7. Taxa de Turismo Sustentável (TTS - Vila de Jericoacoara)</h2>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-300 mb-2">
-                    A Taxa de Turismo Sustentável é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara (Lei Municipal nº 440/2015).
+                  <p className="text-xs sm:text-sm text-gray-300 mb-3 leading-relaxed">
+                    A Taxa de Turismo Sustentável é um tributo municipal instituído pela Prefeitura de Jijoca de Jericoacoara (Lei Municipal nº 440/2015) para preservação ambiental e infraestrutura da Vila. Ela é de responsabilidade individual do viajante e <strong>não integra nem pode ser embutida no valor dos serviços da agência</strong>.
                   </p>
-                  <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 text-xs">
-                    <p className="text-gray-300 mb-2">
-                      O tributo é cobrado por visitante para permanência na vila e <strong>não integra o valor dos serviços da agência</strong>.
-                    </p>
-                    <p className="text-gray-400 text-[11px]">
-                      Recomendamos expressamente a emissão e pagamento prévio no site oficial da Prefeitura de Jijoca antes da viagem para evitar filas nos postos de controle na entrada da vila.
-                    </p>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-2 pb-2 border-b border-slate-800">
+                        <strong className="text-white text-sm">Valor Oficial Vigente</strong>
+                        <span className="text-[#D4AF37] font-bold text-base">R$ 41,50 por pessoa</span>
+                      </div>
+                      <p className="text-gray-300">
+                        O valor padrão de <strong>R$ 41,50</strong> é válido para até <strong>10 dias de permanência</strong> na Vila de Jericoacoara. Para períodos superiores, aplica-se acréscimo diário regulamentado pela prefeitura.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+                      <strong className="text-[#D4AF37] text-sm block mb-2">Quem tem direito à Isenção da TTS (Legislação Municipal):</strong>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-300 list-disc pl-4">
+                        <li><strong>Crianças com até 12 anos</strong> de idade;</li>
+                        <li><strong>Idosos com mais de 60 anos</strong> de idade;</li>
+                        <li><strong>Pessoas com Deficiência (PCD)</strong>, mediante apresentação de laudo médico;</li>
+                        <li><strong>Moradores residentes</strong> no município de Jijoca de Jericoacoara e familiares diretos;</li>
+                        <li><strong>Trabalhadores e prestadores de serviço</strong> com vínculo empregatício ou atuação profissional comprovada no local;</li>
+                        <li><strong>Proprietários de imóveis ou estabelecimentos</strong> comerciais na vila.</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-[11px] text-gray-400">
+                      <strong className="text-white">Comprovação e Emissão Obrigatória:</strong> É obrigatória a apresentação de documento oficial com foto, laudo médico (PCD) ou comprovante de residência/vínculo profissional. A geração do boleto/código de pagamento ou a solicitação de isenção deve ser realizada previamente no <strong>Site Oficial da Prefeitura Municipal de Jijoca de Jericoacoara</strong> ou nos postos de atendimento fiscal instalados na entrada da vila e do município.
+                    </div>
                   </div>
                 </section>
 
