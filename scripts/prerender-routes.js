@@ -1689,8 +1689,27 @@ for (const route of ROUTES) {
   }
 
   // 7. Inject Semantic HTML into <div id="root">
-  const cleanBody = route.semanticBody.trim();
-  html = html.replace('<div id="root"></div>', `<div id="root">${cleanBody}</div>`);
+  // Remove light background styling and wrap semantic prerendered content in an accessible,
+  // visually hidden container (sr-only) to eliminate 100% of FOUC / white-screen flash
+  // before React mounts, while preserving 100% of semantic HTML in the DOM for SEO and AI crawlers.
+  const cleanBody = route.semanticBody
+    .replace(/\bbg-white\b/g, 'bg-transparent')
+    .replace(/\bbg-gray-50\b/g, 'bg-transparent')
+    .replace(/\bbg-gray-100\b/g, 'bg-transparent')
+    .replace(/\bbg-slate-50\b/g, 'bg-transparent')
+    .replace(/\btext-gray-900\b/g, 'text-gray-100')
+    .replace(/\btext-gray-800\b/g, 'text-gray-200')
+    .replace(/\btext-gray-700\b/g, 'text-gray-300')
+    .replace(/\btext-gray-600\b/g, 'text-gray-400')
+    .trim();
+
+  const prerenderWrapper = `<div id="prerender-seo-content" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;" aria-hidden="false">\n${cleanBody}\n</div>`;
+
+  if (html.includes('<div id="root"></div>')) {
+    html = html.replace('<div id="root"></div>', `<div id="root">${prerenderWrapper}</div>`);
+  } else {
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>/i, `<div id="root">${prerenderWrapper}</div>`);
+  }
 
   // 8. Determine destination file path
   let targetFile;
