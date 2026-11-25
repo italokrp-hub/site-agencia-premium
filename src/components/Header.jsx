@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, Globe, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
 
 const languages = [
   { code: 'pt', label: 'PT', name: 'Português', flag: '🇧🇷' },
@@ -48,9 +49,7 @@ const Header = () => {
   const currentLangObj = languages.find((l) => l.code === language) || languages[0];
 
   const handleWhatsApp = () => {
-    import('@/utils/whatsapp').then(({ openWhatsApp, WA_MESSAGES }) => {
-      openWhatsApp(WA_MESSAGES.generic);
-    });
+    openWhatsApp(WA_MESSAGES.generic);
   };
 
   const handleNavClick = (href) => {

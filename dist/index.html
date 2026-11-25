@@ -20,43 +20,21 @@
 				border-width: 0;
 			}
 		</style>
-		<!-- Deferred Google Tag Manager & Google Ads (Eliminates main-thread blocking & lowers TBT) -->
+		<!-- Google Tag Manager -->
+		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+		j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+		'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+		})(window,document,'script','dataLayer','GTM-PRVR3DK9');</script>
+		<!-- End Google Tag Manager -->
+		<!-- Google Ads (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18434748779"></script>
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
 			window.gtag = gtag;
 			gtag('js', new Date());
 			gtag('config', 'AW-18434748779');
-
-			function loadThirdPartyAnalytics() {
-				if (window.__analyticsLoaded) return;
-				window.__analyticsLoaded = true;
-
-				// Google Ads (gtag.js)
-				var gtagScript = document.createElement('script');
-				gtagScript.async = true;
-				gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18434748779';
-				document.head.appendChild(gtagScript);
-
-				// Google Tag Manager
-				(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-				new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-				j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-				'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-				})(window,document,'script','dataLayer','GTM-PRVR3DK9');
-			}
-
-			// Load on first real user interaction (0ms 3rd-party TBT during Mobile & Desktop Lighthouse)
-			var interactionList = ['scroll', 'touchstart', 'pointerdown', 'mousemove', 'keydown'];
-			function onUserActivity() {
-				interactionList.forEach(function(evt) {
-					window.removeEventListener(evt, onUserActivity, { passive: true });
-				});
-				loadThirdPartyAnalytics();
-			}
-			interactionList.forEach(function(evt) {
-				window.addEventListener(evt, onUserActivity, { once: true, passive: true });
-			});
 		</script>
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -157,7 +135,7 @@
   }
 }
 		</script>
-		<script type="module" crossorigin src="/assets/index-oAAbVvgV.js"></script>
+		<script type="module" crossorigin src="/assets/index-CsydCu3P.js"></script>
 		<link rel="modulepreload" crossorigin href="/assets/vendor-react-BjIJFR6O.js">
 		<link rel="modulepreload" crossorigin href="/assets/vendor-icons-BwwCpFYL.js">
 		<link rel="modulepreload" crossorigin href="/assets/vendor-supabase-D_TQYbCj.js">
@@ -182,7 +160,7 @@
           <a href="/roteiro-jericoacoara" class="hover:text-[#D4AF37] transition-colors">Roteiro Jeri</a>
           <a href="/faq" class="hover:text-[#D4AF37] transition-colors">FAQ</a>
         </nav>
-        <a href="https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-lg transition-colors shadow">
+        <a href="/obrigado?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-lg transition-colors shadow">
           Reservar via WhatsApp
         </a>
       </div>
@@ -198,7 +176,7 @@
             Reserve transfers 4x4 privativos ou compartilhados e os passeios mais cobiçados de Jericoacoara com agência credenciada CADASTUR (CADASTUR: 51.790.615/0001-08 | Jericoacoara Premium Receptivo & Turismo). Frotas modernas de Hilux 4x4, SW4 e Jardineiras com motoristas profissionais e suporte 24h via WhatsApp.
           </p>
           <div class="mt-6 flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition shadow">
+            <a href="/obrigado?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition shadow">
               Falar com Concierge no WhatsApp
             </a>
             <a href="/roteiro-jericoacoara" class="bg-transparent hover:bg-gray-200 text-gray-200 font-bold px-6 py-3 rounded-xl transition">
@@ -309,7 +287,7 @@
           <ul class="space-y-2 text-xs">
             <li><a href="/roteiro-jericoacoara" class="hover:text-[#D4AF37]">Roteiro Jericoacoara (3, 5 e 7 Dias)</a></li>
             <li><a href="/faq" class="hover:text-[#D4AF37]">Perguntas Frequentes (FAQ 7 Dias)</a></li>
-            <li><a href="https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="hover:text-[#D4AF37]">Atendimento 24h via WhatsApp</a></li>
+            <li><a href="/obrigado?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara." target="_blank" rel="noopener noreferrer" class="hover:text-[#D4AF37]">Atendimento 24h via WhatsApp</a></li>
           </ul>
         </div>
       </div>

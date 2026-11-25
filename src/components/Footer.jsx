@@ -2,14 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Instagram, Facebook, Clock, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { openWhatsApp, WA_MESSAGES } from '@/utils/whatsapp';
 
 const Footer = () => {
   const { t } = useLanguage();
 
   const handleWhatsApp = () => {
-    import('@/utils/whatsapp').then(({ openWhatsApp, WA_MESSAGES }) => {
-      openWhatsApp(WA_MESSAGES.generic);
-    });
+    openWhatsApp(WA_MESSAGES.generic);
   };
 
   const handleSocialClick = (platform) => {

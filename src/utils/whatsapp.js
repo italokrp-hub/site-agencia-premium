@@ -40,12 +40,13 @@ export function buildObrigadoLink(params = '') {
  * @param {boolean} newTab - Se verdadeiro, abre /obrigado em nova aba/janela
  */
 export function openWhatsApp(params = '', newTab = true) {
+  if (typeof window === 'undefined') return;
   const obrigadoUrl = buildObrigadoLink(params);
-  if (newTab && typeof window !== 'undefined') {
-    window.open(obrigadoUrl, '_blank');
-  } else if (typeof window !== 'undefined') {
-    window.location.href = obrigadoUrl;
+  if (newTab) {
+    const opened = window.open(obrigadoUrl, '_blank');
+    if (opened) return;
   }
+  window.location.href = obrigadoUrl;
 }
 
 // Mensagens padrão reutilizáveis

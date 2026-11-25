@@ -356,7 +356,7 @@ export const translations = {
       title: 'Redirecionando para o nosso WhatsApp em instantes...',
       subtitle: 'Caso não abra automaticamente, clique no botão abaixo.',
       statusText: 'Iniciando conversa segura no WhatsApp...',
-      manualBtn: 'Clique aqui para abrir',
+      manualBtn: 'Abrir WhatsApp agora',
       backHome: 'Voltar para o site da agência',
       trustCnpj: 'CNPJ & CADASTUR',
       trustSupport: 'Atendimento 24h',

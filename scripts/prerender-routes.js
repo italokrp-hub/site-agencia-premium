@@ -17,7 +17,7 @@ if (!fs.existsSync(templatePath)) {
 const baseTemplate = fs.readFileSync(templatePath, 'utf8');
 
 const SITE_URL = 'https://www.jericoacoarapremium.com';
-const WHATSAPP_URL = 'https://wa.me/5588988463182?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara.';
+const WHATSAPP_URL = '/obrigado?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20e%20reserva%20de%20transfer%20ou%20passeio%20em%20Jericoacoara.';
 const CADASTUR_TEXT = 'CADASTUR: 51.790.615/0001-08 | Jericoacoara Premium Receptivo & Turismo';
 
 // Shared Header Navigation HTML

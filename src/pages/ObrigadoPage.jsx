@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { MessageCircle, Loader2, ArrowLeft, ShieldCheck, CheckCircle2, Bug } from 'lucide-react';
-import { buildWhatsAppLink, WA_MESSAGES } from '@/utils/whatsapp';
+import { buildWhatsAppLink } from '@/utils/whatsapp';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 function getObrigadoMessage(searchParams) {
@@ -47,58 +47,30 @@ const ObrigadoPage = () => {
   const isDebugMode = location.search.includes('gtm_debug') || (typeof window !== 'undefined' && window.location.search.includes('gtm_debug'));
 
   const targetWhatsAppUrl = buildWhatsAppLink(customMessage);
+  const hasTrackedLeadRef = useRef(false);
 
   useEffect(() => {
-    let hasRedirected = false;
-
-    const redirectToWhatsApp = () => {
-      if (hasRedirected) return;
-      hasRedirected = true;
-      if (!window.location.search.includes('gtm_debug')) {
-        window.location.href = targetWhatsAppUrl;
-      }
-    };
-
-    if (typeof window !== 'undefined' && window.gtag) {
-      // Dispara pageview
-      window.gtag('event', 'page_view', {
+    if (!hasTrackedLeadRef.current && typeof window !== 'undefined') {
+      hasTrackedLeadRef.current = true;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'whatsapp_lead_obrigado',
         page_path: '/obrigado',
-        page_location: window.location.href,
-        page_title: document.title || 'Redirecionando para o Atendimento | Jericoacoara Premium'
       });
-
-      // Dispara conversão com callback de redirecionamento seguro
-      window.gtag('event', 'conversion', {
-        send_to: 'AW-18434748779/6pkrCI6Ii9kaEJSgo7s9',
-        value: 1.0,
-        currency: 'BRL',
-        event_callback: () => {
-          if (!window.location.search.includes('gtm_debug')) {
-            redirectToWhatsApp();
-          }
-        },
-        event_timeout: 2000
-      });
-    } else {
-      // Fallback se gtag estiver bloqueado por adblock
-      setTimeout(() => {
-        if (!window.location.search.includes('gtm_debug')) {
-          redirectToWhatsApp();
-        }
-      }, 1500);
     }
 
-    // Safety fallback timer caso window.gtag exista como stub mas o script do Google Tags seja bloqueado
-    const safetyTimer = setTimeout(() => {
-      if (!window.location.search.includes('gtm_debug')) {
-        redirectToWhatsApp();
+    if (isDebugMode) return undefined;
+
+    const redirectTimer = setTimeout(() => {
+      if (typeof window !== 'undefined' && !window.location.search.includes('gtm_debug')) {
+        window.location.href = targetWhatsAppUrl;
       }
-    }, 2500);
+    }, 1800);
 
     return () => {
-      clearTimeout(safetyTimer);
+      clearTimeout(redirectTimer);
     };
-  }, [targetWhatsAppUrl]);
+  }, [isDebugMode, targetWhatsAppUrl]);
 
   return (
     <>
@@ -175,7 +147,7 @@ const ObrigadoPage = () => {
               className="inline-flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#25D366]/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              {t('obrigado.manualBtn', { defaultValue: 'Clique aqui para abrir' })}
+              {t('obrigado.manualBtn', { defaultValue: 'Abrir WhatsApp agora' })}
             </a>
 
             <Link
