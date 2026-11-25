@@ -30,7 +30,13 @@ import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/catalog';
 import { supabase } from '@/lib/supabase';
 import { buildWhatsAppLink, buildConciergeWhatsAppLink } from '@/utils/whatsapp';
-import { formatModalityLabel } from '@/utils/reservationUtils';
+import {
+  formatModalityLabel,
+  computeFinancialSummary,
+  extractItemsFromBooking,
+  normalizeReservationItems,
+  sanitizePublicNotes,
+} from '@/utils/reservationUtils';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 // Mocks dedicados para os códigos demonstrativos e fallbacks
@@ -153,6 +159,79 @@ export default function VoucherPage() {
 
   const formattedCode = useMemo(() => (code || '').toUpperCase().trim(), [code]);
 
+  const buildVoucherState = (raw, targetCode) => {
+    const cust = raw.agency_customers || {};
+    let extracted = extractItemsFromBooking(raw);
+
+    if (extracted.length === 0 && (raw.reservation_code || targetCode || '').toUpperCase().trim() === 'JP-2026-000009') {
+      extracted = [
+        {
+          service_name: 'Jardineira Privativa · Oeste',
+          title: 'Jardineira Privativa · Oeste',
+          category: 'passeio',
+          vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
+          trecho: 'privativo',
+          date_start: '2026-10-01',
+          time_start: '09:30',
+          pax_adults: 2,
+          pax_children: 1,
+          pickup_location: raw.pickup_location || 'Espaço Fateixa - Beira Mar',
+          price_total: 550,
+        },
+        {
+          service_name: 'Jardineira Privativa · Leste',
+          title: 'Jardineira Privativa · Leste',
+          category: 'passeio',
+          vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
+          trecho: 'privativo',
+          date_start: '2026-10-02',
+          time_start: '09:30',
+          pax_adults: 2,
+          pax_children: 1,
+          pickup_location: raw.pickup_location || 'Espaço Fateixa - Beira Mar',
+          price_total: 500,
+        },
+      ];
+    }
+
+    const normalizedItems = normalizeReservationItems(raw, extracted);
+    const financialSummary = computeFinancialSummary(raw, normalizedItems);
+
+    const rawEmail = cust.email || raw.client_email || '';
+    const cleanEmail = rawEmail && !rawEmail.toLowerCase().includes('example.com') ? rawEmail : '';
+
+    return {
+      code: raw.reservation_code || raw.code || targetCode,
+      created_at: raw.created_at,
+      client_name: cust.name || raw.client_name || 'Cliente',
+      client_phone: cust.whatsapp || cust.phone || raw.client_phone || '',
+      client_email: cleanEmail,
+      status: financialSummary.effectiveReservationStatus,
+      reservation_status: financialSummary.effectiveReservationStatus,
+      payment_status: financialSummary.effectivePaymentStatus,
+      raw_payment_status: raw.raw_payment_status || raw.payment_status || null,
+      raw_reservation_status: raw.raw_reservation_status || raw.reservation_status || raw.status || null,
+      payment_method: raw.payment_method || financialSummary.latestPaymentMethod || 'pix',
+      price_gross: financialSummary.amountGross,
+      discount: financialSummary.discount,
+      amount_total: financialSummary.amountTotal,
+      amount_paid: financialSummary.amountPaid,
+      remaining_balance: financialSummary.remainingBalance,
+      valor_total: financialSummary.amountTotal,
+      valor_pago: financialSummary.amountPaid,
+      saldo_restante: financialSummary.remainingBalance,
+      paid_percentage: financialSummary.paidPercentage,
+      is_paid_in_full: financialSummary.isPaidInFull,
+      is_partial_paid: financialSummary.isPartialPaid,
+      is_pending: financialSummary.isPending,
+      is_confirmed: financialSummary.isConfirmed,
+      pickup_location: raw.pickup_location || 'A combinar',
+      notes: sanitizePublicNotes(raw.notes),
+      agency_payments: Array.isArray(raw.agency_payments) ? raw.agency_payments : [],
+      items: normalizedItems,
+    };
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -160,358 +239,78 @@ export default function VoucherPage() {
       setLoading(true);
       setError(null);
 
-      // 1. Tentar ler do localStorage local (gerado no checkout recente)
+      let localFallbackData = null;
       try {
         const localKey = `jeri_last_booking_${formattedCode}`;
         const localData = localStorage.getItem(localKey);
         if (localData) {
-          const parsed = JSON.parse(localData);
-          if (isMounted) {
-            setBooking(parsed);
+          localFallbackData = JSON.parse(localData);
+        }
+      } catch (e) {
+        console.warn('Erro ao ler cache local do voucher:', e);
+      }
+
+      // 1. Buscar sempre os dados mais recentes da API (/api/booking-public) com cache-busting
+      try {
+        const res = await fetch(`/api/booking-public?code=${encodeURIComponent(formattedCode)}&t=${Date.now()}`).catch(() => null);
+        if (res && res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && data.success && data.booking && isMounted) {
+            const nextState = buildVoucherState(data.booking, formattedCode);
+            setBooking(nextState);
+            try {
+              localStorage.setItem(`jeri_last_booking_${formattedCode}`, JSON.stringify(nextState));
+            } catch (e) {}
             setLoading(false);
             return;
           }
         }
       } catch (e) {
-        console.warn('Erro ao carregar voucher do localStorage:', e);
+        console.warn('[VoucherPage] Falha ao buscar /api/booking-public:', e);
       }
 
-      // 2. Verificar se é um código demonstrativo pré-definido
-      if (DEMO_VOUCHERS[formattedCode]) {
-        if (isMounted) {
-          setBooking(DEMO_VOUCHERS[formattedCode]);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // 2. Tentar buscar da API local (/api/booking-public) com cache-busting
-      try {
-        const res = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`).catch(() => null);
-        if (res && res.ok) {
-          const data = await res.json().catch(() => null);
-          if (data && data.success && data.booking) {
-            const b = data.booking;
-            const cust = b.agency_customers || {};
-            let items = Array.isArray(b.agency_reservation_items) ? [...b.agency_reservation_items] : [];
-
-            if (items.length === 0) {
-              const resCodeUpper = (b.reservation_code || formattedCode || '').toUpperCase().trim();
-              if (resCodeUpper === 'JP-2026-000009') {
-                items = [
-                  {
-                    service_name: 'Jardineira Privativa · Oeste',
-                    title: 'Jardineira Privativa · Oeste',
-                    category: 'passeio',
-                    vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                    trecho: 'privativo',
-                    date_start: '2026-10-01',
-                    time_start: '09:30',
-                    pax_adults: 2,
-                    pax_children: 1,
-                    pickup_location: b.pickup_location || 'Espaço Fateixa - Beira Mar',
-                    price_total: 550,
-                  },
-                  {
-                    service_name: 'Jardineira Privativa · Leste',
-                    title: 'Jardineira Privativa · Leste',
-                    category: 'passeio',
-                    vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                    trecho: 'privativo',
-                    date_start: '2026-10-02',
-                    time_start: '09:30',
-                    pax_adults: 2,
-                    pax_children: 1,
-                    pickup_location: b.pickup_location || 'Espaço Fateixa - Beira Mar',
-                    price_total: 500,
-                  },
-                ];
-              } else if (b.notes_service) {
-                const lines = String(b.notes_service).split(/\r?\n|\|/).map(l => l.trim()).filter(Boolean);
-                if (lines.length > 0) {
-                  const startDate = b.date || new Date().toISOString().split('T')[0];
-                  const priceFinal = Number(b.price_final || b.price_gross || 0);
-                  items = lines.map((line, idx) => {
-                    const cleanedName = line.replace(/^\[.*?\]\s*/, '').trim();
-                    const dObj = new Date(startDate + 'T00:00:00');
-                    dObj.setDate(dObj.getDate() + idx);
-                    return {
-                      service_name: cleanedName,
-                      title: cleanedName,
-                      category: cleanedName.toLowerCase().includes('transfer') ? 'transfer' : 'passeio',
-                      vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                      trecho: 'privativo',
-                      date_start: dObj.toISOString().split('T')[0],
-                      time_start: b.time || '09:30',
-                      pax_adults: Number(b.pax_adults || 1),
-                      pax_children: Number(b.pax_children || 0),
-                      pickup_location: b.pickup_location || 'A combinar',
-                      price_total: Math.round(priceFinal / lines.length),
-                    };
-                  });
-                }
-              }
-            }
-
-            const itemsSum = items.reduce((s, it) => s + Number(it.price_total || it.unit_price || 0), 0);
-            const priceFinal = Number(b.price_final || b.price_gross || b.amount_total || itemsSum || 0);
-
-            const paidSum = Array.isArray(b.agency_payments)
-              ? b.agency_payments.reduce((s, p) => s + Number(p.amount || 0), 0)
-              : 0;
-
-            const statusLower = (b.payment_status || '').toLowerCase();
-            const isSinal = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
-            const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
-
-            let amountPaid = typeof b.amount_paid === 'number' && b.amount_paid > 0 ? b.amount_paid : (paidSum > 0 ? paidSum : 0);
-            if (amountPaid === 0) {
-              if (isSinal) amountPaid = priceFinal * 0.5;
-              else if (isQuitado) amountPaid = priceFinal;
-            }
-
-            amountPaid = Math.min(priceFinal, Math.max(0, amountPaid));
-            const remainingBalance = Math.max(0, priceFinal - amountPaid);
-
-            if (isMounted) {
-              const parseItem = (it) => {
-                const itemTitle = it.service_name || it.title || it.name || b.service_name || b.title || 'Passeio Jericoacoara';
-                const isTransfer = (it.category || b.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
-                const rawTrecho = it.trecho || it.modality || b.trecho || (isTransfer ? 'ida_e_volta' : 'privativo');
-                const isRoundTrip = rawTrecho === 'ida_e_volta' || Boolean(it.return_pickup_location || it.return_dropoff_location || it.date_end || b.date_end);
-                const timeStart = it.time_start || it.time || b.time || b.time_start || '09:30';
-                const timeEnd = it.time_end || b.time_end || timeStart;
-
-                const paxAdults = Number(it.pax_adults ?? b.pax_adults ?? 0);
-                const paxChildren = Number(it.pax_children ?? b.pax_children ?? 0);
-                const paxTotal = paxAdults + paxChildren;
-
-                return {
-                  title: itemTitle,
-                  service_name: it.service_name || itemTitle,
-                  service_type: it.category || b.service_type || 'passeio',
-                  vehicle: it.vehicle_type || it.vehicle || b.vehicle_type || 'Jardineira',
-                  modality: it.modality || rawTrecho,
-                  trecho: rawTrecho,
-                  isRoundTrip: isRoundTrip,
-                  date: it.date_start || it.date || b.date || new Date().toISOString().split('T')[0],
-                  time: timeStart,
-                  date_end: it.date_end || b.date_end || null,
-                  time_end: timeEnd,
-                  pickup_location: it.pickup_location || b.pickup_location || 'A combinar com o motorista',
-                  dropoff_location: it.dropoff_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
-                  return_pickup_location: it.return_pickup_location || it.dropoff_location || b.return_pickup_location || b.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
-                  return_dropoff_location: it.return_dropoff_location || it.pickup_location || b.return_dropoff_location || b.pickup_location || 'Estacionamento PREÁ',
-                  pax: paxTotal > 0 ? paxTotal : Number(it.pax || b.pax || 1),
-                  pax_adults: paxAdults,
-                  pax_children: paxChildren,
-                  unit_price: Number(it.price_total || it.unit_price || priceFinal),
-                  notes: it.notes || null,
-                };
-              };
-
-              const rawEmail = cust.email || b.client_email || '';
-              const cleanEmail = (rawEmail && !rawEmail.toLowerCase().includes('example.com')) ? rawEmail : '';
-
-              setBooking({
-                code: b.reservation_code || formattedCode,
-                created_at: b.created_at,
-                client_name: cust.name || b.client_name || 'Cliente',
-                client_phone: cust.whatsapp || cust.phone || b.client_phone || '',
-                client_email: cleanEmail,
-                status: b.reservation_status || b.status || 'pendente',
-                payment_status: b.payment_status || 'pendente',
-                payment_method: b.payment_method || 'pix',
-                amount_total: priceFinal,
-                amount_paid: amountPaid,
-                remaining_balance: remainingBalance,
-                pickup_location: b.pickup_location || 'A combinar',
-                notes: b.notes || '',
-                items: items.length > 0 ? items.map(parseItem) : [parseItem({})],
-              });
-              setLoading(false);
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-
-      // 3. Consulta de Fallback ao Supabase
+      // 2. Consulta de Fallback ao Supabase (select('*') resiliente)
       try {
         const { data, error: dbErr } = await supabase
           .from('agency_reservations')
           .select(`
-            id,
-            reservation_code,
-            created_at,
-            date,
-            time,
-            pax_adults,
-            notes_service,
-            pickup_location,
-            dropoff_location,
-            price_gross,
-            price_final,
-            payment_method,
-            payment_status,
-            reservation_status,
+            *,
             agency_customers (name, whatsapp, email),
-            agency_reservation_items (title, service_name, vehicle_type, category, trecho, date_start, time_start, date_end, time_end, pax_adults, pax_children, price_total, unit_price, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes),
-            agency_payments (amount)
+            agency_reservation_items (*),
+            agency_payments (*)
           `)
           .or(`reservation_code.ilike.${formattedCode},code.ilike.${formattedCode}`)
           .limit(1)
           .maybeSingle();
 
+        if (dbErr) {
+          console.warn('[VoucherPage] Erro na consulta fallback ao Supabase:', dbErr);
+        }
+
         if (data && isMounted) {
-          const cust = data.agency_customers || {};
-          let items = Array.isArray(data.agency_reservation_items) ? [...data.agency_reservation_items] : [];
-
-          if (items.length === 0) {
-            const resCodeUpper = (data.reservation_code || formattedCode || '').toUpperCase().trim();
-            if (resCodeUpper === 'JP-2026-000009') {
-              items = [
-                {
-                  service_name: 'Jardineira Privativa · Oeste',
-                  title: 'Jardineira Privativa · Oeste',
-                  category: 'passeio',
-                  vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                  trecho: 'privativo',
-                  date_start: '2026-10-01',
-                  time_start: '09:30',
-                  pax_adults: 2,
-                  pax_children: 1,
-                  pickup_location: data.pickup_location || 'Espaço Fateixa - Beira Mar',
-                  price_total: 550,
-                },
-                {
-                  service_name: 'Jardineira Privativa · Leste',
-                  title: 'Jardineira Privativa · Leste',
-                  category: 'passeio',
-                  vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                  trecho: 'privativo',
-                  date_start: '2026-10-02',
-                  time_start: '09:30',
-                  pax_adults: 2,
-                  pax_children: 1,
-                  pickup_location: data.pickup_location || 'Espaço Fateixa - Beira Mar',
-                  price_total: 500,
-                },
-              ];
-            } else if (data.notes_service) {
-              const lines = String(data.notes_service).split(/\r?\n|\|/).map(l => l.trim()).filter(Boolean);
-              if (lines.length > 0) {
-                const startDate = data.date || new Date().toISOString().split('T')[0];
-                const priceFinal = Number(data.price_final || data.price_gross || 0);
-                items = lines.map((line, idx) => {
-                  const cleanedName = line.replace(/^\[.*?\]\s*/, '').trim();
-                  const dObj = new Date(startDate + 'T00:00:00');
-                  dObj.setDate(dObj.getDate() + idx);
-                  return {
-                    service_name: cleanedName,
-                    title: cleanedName,
-                    category: cleanedName.toLowerCase().includes('transfer') ? 'transfer' : 'passeio',
-                    vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                    trecho: 'privativo',
-                    date_start: dObj.toISOString().split('T')[0],
-                    time_start: data.time || '09:30',
-                    pax_adults: Number(data.pax_adults || 1),
-                    pax_children: Number(data.pax_children || 0),
-                    pickup_location: data.pickup_location || 'A combinar',
-                    price_total: Math.round(priceFinal / lines.length),
-                  };
-                });
-              }
-            }
-          }
-
-          const itemsSum = items.reduce((s, it) => s + Number(it.price_total || it.unit_price || 0), 0);
-          const priceFinal = Number(data.price_final || data.price_gross || itemsSum || 0);
-
-          const paidSum = Array.isArray(data.agency_payments)
-            ? data.agency_payments.reduce((s, p) => s + Number(p.amount || 0), 0)
-            : 0;
-
-          const statusLower = (data.payment_status || '').toLowerCase();
-          const isSinal = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
-          const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
-
-          let amountPaid = paidSum;
-          if (paidSum === 0) {
-            if (isSinal) amountPaid = priceFinal * 0.5;
-            else if (isQuitado) amountPaid = priceFinal;
-          }
-
-          amountPaid = Math.min(priceFinal, Math.max(0, amountPaid));
-          const remainingBalance = Math.max(0, priceFinal - amountPaid);
-
-          const parseItem = (it) => {
-            const itemTitle = it.service_name || it.title || it.name || data.service_name || data.title || 'Passeio Jericoacoara';
-            const isTransfer = (it.category || data.service_type || '').toLowerCase().includes('transfer') || (it.service_name || '').toLowerCase().includes('transfer') || (it.title || '').toLowerCase().includes('transfer');
-            const rawTrecho = it.trecho || it.modality || data.trecho || (isTransfer ? 'ida_e_volta' : 'privativo');
-            const isRoundTrip = rawTrecho === 'ida_e_volta' || Boolean(it.return_pickup_location || it.return_dropoff_location || it.date_end || data.date_end);
-            const timeStart = it.time_start || it.time || data.time || data.time_start || '09:30';
-            const timeEnd = it.time_end || data.time_end || timeStart;
-
-            const paxAdults = Number(it.pax_adults ?? data.pax_adults ?? 0);
-            const paxChildren = Number(it.pax_children ?? data.pax_children ?? 0);
-            const paxTotal = paxAdults + paxChildren;
-
-            return {
-              title: itemTitle,
-              service_name: it.service_name || itemTitle,
-              service_type: it.category || data.service_type || 'passeio',
-              vehicle: it.vehicle_type || it.vehicle || data.vehicle_type || 'Jardineira',
-              modality: it.modality || rawTrecho,
-              trecho: rawTrecho,
-              isRoundTrip: isRoundTrip,
-              date: it.date_start || it.date || data.date || new Date().toISOString().split('T')[0],
-              time: timeStart,
-              date_end: it.date_end || data.date_end || null,
-              time_end: timeEnd,
-              pickup_location: it.pickup_location || data.pickup_location || 'A combinar com o motorista',
-              dropoff_location: it.dropoff_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
-              return_pickup_location: it.return_pickup_location || it.dropoff_location || data.return_pickup_location || data.dropoff_location || 'Jericoacoara (Pousada / Hotel)',
-              return_dropoff_location: it.return_dropoff_location || it.pickup_location || data.return_dropoff_location || data.pickup_location || 'Estacionamento PREÁ',
-              pax: paxTotal > 0 ? paxTotal : Number(it.pax || data.pax || 1),
-              pax_adults: paxAdults,
-              pax_children: paxChildren,
-              unit_price: Number(it.price_total || it.unit_price || priceFinal),
-              notes: it.notes || null,
-            };
-          };
-
-          const rawEmail = cust.email || '';
-          const cleanEmail = (rawEmail && !rawEmail.toLowerCase().includes('example.com')) ? rawEmail : '';
-
-          setBooking({
-            code: data.reservation_code || formattedCode,
-            created_at: data.created_at,
-            client_name: cust.name || 'Cliente',
-            client_phone: cust.whatsapp || '',
-            client_email: cleanEmail,
-            status: data.reservation_status || 'pendente',
-            payment_status: data.payment_status || 'pendente',
-            payment_method: data.payment_method || 'pix',
-            amount_total: priceFinal,
-            amount_paid: amountPaid,
-            remaining_balance: remainingBalance,
-            pickup_location: data.pickup_location || 'A combinar',
-            items: items.length > 0 ? items.map(parseItem) : [parseItem({})],
-          });
+          const nextState = buildVoucherState(data, formattedCode);
+          setBooking(nextState);
+          try {
+            localStorage.setItem(`jeri_last_booking_${formattedCode}`, JSON.stringify(nextState));
+          } catch (e) {}
           setLoading(false);
           return;
         }
       } catch (e) {
-        // ignore
+        console.warn('[VoucherPage] Exceção na consulta fallback ao Supabase:', e);
+      }
+
+      // 3. Fallback para cache local apenas se a API e o Supabase não responderem/encontrarem
+      if (localFallbackData && isMounted) {
+        setBooking(buildVoucherState(localFallbackData, formattedCode));
+        setLoading(false);
+        return;
       }
 
       // 4. Fallback para códigos demonstrativos pré-definidos (apenas se não encontrado na API nem no Supabase)
       if (DEMO_VOUCHERS[formattedCode]) {
         if (isMounted) {
-          setBooking(DEMO_VOUCHERS[formattedCode]);
+          setBooking(buildVoucherState(DEMO_VOUCHERS[formattedCode], formattedCode));
           setLoading(false);
           return;
         }
@@ -549,49 +348,47 @@ export default function VoucherPage() {
     }
   };
 
+  const financial = useMemo(() => {
+    if (!booking) return null;
+    return computeFinancialSummary(booking, booking.items || []);
+  }, [booking]);
+
+  const isPending = Boolean(financial?.isPending);
+  const isPaidInFull = Boolean(financial?.isPaidInFull);
+  const isPartialPaid = Boolean(financial?.isPartialPaid);
+
   // Polling para pagamento pendente com verificação no gateway e cache-busting
   useEffect(() => {
     let interval;
-    if (booking && (booking.payment_status === 'pendente' || booking.status === 'pendente') && !DEMO_VOUCHERS[formattedCode]) {
+    if (booking && isPending && !DEMO_VOUCHERS[formattedCode]) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`/api/pix-status?code=${formattedCode}&t=${Date.now()}`);
+          const res = await fetch(`/api/pix-status?code=${encodeURIComponent(formattedCode)}&t=${Date.now()}`);
           const statusData = await res.json().catch(() => null);
 
           if (statusData && statusData.isPaid) {
-            const bookRes = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`);
+            const bookRes = await fetch(`/api/booking-public?code=${encodeURIComponent(formattedCode)}&t=${Date.now()}`);
             const data = await bookRes.json().catch(() => null);
 
-            const status = statusData.paymentStatus || data?.booking?.payment_status || 'sinal_pago';
-            const resStatus = 'confirmada';
-            const statusLower = (status || '').toLowerCase();
-            const isQuitado = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
-
-            setBooking((prev) => {
-              const total = prev ? prev.amount_total : (data?.booking?.price_final || 0);
-              const paid = isQuitado ? total : (statusData.amountPaid || total * 0.5);
-              const remaining = isQuitado ? 0 : Math.max(0, total - paid);
-
-              return {
-                ...prev,
-                status: resStatus,
-                reservation_status: resStatus,
-                payment_status: status,
-                amount_paid: paid,
-                remaining_balance: remaining,
-              };
-            });
-
-            try {
-              const localKey = `jeri_last_booking_${formattedCode}`;
-              const currentLocal = JSON.parse(localStorage.getItem(localKey) || '{}');
-              localStorage.setItem(localKey, JSON.stringify({
-                ...currentLocal,
-                status: 'confirmada',
-                reservation_status: 'confirmada',
-                payment_status: status,
-              }));
-            } catch (e) {}
+            if (data?.success && data?.booking) {
+              const nextState = buildVoucherState(data.booking, formattedCode);
+              setBooking(nextState);
+              try {
+                localStorage.setItem(`jeri_last_booking_${formattedCode}`, JSON.stringify(nextState));
+              } catch (e) {}
+            } else {
+              setBooking((prev) => {
+                if (!prev) return prev;
+                const status = statusData.paymentStatus || prev.payment_status || 'sinal_pago';
+                return buildVoucherState({
+                  ...prev,
+                  status: 'confirmada',
+                  reservation_status: 'confirmada',
+                  payment_status: status,
+                  amount_paid: statusData.amountPaid ?? prev.amount_paid,
+                }, formattedCode);
+              });
+            }
 
             setIsPixModalOpen(false);
             clearInterval(interval);
@@ -604,7 +401,7 @@ export default function VoucherPage() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [booking?.payment_status, booking?.status, formattedCode]);
+  }, [booking, isPending, formattedCode]);
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -614,39 +411,32 @@ export default function VoucherPage() {
     setCheckingStatus(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/pix-status?code=${formattedCode}&t=${Date.now()}`);
+      const res = await fetch(`/api/pix-status?code=${encodeURIComponent(formattedCode)}&t=${Date.now()}`);
       const statusData = await res.json().catch(() => null);
 
       if (statusData && statusData.isPaid) {
-        const bookRes = await fetch(`/api/booking-public?code=${formattedCode}&t=${Date.now()}`);
+        const bookRes = await fetch(`/api/booking-public?code=${encodeURIComponent(formattedCode)}&t=${Date.now()}`);
         const data = await bookRes.json().catch(() => null);
 
-        const newPaymentStatus = statusData.paymentStatus || data?.booking?.payment_status || 'sinal_pago';
-        const isFull = newPaymentStatus === 'pago_integral';
-
-        setBooking((prev) => {
-          const total = prev?.amount_total || data?.booking?.price_final || 0;
-          const paid = isFull ? total : (statusData.amountPaid || total * 0.5);
-          return {
-            ...prev,
-            status: 'confirmada',
-            reservation_status: 'confirmada',
-            payment_status: newPaymentStatus,
-            amount_paid: paid,
-            remaining_balance: isFull ? 0 : Math.max(0, total - paid),
-          };
-        });
-
-        try {
-          const localKey = `jeri_last_booking_${formattedCode}`;
-          const currentLocal = JSON.parse(localStorage.getItem(localKey) || '{}');
-          localStorage.setItem(localKey, JSON.stringify({
-            ...currentLocal,
-            status: 'confirmada',
-            reservation_status: 'confirmada',
-            payment_status: newPaymentStatus,
-          }));
-        } catch (e) {}
+        if (data?.success && data?.booking) {
+          const nextState = buildVoucherState(data.booking, formattedCode);
+          setBooking(nextState);
+          try {
+            localStorage.setItem(`jeri_last_booking_${formattedCode}`, JSON.stringify(nextState));
+          } catch (e) {}
+        } else {
+          setBooking((prev) => {
+            if (!prev) return prev;
+            const newPaymentStatus = statusData.paymentStatus || prev.payment_status || 'sinal_pago';
+            return buildVoucherState({
+              ...prev,
+              status: 'confirmada',
+              reservation_status: 'confirmada',
+              payment_status: newPaymentStatus,
+              amount_paid: statusData.amountPaid ?? prev.amount_paid,
+            }, formattedCode);
+          });
+        }
 
         setIsPixModalOpen(false);
         setStatusMessage({ type: 'success', text: 'Pagamento confirmado com sucesso pelo banco! Voucher oficial ativado.' });
@@ -745,49 +535,56 @@ export default function VoucherPage() {
     window.print();
   };
 
-  const mainItem = booking?.items?.[0] || {};
-  const isDeposit = booking?.payment_status === 'sinal_pago' || (booking?.remaining_balance && booking.remaining_balance > 0);
-
-  const isPending = useMemo(() => {
-    if (!booking) return false;
-    const pStatus = (booking.payment_status || '').toLowerCase();
-    const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
-    return pStatus === 'pendente' || rStatus === 'pendente';
-  }, [booking]);
-
   const statusBadge = useMemo(() => {
-    if (!booking) return null;
-    const pStatus = (booking.payment_status || '').toLowerCase();
-    const rStatus = (booking.status || booking.reservation_status || '').toLowerCase();
+    if (!booking || !financial) return null;
 
-    // 1. Pago Integral
-    if (pStatus === 'pago_integral' || rStatus === 'concluida') {
+    if (financial.isCancelled) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+          <XCircle className="w-3.5 h-3.5" />
+          RESERVA CANCELADA
+        </span>
+      );
+    }
+
+    // 1. Pagamento Quitado (valor_pago >= valor_total ou saldo_restante <= 0)
+    if (financial.isPaidInFull) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
           <CheckCircle className="w-3.5 h-3.5" />
-          CONFIRMADA · PAGO INTEGRAL (100%)
+          CONFIRMADA — PAGAMENTO QUITADO (100%)
         </span>
       );
     }
 
-    // 2. Sinal Pago (50%)
-    if (pStatus === 'sinal_pago' || rStatus === 'confirmada') {
+    // 2. Sinal Pago (valor_pago > 0 e saldo_restante > 0)
+    if (financial.isPartialPaid) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
           <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
-          CONFIRMADA · SINAL PAGO (50%)
+          CONFIRMADA — SINAL PAGO ({financial.paidPercentage}%)
         </span>
       );
     }
 
-    // 3. Pagamento Pendente
+    // 3. Confirmada operacionalmente no HotelOps sem pendência de pagamento
+    if (financial.isConfirmed) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
+          RESERVA CONFIRMADA
+        </span>
+      );
+    }
+
+    // 4. Pagamento Pendente (valor_pago == 0 e pendente)
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
         <Clock className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
         PAGAMENTO PENDENTE · AGUARDANDO COMPENSAÇÃO
       </span>
     );
-  }, [booking]);
+  }, [booking, financial]);
 
   const isEnglish = language === 'en' || (booking?.payment_method || '').toLowerCase() === 'stripe';
 
@@ -1012,7 +809,7 @@ export default function VoucherPage() {
               <span className="bg-[#D4AF37] text-gray-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">PREMIUM</span>
             </div>
             <p className="text-[10px] sm:text-xs text-gray-300 font-medium tracking-wide">
-              {isPending ? 'VOUCHER PROVISÓRIO — AGUARDANDO CONFIRMAÇÃO DO PAGAMENTO' : 'VOUCHER OFICIAL DE RESERVA E EMBARQUE'}
+              {isPending ? 'VOUCHER PROVISÓRIO — AGUARDANDO CONFIRMAÇÃO DO PAGAMENTO' : 'VOUCHER OFICIAL — RESERVA CONFIRMADA'}
             </p>
           </div>
 
@@ -1033,7 +830,14 @@ export default function VoucherPage() {
         </div>
 
         {/* Caixa de Status Operacional: Validação e Ativação do Voucher */}
-        {isPending ? (
+        {financial?.isCancelled ? (
+          <div className="bg-rose-50 border-b border-rose-200 px-3.5 sm:px-5 py-3 no-print">
+            <div className="flex items-center gap-2 text-rose-900 font-bold text-xs">
+              <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>Esta reserva consta como cancelada. Em caso de dúvidas, entre em contato com nosso suporte.</span>
+            </div>
+          </div>
+        ) : isPending ? (
           <div className="bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 border-b border-amber-200/80 px-3.5 sm:px-5 py-3 sm:py-3.5 no-print">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="space-y-0.5">
@@ -1082,7 +886,11 @@ export default function VoucherPage() {
                     </span>
                     <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">
                       <CheckCircle className="w-3.5 h-3.5" />
-                      {isEnglish ? 'Payment Confirmed' : 'Pagamento Aprovado'}
+                      {isPaidInFull
+                        ? (isEnglish ? 'Paid in Full (100%)' : 'Pagamento Quitado (100%)')
+                        : isPartialPaid
+                        ? (isEnglish ? `Deposit Paid (${financial?.paidPercentage}%)` : `Sinal Pago (${financial?.paidPercentage}%)`)
+                        : (isEnglish ? 'Reservation Confirmed' : 'Reserva Confirmada')}
                     </span>
                   </div>
                   <h3 className="text-sm sm:text-base font-extrabold text-white tracking-tight flex items-center gap-2">
@@ -1156,10 +964,14 @@ export default function VoucherPage() {
 
             <div className="space-y-3">
               {(booking.items || []).map((item, idx) => {
-                const formattedDate = item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar';
-                const modalityLabel = item.isRoundTrip 
-                  ? 'Transfer Ida e Volta (Privativo Exclusivo)' 
-                  : formatModalityLabel(item);
+                const formattedDate = item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar';
+                const formattedReturnDate = item.date_end ? new Date(item.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar';
+                const timeLabel = item.time ? `${item.time}h` : 'A combinar';
+                const returnTimeLabel = item.time_end ? `${item.time_end}h` : 'A combinar';
+                const baseModalityLabel = formatModalityLabel(item);
+                const modalityLabel = item.isRoundTrip
+                  ? `Transfer Ida e Volta · ${baseModalityLabel}`
+                  : baseModalityLabel;
 
                 const adults = Number(item.pax_adults || 0);
                 const children = Number(item.pax_children || 0);
@@ -1177,7 +989,7 @@ export default function VoucherPage() {
                       <div>
                         {booking.items.length > 1 && (
                           <span className="text-[11px] font-black uppercase text-[#2C7A7B] tracking-wider block mb-0.5">
-                            SERVIÇO {idx + 1} DE {booking.items.length} · {formattedDate} ÀS {item.time || '09:30'}H
+                            SERVIÇO {idx + 1} DE {booking.items.length} · {formattedDate}{item.time ? ` ÀS ${item.time}H` : ''}
                           </span>
                         )}
                         <h4 className="font-extrabold text-base sm:text-lg text-gray-900 leading-tight">
@@ -1194,46 +1006,46 @@ export default function VoucherPage() {
                     {item.isRoundTrip ? (
                       <div className="space-y-2">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {/* 🟢 TRECHO DE IDA */}
+                          {/* TRECHO DE IDA */}
                           <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 space-y-1.5">
                             <div className="flex items-center justify-between border-b border-emerald-200 pb-1">
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800">
-                                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" /> 🟢 TRECHO DE IDA
+                                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" /> TRECHO DE IDA
                               </span>
                               <span className="text-xs font-extrabold text-gray-900">
-                                {item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A agendar'} às {item.time || '11:00'}h
+                                {formattedDate}{item.time ? ` às ${timeLabel}` : ''}
                               </span>
                             </div>
                             <div className="space-y-1 text-xs">
                               <div className="bg-white/80 p-1.5 rounded-lg border border-emerald-100">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || booking.pickup_location || 'Estacionamento PREÁ'}</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || 'A combinar'}</span>
                               </div>
                               <div className="bg-white/80 p-1.5 rounded-lg border border-emerald-100">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.dropoff_location || 'A combinar'}</span>
                               </div>
                             </div>
                           </div>
 
-                          {/* 🔵 TRECHO DE VOLTA */}
+                          {/* TRECHO DE VOLTA */}
                           <div className="bg-cyan-50/70 border border-cyan-200 rounded-xl p-2.5 space-y-1.5">
                             <div className="flex items-center justify-between border-b border-cyan-200 pb-1">
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-cyan-800">
-                                <span className="h-2 w-2 rounded-full bg-cyan-600 animate-pulse" /> 🔵 TRECHO DE VOLTA
+                                <span className="h-2 w-2 rounded-full bg-cyan-600 animate-pulse" /> TRECHO DE VOLTA
                               </span>
                               <span className="text-xs font-extrabold text-gray-900">
-                                {item.date_end ? new Date(item.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : (item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar')} às {item.time_end || item.time || '11:00'}h
+                                {formattedReturnDate}{item.time_end ? ` às ${returnTimeLabel}` : ''}
                               </span>
                             </div>
                             <div className="space-y-1 text-xs">
                               <div className="bg-white/80 p-1.5 rounded-lg border border-cyan-100">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_pickup_location || item.dropoff_location || 'Jericoacoara (Pousada / Hotel)'}</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_pickup_location || item.dropoff_location || 'A combinar'}</span>
                               </div>
                               <div className="bg-white/80 p-1.5 rounded-lg border border-cyan-100">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_dropoff_location || item.pickup_location || 'Estacionamento PREÁ'}</span>
+                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_dropoff_location || item.pickup_location || 'A combinar'}</span>
                               </div>
                             </div>
                           </div>
@@ -1251,7 +1063,7 @@ export default function VoucherPage() {
                             <Car className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                             <div>
                               <span className="text-[10px] text-gray-400 block font-semibold uppercase">Veículo / Modalidade</span>
-                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.vehicle || 'Privativo Exclusivo (4x4)'}</span>
+                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{baseModalityLabel}</span>
                             </div>
                           </div>
                         </div>
@@ -1263,7 +1075,7 @@ export default function VoucherPage() {
                           <div>
                             <span className="text-[10px] text-gray-400 block font-semibold uppercase">Data & Horário de Saída</span>
                             <span className="font-extrabold text-xs sm:text-sm text-gray-900">
-                              {formattedDate} às {item.time || '09:30'}h
+                              {formattedDate}{item.time ? ` às ${timeLabel}` : ' · Horário a combinar'}
                             </span>
                           </div>
                         </div>
@@ -1272,9 +1084,19 @@ export default function VoucherPage() {
                           <MapPin className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
                             <span className="text-[10px] text-gray-400 block font-semibold uppercase">Local de Embarque</span>
-                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || booking.pickup_location || 'A combinar com o motorista'}</span>
+                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || 'A combinar com o motorista'}</span>
                           </div>
                         </div>
+
+                        {item.dropoff_location && (
+                          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100 sm:col-span-2">
+                            <MapPin className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
+                            <div>
+                              <span className="text-[10px] text-gray-400 block font-semibold uppercase">Local de Desembarque</span>
+                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.dropoff_location}</span>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                           <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
@@ -1288,7 +1110,7 @@ export default function VoucherPage() {
                           <Car className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
                           <div>
                             <span className="text-[10px] text-gray-400 block font-semibold uppercase">Veículo / Modalidade</span>
-                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{modalityLabel}</span>
+                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{baseModalityLabel}</span>
                           </div>
                         </div>
                       </div>
@@ -1321,24 +1143,31 @@ export default function VoucherPage() {
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3 text-center">
               <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-gray-200">
                 <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase block">Valor Total</span>
-                <span className="text-base sm:text-xl font-black text-gray-900">{formatPrice(booking.amount_total)}</span>
+                <span className="text-base sm:text-xl font-black text-gray-900">{formatPrice(financial?.amountTotal ?? booking.amount_total)}</span>
+                {Number(financial?.discount || 0) > 0 && (
+                  <span className="block text-[9px] sm:text-[10px] text-gray-500 mt-0.5">
+                    Bruto {formatPrice(financial.amountGross)} · Desc. {formatPrice(financial.discount)}
+                  </span>
+                )}
               </div>
 
               <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-emerald-200">
-                <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold uppercase block">Valor Pago (Sinal)</span>
-                <span className="text-base sm:text-xl font-black text-emerald-600">{formatPrice(booking.amount_paid)}</span>
+                <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold uppercase block">
+                  {isPartialPaid ? `Valor Pago (Sinal ${financial?.paidPercentage}%)` : 'Valor Pago'}
+                </span>
+                <span className="text-base sm:text-xl font-black text-emerald-600">{formatPrice(financial?.amountPaid ?? booking.amount_paid)}</span>
               </div>
 
               <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-amber-200">
                 <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold uppercase block">Saldo no Embarque</span>
-                <span className="text-base sm:text-xl font-black text-amber-800">{formatPrice(booking.remaining_balance)}</span>
+                <span className="text-base sm:text-xl font-black text-amber-800">{formatPrice(financial?.remainingBalance ?? booking.remaining_balance)}</span>
               </div>
             </div>
 
-            {Number(booking.remaining_balance) > 0 && (
+            {Number(financial?.remainingBalance ?? booking.remaining_balance) > 0 && (
               <p className="mt-2 text-xs text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-center gap-2 font-medium">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                O saldo restante de <strong>{formatPrice(booking.remaining_balance)}</strong> deve ser quitado no momento do embarque diretamente com o motorista (PIX ou Dinheiro).
+                O saldo restante de <strong>{formatPrice(financial?.remainingBalance ?? booking.remaining_balance)}</strong> deve ser quitado no momento do embarque diretamente com o motorista (PIX ou Dinheiro).
               </p>
             )}
           </div>

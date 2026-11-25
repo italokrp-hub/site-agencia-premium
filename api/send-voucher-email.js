@@ -1,4 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import {
+  computeFinancialSummary,
+  extractItemsFromBooking,
+  normalizeReservationItems,
+  formatModalityLabel,
+  formatPaymentMethodLabel,
+} from '../src/utils/reservationUtils.js';
 
 // Cache em memória para garantir idempotência em requisições automáticas concorrentes na mesma instância serverless
 const sentEmailCodesCache = new Set();
@@ -78,52 +85,43 @@ export default async function handler(req, res) {
 
     // 3. Buscar os dados mais recentes da reserva diretamente no Supabase (sincronia com HotelOps e Webhooks)
     let resData = null;
+    let dbCustomer = null;
+    let dbItems = [];
+    let dbPayments = [];
+
     try {
       const { data, error } = await supabase
         .from('agency_reservations')
-        .select(`
-          id,
-          customer_id,
-          reservation_code,
-          date,
-          time,
-          pax_adults,
-          price_gross,
-          price_final,
-          payment_method,
-          payment_status,
-          reservation_status,
-          status,
-          notes,
-          notes_service,
-          pickup_location,
-          dropoff_location,
-          agency_customers (id, name, whatsapp, email),
-          agency_reservation_items (
-            id,
-            service_name,
-            title,
-            category,
-            trecho,
-            vehicle_type,
-            pax_adults,
-            pax_children,
-            date_start,
-            time_start,
-            price_total,
-            unit_price
-          ),
-          agency_payments (amount, method, status)
-        `)
+        .select('*')
         .ilike('reservation_code', code)
-        .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (!error && data) {
-        resData = data;
-      } else if (error) {
+      if (error) {
         console.warn('[Send Voucher Email] Aviso ao consultar reserva no Supabase:', error);
+      } else if (data) {
+        resData = data;
+
+        if (data.customer_id) {
+          const { data: custData, error: custErr } = await supabase
+            .from('agency_customers')
+            .select('id, name, whatsapp, email')
+            .eq('id', data.customer_id)
+            .maybeSingle();
+          if (custErr) console.warn('[Send Voucher Email] Aviso ao consultar agency_customers:', custErr);
+          if (custData) dbCustomer = custData;
+        }
+
+        if (data.id) {
+          const [{ data: itemsData, error: itemsErr }, { data: payData, error: payErr }] = await Promise.all([
+            supabase.from('agency_reservation_items').select('*').eq('reservation_id', data.id),
+            supabase.from('agency_payments').select('*').eq('reservation_id', data.id),
+          ]);
+          if (itemsErr) console.warn('[Send Voucher Email] Aviso ao consultar agency_reservation_items:', itemsErr);
+          if (payErr) console.warn('[Send Voucher Email] Aviso ao consultar agency_payments:', payErr);
+          if (Array.isArray(itemsData)) dbItems = itemsData;
+          if (Array.isArray(payData)) dbPayments = payData;
+        }
       }
     } catch (dbErr) {
       console.warn('[Send Voucher Email] Erro ao consultar Supabase:', dbErr);
@@ -137,7 +135,7 @@ export default async function handler(req, res) {
     }
 
     // Identificar e-mail do destinatário
-    const rawEmail = body.email || resData?.agency_customers?.email || '';
+    const rawEmail = body.email || dbCustomer?.email || '';
     const cleanEmail = rawEmail && !rawEmail.toLowerCase().includes('example.com') ? rawEmail.trim() : '';
 
     if (!cleanEmail) {
@@ -149,7 +147,7 @@ export default async function handler(req, res) {
     if (cleanEmail && supabase) {
       try {
         if (resData?.customer_id) {
-          const currentEmail = resData.agency_customers?.email || '';
+          const currentEmail = dbCustomer?.email || '';
           if (!currentEmail || currentEmail.trim() === '' || currentEmail.toLowerCase().includes('example.com')) {
             await supabase
               .from('agency_customers')
@@ -182,18 +180,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // 6. Extrair parâmetros com prioridade body -> db -> defaults
+    // 6. Extrair parâmetros com prioridade DB -> body -> defaults
     const isEnglish = Boolean(
       body.isEnglish !== undefined
         ? body.isEnglish
         : (resData?.payment_method === 'stripe' || (resData?.notes && resData.notes.includes('Stripe')))
     );
 
-    // Tratamento anti-spam de nome do cliente:
-    // Evita termos promocionais/genéricos como "Cliente Especial!" ou "Valued Customer!" que ativam filtros de spam
     const rawCustomerName = (
       body.clientName ||
-      resData?.agency_customers?.name ||
+      dbCustomer?.name ||
       ''
     ).trim();
 
@@ -209,41 +205,112 @@ export default async function handler(req, res) {
       : rawCustomerName;
 
     // Itens contratados (suporte a pacotes múltiplos cadastrados no HotelOps)
-    const items = Array.isArray(resData?.agency_reservation_items) && resData.agency_reservation_items.length > 0
-      ? resData.agency_reservation_items
-      : [{
+    const bookingWithRelations = resData
+      ? {
+          ...resData,
+          agency_customers: dbCustomer,
+          agency_reservation_items: dbItems,
+          agency_payments: dbPayments,
+        }
+      : {
+          date: body.date || new Date().toISOString().split('T')[0],
+          time: body.time || null,
+          pax_adults: Number(body.passengers || 1),
+          price_final: Number(body.fullTotal || body.amountPaid || 0),
+          amount_paid: Number(body.amountPaid || 0),
+          payment_method: body.paymentMethod || 'PIX',
+          payment_status: Number(body.amountPaid || 0) > 0 ? 'sinal_pago' : 'pendente',
+          reservation_status: Number(body.amountPaid || 0) > 0 ? 'confirmada' : 'pendente',
+          agency_reservation_items: [],
+          agency_payments: [],
+        };
+
+    const extracted = extractItemsFromBooking(bookingWithRelations);
+    const items = extracted.length > 0
+      ? normalizeReservationItems(bookingWithRelations, extracted)
+      : normalizeReservationItems(bookingWithRelations, [{
           service_name: body.serviceName || 'Transfer & Passeio Jericoacoara Premium',
           title: body.serviceName || 'Transfer & Passeio Jericoacoara Premium',
-          date_start: resData?.date || new Date().toISOString().split('T')[0],
-          time_start: resData?.time || '09:30',
-          pax_adults: resData?.pax_adults || 1,
-        }];
+          date_start: bookingWithRelations.date || new Date().toISOString().split('T')[0],
+          time_start: bookingWithRelations.time || null,
+          pax_adults: bookingWithRelations.pax_adults || 1,
+        }]);
 
     const firstItem = items[0] || {};
     const mainServiceName = firstItem.service_name || firstItem.title || (isEnglish ? 'Jericoacoara Luxury Tour / Transfer' : 'Transfer & Passeio Jericoacoara Premium');
-    
-    const rawDate = body.date || firstItem.date_start || resData?.date || '';
-    let formattedDate = rawDate;
-    if (rawDate && rawDate.includes('-')) {
-      const [yyyy, mm, dd] = rawDate.split('T')[0].split('-');
-      formattedDate = `${dd}/${mm}/${yyyy}`;
+
+    const formatDateBr = (isoDate) => {
+      if (!isoDate) return isEnglish ? 'To be confirmed' : 'A combinar';
+      if (String(isoDate).includes('-')) {
+        const [yyyy, mm, dd] = String(isoDate).split('T')[0].split('-');
+        return `${dd}/${mm}/${yyyy}`;
+      }
+      return String(isoDate);
+    };
+
+    const formattedDate = formatDateBr(firstItem.date || bookingWithRelations.date || body.date);
+    const departureTime = firstItem.time || bookingWithRelations.time || body.time || null;
+    const totalPax = items.reduce((sum, it) => sum + Number(it.pax || 0), 0) || Number(body.passengers || resData?.pax_adults || 1);
+
+    // Cálculos financeiros dinâmicos baseados no banco (total, pago, saldo, status)
+    const financial = computeFinancialSummary(bookingWithRelations, items);
+    const formatBRL = (val) => `R$ ${Number(val || 0).toFixed(2).replace('.', ',')}`;
+
+    const amountTotalFormatted = financial.amountTotal > 0 ? formatBRL(financial.amountTotal) : (isEnglish ? 'Confirmed' : 'Confirmado');
+    const amountPaidFormatted = formatBRL(financial.amountPaid);
+    const remainingFormatted = formatBRL(financial.remainingBalance);
+
+    const paymentMethodRaw = resData?.payment_method || financial.latestPaymentMethod || body.paymentMethod || 'PIX';
+    const paymentLabel = formatPaymentMethodLabel(paymentMethodRaw, isEnglish);
+
+    let statusBadgeText;
+    let statusBadgeColor = '#2C7A7B';
+    let introCopyPlain;
+    let introCopyHtml;
+
+    if (financial.isCancelled) {
+      statusBadgeText = isEnglish ? 'STATUS: CANCELLED' : 'STATUS: RESERVA CANCELADA';
+      statusBadgeColor = '#991b1b';
+      introCopyPlain = isEnglish
+        ? 'This reservation is currently marked as cancelled in our system.'
+        : 'Esta reserva encontra-se cancelada em nosso sistema.';
+      introCopyHtml = introCopyPlain;
+    } else if (financial.isPaidInFull) {
+      statusBadgeText = isEnglish ? 'STATUS: CONFIRMED — PAID IN FULL (100%)' : 'STATUS: CONFIRMADA — PAGAMENTO QUITADO (100%)';
+      introCopyPlain = isEnglish
+        ? 'Your payment is paid in full (100%) and your reservation is confirmed and guaranteed with Jericoacoara Premium.'
+        : 'Seu pagamento foi quitado integralmente (100%) e sua reserva está confirmada e garantida com a Jericoacoara Premium.';
+      introCopyHtml = isEnglish
+        ? 'Your payment is <strong>paid in full (100%)</strong> and your reservation is <strong>confirmed &amp; guaranteed</strong> with Jericoacoara Premium.'
+        : 'Seu pagamento está <strong>100% quitado</strong> e sua reserva está <strong>confirmada e garantida</strong> com a Jericoacoara Premium.';
+    } else if (financial.isPartialPaid) {
+      statusBadgeText = isEnglish
+        ? `STATUS: CONFIRMED — DEPOSIT PAID (${financial.paidPercentage}%)`
+        : `STATUS: CONFIRMADA — SINAL PAGO (${financial.paidPercentage}%)`;
+      introCopyPlain = isEnglish
+        ? `Your ${financial.paidPercentage}% deposit (${amountPaidFormatted}) has been confirmed. The remaining balance of ${remainingFormatted} is due upon boarding.`
+        : `Seu sinal de ${financial.paidPercentage}% (${amountPaidFormatted}) foi confirmado e sua reserva está garantida. O saldo restante de ${remainingFormatted} deverá ser quitado no momento do embarque.`;
+      introCopyHtml = isEnglish
+        ? `Your <strong>${financial.paidPercentage}% deposit (${amountPaidFormatted})</strong> is confirmed and your reservation is guaranteed. The remaining balance of <strong>${remainingFormatted}</strong> is due upon boarding.`
+        : `Seu <strong>sinal de ${financial.paidPercentage}% (${amountPaidFormatted})</strong> foi confirmado e sua reserva está garantida. O saldo restante de <strong>${remainingFormatted}</strong> deve ser quitado no momento do embarque.`;
+    } else if (financial.isConfirmed) {
+      statusBadgeText = isEnglish ? 'STATUS: CONFIRMED' : 'STATUS: RESERVA CONFIRMADA';
+      introCopyPlain = isEnglish
+        ? 'Your reservation is confirmed with Jericoacoara Premium.'
+        : 'Sua reserva está confirmada com a Jericoacoara Premium.';
+      introCopyHtml = isEnglish
+        ? 'Your reservation is <strong>confirmed</strong> with Jericoacoara Premium.'
+        : 'Sua reserva está <strong>confirmada</strong> com a Jericoacoara Premium.';
+    } else {
+      statusBadgeText = isEnglish ? 'STATUS: AWAITING PAYMENT CONFIRMATION' : 'STATUS: PROVISÓRIO — AGUARDANDO PAGAMENTO';
+      statusBadgeColor = '#b45309';
+      introCopyPlain = isEnglish
+        ? 'Your reservation has been registered and is awaiting payment confirmation to release boarding.'
+        : 'Sua reserva foi registrada e está aguardando a confirmação do pagamento para liberação do embarque.';
+      introCopyHtml = isEnglish
+        ? 'Your reservation is registered and <strong>awaiting payment confirmation</strong> to release boarding.'
+        : 'Sua reserva foi registrada e está <strong>aguardando confirmação do pagamento</strong> para liberação do embarque.';
     }
-    if (!formattedDate) formattedDate = isEnglish ? 'To be confirmed' : 'A combinar';
-
-    const departureTime = body.time || firstItem.time_start || resData?.time || '09:30';
-    const totalPax = items.reduce((sum, it) => sum + (Number(it.pax_adults || 0) + Number(it.pax_children || 0)), 0) || Number(body.passengers || resData?.pax_adults || 1);
-
-    // Cálculos financeiros com base nos dados mais recentes
-    const itemsSum = items.reduce((s, it) => s + Number(it.price_total || it.unit_price || 0), 0);
-    const amountVal = Number(resData?.price_final || resData?.price_gross || body.amountPaid || itemsSum || 0);
-    const amountFormatted = amountVal > 0 ? `R$ ${amountVal.toFixed(2).replace('.', ',')}` : (isEnglish ? 'Confirmed' : 'Confirmado');
-
-    const paymentMethodRaw = (body.paymentMethod || resData?.payment_method || 'PIX').toUpperCase();
-    const paymentLabel = paymentMethodRaw.includes('STRIPE')
-      ? (isEnglish ? 'International Credit Card (Stripe)' : 'Cartão Internacional (Stripe)')
-      : paymentMethodRaw.includes('PIX')
-      ? 'PIX Instantâneo'
-      : paymentMethodRaw;
 
     const voucherUrl = `https://jericoacoarapremium.com/voucher/${code}`;
     const conciergeWhatsAppUrl = buildConciergeWhatsAppLink({
@@ -253,46 +320,54 @@ export default async function handler(req, res) {
       isEnglish,
     });
 
-    // 7. Renderização dos serviços para HTML e Plain-Text
-    let servicesListHtml = '';
-    let servicesListText = '';
+    // 7. Renderização detalhada dos serviços para HTML e Plain-Text
+    const servicesListHtml = items.map((it, idx) => {
+      const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
+      const itDate = formatDateBr(it.date);
+      const itTime = it.time ? `${it.time}h` : (isEnglish ? 'To be confirmed' : 'A combinar');
+      const itVehicle = formatModalityLabel(it);
+      const itPax = Number(it.pax || 1);
+      const itPickup = it.pickup_location || (isEnglish ? 'To be confirmed' : 'A combinar');
+      const itDropoff = it.dropoff_location;
 
-    if (items.length > 1) {
-      servicesListHtml = items.map((it, idx) => {
-        const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
-        let itDate = it.date_start || formattedDate;
-        if (itDate && itDate.includes('-')) {
-          const [y, m, d] = itDate.split('T')[0].split('-');
-          itDate = `${d}/${m}/${y}`;
-        }
-        const itTime = it.time_start || '09:30';
-        const itPax = (Number(it.pax_adults || 0) + Number(it.pax_children || 0)) || 1;
-        return `
-          <div style="padding: 6px 0; border-bottom: ${idx < items.length - 1 ? '1px dashed rgba(255,255,255,0.1)' : 'none'};">
-            <span style="color: #D4AF37; font-weight: 800; font-size: 11px; text-transform: uppercase;">✦ ${isEnglish ? 'Service' : 'Serviço'} ${idx + 1}:</span>
-            <strong style="color: #ffffff; font-size: 13px;"> ${itName}</strong>
-            <div style="font-size: 11px; color: #a2c4c5; margin-top: 2px;">
-              📅 ${itDate} ${isEnglish ? 'at' : 'às'} ${itTime}h · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}
-            </div>
+      const legDetailsHtml = it.isRoundTrip
+        ? `
+          <div style="font-size: 11px; color: #a2c4c5; margin-top: 3px; line-height: 1.5;">
+            🟢 <strong>${isEnglish ? 'Outbound' : 'Ida'}:</strong> ${itDate}${it.time ? ` ${isEnglish ? 'at' : 'às'} ${itTime}` : ''} · ${itPickup}${itDropoff ? ` → ${itDropoff}` : ''}<br/>
+            🔵 <strong>${isEnglish ? 'Return' : 'Volta'}:</strong> ${formatDateBr(it.date_end)}${it.time_end ? ` ${isEnglish ? 'at' : 'às'} ${it.time_end}h` : ''} · ${it.return_pickup_location || itDropoff || (isEnglish ? 'To be confirmed' : 'A combinar')} → ${it.return_dropoff_location || itPickup}<br/>
+            🚘 ${itVehicle} · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}
+          </div>
+        `
+        : `
+          <div style="font-size: 11px; color: #a2c4c5; margin-top: 3px; line-height: 1.5;">
+            📅 ${itDate}${it.time ? ` ${isEnglish ? 'at' : 'às'} ${itTime}` : ''} · 🚘 ${itVehicle} · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}<br/>
+            📍 ${isEnglish ? 'Pickup' : 'Embarque'}: ${itPickup}${itDropoff ? ` · ${isEnglish ? 'Dropoff' : 'Desembarque'}: ${itDropoff}` : ''}
           </div>
         `;
-      }).join('');
 
-      servicesListText = items.map((it, idx) => {
-        const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
-        let itDate = it.date_start || formattedDate;
-        if (itDate && itDate.includes('-')) {
-          const [y, m, d] = itDate.split('T')[0].split('-');
-          itDate = `${d}/${m}/${y}`;
-        }
-        const itTime = it.time_start || '09:30';
-        const itPax = (Number(it.pax_adults || 0) + Number(it.pax_children || 0)) || 1;
-        return `  ${idx + 1}. ${itName} (${itDate} ${isEnglish ? 'at' : 'às'} ${itTime}h | ${itPax} pax)`;
-      }).join('\n');
-    } else {
-      servicesListHtml = `<strong style="color: #ffffff; font-size: 13px;">${mainServiceName}</strong>`;
-      servicesListText = `  • ${mainServiceName}`;
-    }
+      return `
+        <div style="padding: 8px 0; border-bottom: ${idx < items.length - 1 ? '1px dashed rgba(255,255,255,0.12)' : 'none'};">
+          ${items.length > 1 ? `<span style="color: #D4AF37; font-weight: 800; font-size: 11px; text-transform: uppercase;">✦ ${isEnglish ? 'Service' : 'Serviço'} ${idx + 1}:</span> ` : ''}
+          <strong style="color: #ffffff; font-size: 13px;">${itName}</strong>
+          ${legDetailsHtml}
+        </div>
+      `;
+    }).join('');
+
+    const servicesListText = items.map((it, idx) => {
+      const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
+      const itDate = formatDateBr(it.date);
+      const itTime = it.time ? `${it.time}h` : (isEnglish ? 'To be confirmed' : 'A combinar');
+      const itVehicle = formatModalityLabel(it);
+      const itPax = Number(it.pax || 1);
+      const itPickup = it.pickup_location || (isEnglish ? 'To be confirmed' : 'A combinar');
+      const itDropoff = it.dropoff_location;
+
+      if (it.isRoundTrip) {
+        return `  ${idx + 1}. ${itName} [${itVehicle} | ${itPax} pax]\n     - Ida: ${itDate}${it.time ? ` às ${itTime}` : ''} | ${itPickup}${itDropoff ? ` -> ${itDropoff}` : ''}\n     - Volta: ${formatDateBr(it.date_end)}${it.time_end ? ` às ${it.time_end}h` : ''} | ${it.return_pickup_location || itDropoff || 'A combinar'} -> ${it.return_dropoff_location || itPickup}`;
+      }
+      return `  ${idx + 1}. ${itName} (${itDate}${it.time ? ` às ${itTime}` : ''} | ${itVehicle} | ${itPax} pax | Embarque: ${itPickup}${itDropoff ? ` -> ${itDropoff}` : ''})`;
+    }).join('\n');
 
     // 8. Otimização de Assunto Transacional (Anti-Spam: Sem exclamações, estilo bilhete aéreo)
     const serviceSubjectSnippet = items.length > 1
@@ -305,22 +380,23 @@ export default async function handler(req, res) {
 
     // 9. Versão Plain-Text Obrigatória (Elimina penalidades SpamAssassin e melhora inbox placement)
     const plainTextContent = isEnglish
-      ? `JERICOACOARA PREMIUM — OFFICIAL BOOKING VOUCHER & BOARDING PASS
+      ? `JERICOACOARA PREMIUM — ${financial.isPending ? 'PROVISIONAL BOOKING VOUCHER' : 'OFFICIAL BOOKING VOUCHER & BOARDING PASS'}
 
 Hello, ${clientGreeting}
 
-Your payment was successfully approved and your reservation is 100% confirmed and guaranteed with Jericoacoara Premium.
+${introCopyPlain}
 
 --------------------------------------------------
 BOOKING LOCATOR / VOUCHER CODE: ${code}
-STATUS: CONFIRMED & GUARANTEED
+${statusBadgeText}
 --------------------------------------------------
 
 RESERVATION DETAILS:
 ${servicesListText}
-- Date & Time: ${items.length > 1 ? `${formattedDate} (${items.length} scheduled services)` : `${formattedDate} at ${departureTime}h`}
+- Date & Time: ${items.length > 1 ? `${formattedDate} (${items.length} scheduled services)` : `${formattedDate}${departureTime ? ` at ${departureTime}h` : ''}`}
 - Total Passengers: ${totalPax} person(s)
-- Amount Paid: ${amountFormatted} (${paymentLabel})
+- Total Amount: ${amountTotalFormatted}
+- Amount Paid: ${financial.amountPaid > 0 ? `${amountPaidFormatted} (${paymentLabel})` : `${amountPaidFormatted} (Pending)`}${financial.remainingBalance > 0 ? `\n- Balance Due on Boarding: ${remainingFormatted}` : ''}
 
 INCLUDED IN YOUR PREMIUM EXPERIENCE:
 * Accredited professional driver and local guide
@@ -329,7 +405,7 @@ INCLUDED IN YOUR PREMIUM EXPERIENCE:
 * 24/7 Digital Concierge assistance via WhatsApp
 
 QUICK ACCESS LINKS:
-- Access Your Official Digital Voucher:
+- Access Your Digital Voucher:
   ${voucherUrl}
 
 - Speak with Concierge on WhatsApp:
@@ -345,22 +421,23 @@ Jericoacoara Premium | Certified Travel & Transportation Agency
 CNPJ & CADASTUR Active · 24/7 VIP Concierge: +55 (88) 98846-3182
 Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brazil
 `
-      : `JERICOACOARA PREMIUM — VOUCHER OFICIAL DE RESERVA E EMBARQUE
+      : `JERICOACOARA PREMIUM — ${financial.isPending ? 'VOUCHER PROVISÓRIO DE RESERVA' : 'VOUCHER OFICIAL DE RESERVA E EMBARQUE'}
 
 Olá, ${clientGreeting}
 
-Seu pagamento foi aprovado com sucesso e sua reserva está 100% confirmada e garantida com a Jericoacoara Premium.
+${introCopyPlain}
 
 --------------------------------------------------
 CÓDIGO LOCALIZADOR / VOUCHER: ${code}
-STATUS: CONFIRMADO & GARANTIDO
+${statusBadgeText}
 --------------------------------------------------
 
 DETALHES DA SUA RESERVA:
 ${servicesListText}
-- Data & Horário: ${items.length > 1 ? `${formattedDate} (${items.length} serviços agendados)` : `${formattedDate} às ${departureTime}h`}
+- Data & Horário: ${items.length > 1 ? `${formattedDate} (${items.length} serviços agendados)` : `${formattedDate}${departureTime ? ` às ${departureTime}h` : ''}`}
 - Total de Passageiros: ${totalPax} passageiro(s)
-- Valor Pago: ${amountFormatted} (${paymentLabel})
+- Valor Total: ${amountTotalFormatted}
+- Valor Pago: ${financial.amountPaid > 0 ? `${amountPaidFormatted} (${paymentLabel})` : `${amountPaidFormatted} (Pendente)`}${financial.remainingBalance > 0 ? `\n- Saldo no Embarque: ${remainingFormatted}` : ''}
 
 O QUE ESTÁ INCLUSO NA SUA EXPERIÊNCIA:
 * Motorista e guia credenciado local com ampla experiência
@@ -369,7 +446,7 @@ O QUE ESTÁ INCLUSO NA SUA EXPERIÊNCIA:
 * Suporte operacional e Concierge VIP 24h via WhatsApp
 
 LINKS DE ACESSO RÁPIDO:
-- Acesse seu Voucher Oficial Digital:
+- Acesse seu Voucher Digital:
   ${voucherUrl}
 
 - Fale com o Concierge no WhatsApp (Alinhamento de embarque):
@@ -410,21 +487,21 @@ Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brasil
                 <span style="background-color: #D4AF37; color: #0b1315; font-size: 11px; font-weight: 900; padding: 2px 7px; border-radius: 4px; vertical-align: middle; letter-spacing: 1px; margin-left: 4px;">PREMIUM</span>
               </div>
               <p style="margin: 0; font-size: 12px; font-weight: 600; color: #a2c4c5; letter-spacing: 2px; text-transform: uppercase;">
-                ${isEnglish ? 'Official Booking Voucher & VIP Boarding Pass' : 'Voucher Oficial de Reserva e Embarque'}
+                ${financial.isPending
+                  ? (isEnglish ? 'Provisional Booking Voucher' : 'Voucher Provisório de Reserva')
+                  : (isEnglish ? 'Official Booking Voucher & VIP Boarding Pass' : 'Voucher Oficial de Reserva e Embarque')}
               </p>
             </td>
           </tr>
 
-          <!-- Confirmation Banner com Saudação Anti-Spam sem exclamações agressivas -->
+          <!-- Confirmation Banner -->
           <tr>
             <td style="padding: 28px 28px 12px 28px; text-align: center;">
               <h1 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 800; color: #ffffff;">
                 ${isEnglish ? `Hello, ${clientGreeting}` : `Olá, ${clientGreeting}`}
               </h1>
               <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
-                ${isEnglish
-                  ? 'Your payment was successfully approved and your reservation is <strong>100% confirmed & guaranteed</strong> with Jericoacoara Premium.'
-                  : 'Seu pagamento foi aprovado com sucesso e sua reserva está <strong>100% confirmada e garantida</strong> com a Jericoacoara Premium.'}
+                ${introCopyHtml}
               </p>
             </td>
           </tr>
@@ -441,8 +518,8 @@ Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brasil
                     <p style="margin: 0 0 10px 0; font-family: monospace, Courier, sans-serif; font-size: 28px; font-weight: 900; color: #D4AF37; letter-spacing: 3px;">
                       ${code}
                     </p>
-                    <div style="display: inline-block; background-color: #2C7A7B; color: #ffffff; font-size: 11px; font-weight: 800; padding: 5px 14px; border-radius: 20px; letter-spacing: 0.5px;">
-                      ✓ ${isEnglish ? 'STATUS: CONFIRMED & GUARANTEED' : 'STATUS: CONFIRMADO & GARANTIDO'}
+                    <div style="display: inline-block; background-color: ${statusBadgeColor}; color: #ffffff; font-size: 11px; font-weight: 800; padding: 5px 14px; border-radius: 20px; letter-spacing: 0.5px;">
+                      ${financial.isPending ? '⏳' : '✓'} ${statusBadgeText}
                     </div>
                   </td>
                 </tr>
@@ -455,21 +532,11 @@ Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brasil
             <td style="padding: 0 24px 20px 24px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #122123; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;">
                 <tr>
-                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); width: 35%; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); width: 32%; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; vertical-align: top;">
                     ${isEnglish ? 'Service(s)' : 'Serviço(s)'}
                   </td>
                   <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px;">
                     ${servicesListHtml}
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
-                    ${isEnglish ? 'Date & Time' : 'Data & Horário'}
-                  </td>
-                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px; font-weight: 700;">
-                    ${items.length > 1
-                      ? `${formattedDate} (${items.length} ${isEnglish ? 'services' : 'serviços'})`
-                      : `${formattedDate} ${isEnglish ? 'at' : 'às'} ${departureTime}h`}
                   </td>
                 </tr>
                 <tr>
@@ -481,13 +548,30 @@ Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brasil
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 14px 18px; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
-                    ${isEnglish ? 'Amount Paid' : 'Valor Pago'}
+                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                    ${isEnglish ? 'Total Amount' : 'Valor Total'}
                   </td>
-                  <td style="padding: 14px 18px; color: #34d399; font-size: 14px; font-weight: 800;">
-                    ${amountFormatted} <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(${paymentLabel})</span>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px; font-weight: 700;">
+                    ${amountTotalFormatted}
                   </td>
                 </tr>
+                <tr>
+                  <td style="padding: 14px 18px; ${financial.remainingBalance > 0 ? 'border-bottom: 1px solid rgba(255,255,255,0.06); ' : ''}color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                    ${financial.isPartialPaid ? (isEnglish ? 'Deposit Paid' : 'Valor Pago (Sinal)') : (isEnglish ? 'Amount Paid' : 'Valor Pago')}
+                  </td>
+                  <td style="padding: 14px 18px; ${financial.remainingBalance > 0 ? 'border-bottom: 1px solid rgba(255,255,255,0.06); ' : ''}color: ${financial.amountPaid > 0 ? '#34d399' : '#fbbf24'}; font-size: 14px; font-weight: 800;">
+                    ${amountPaidFormatted} <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(${financial.amountPaid > 0 ? paymentLabel : (isEnglish ? 'Pending' : 'Pendente')})</span>
+                  </td>
+                </tr>
+                ${financial.remainingBalance > 0 ? `
+                <tr>
+                  <td style="padding: 14px 18px; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                    ${isEnglish ? 'Balance on Boarding' : 'Saldo no Embarque'}
+                  </td>
+                  <td style="padding: 14px 18px; color: #fbbf24; font-size: 14px; font-weight: 800;">
+                    ${remainingFormatted}
+                  </td>
+                </tr>` : ''}
               </table>
             </td>
           </tr>

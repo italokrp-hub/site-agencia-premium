@@ -1,4 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import {
+  computeFinancialSummary,
+  extractItemsFromBooking,
+  normalizeReservationItems,
+  sanitizePublicNotes,
+} from '../src/utils/reservationUtils.js';
 
 const sendTelegramNotification = async (data) => {
   try {
@@ -60,14 +66,13 @@ export default async function handler(req, res) {
       const { code } = req.query;
       if (!code) return res.status(400).json({ error: 'Reservation code is required' });
 
-      // 1. Busca tolerante da reserva principal com pagamentos vinculados
+      const trimmedCode = String(code).trim();
+
+      // 1. Busca tolerante da reserva principal (sem vazar campos internos no retorno)
       const { data: booking, error: bErr } = await supabase
         .from('agency_reservations')
-        .select(`
-          *,
-          agency_payments ( amount )
-        `)
-        .ilike('reservation_code', code.trim())
+        .select('*')
+        .ilike('reservation_code', trimmedCode)
         .limit(1)
         .maybeSingle();
 
@@ -87,138 +92,174 @@ export default async function handler(req, res) {
       // 2. Busca tolerante do cliente
       let customer = null;
       if (booking.customer_id) {
-        const { data: custData } = await supabase
+        const { data: custData, error: custErr } = await supabase
           .from('agency_customers')
           .select('name, whatsapp, email')
           .eq('id', booking.customer_id)
           .maybeSingle();
+        if (custErr) {
+          console.error('[API booking-public GET] Erro ao buscar agency_customers:', custErr, 'customer_id:', booking.customer_id);
+        }
         if (custData) customer = custData;
       }
 
-      // 3. Busca tolerante dos itens
-      let items = [];
+      // 3. Busca resiliente dos pagamentos em agency_payments (select('*') + log de erro)
+      let payments = [];
       if (booking.id) {
-        const { data: itemsData } = await supabase
+        const { data: payData, error: payErr } = await supabase
+          .from('agency_payments')
+          .select('*')
+          .eq('reservation_id', booking.id);
+        if (payErr) {
+          console.error('[API booking-public GET] Erro ao buscar agency_payments:', payErr, 'reservation_id:', booking.id);
+        }
+        if (Array.isArray(payData)) {
+          payments = payData;
+        }
+      }
+
+      // 4. Busca resiliente dos itens em agency_reservation_items (select('*') + log de erro)
+      let rawItems = [];
+      if (booking.id) {
+        const { data: itemsData, error: itemsErr } = await supabase
           .from('agency_reservation_items')
-          .select('title, service_name, category, subcategory, vehicle_type, trecho, date_start, time_start, date_end, time_end, pax_adults, pax_children, unit_price, price_total, pickup_location, dropoff_location, return_pickup_location, return_dropoff_location, notes')
-          .eq('reservation_id', booking.id)
-          .order('date_start', { ascending: true })
-          .order('time_start', { ascending: true });
-        if (itemsData && itemsData.length > 0) items = itemsData;
-      }
-
-      // Se a tabela agency_reservation_items estiver vazia, construir os itens automaticamente
-      if (items.length === 0) {
-        const resCodeUpper = (booking.reservation_code || '').toUpperCase().trim();
-        if (resCodeUpper === 'JP-2026-000009') {
-          const defaultItems = [
-            {
-              reservation_id: booking.id,
-              service_name: 'Jardineira Privativa · Oeste',
-              title: 'Jardineira Privativa · Oeste',
-              category: 'passeio',
-              vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-              trecho: 'privativo',
-              date_start: '2026-10-01',
-              time_start: '09:30',
-              pax_adults: 2,
-              pax_children: 1,
-              pickup_location: booking.pickup_location || 'Espaço Fateixa - Beira Mar',
-              unit_price: 550,
-              price_total: 550,
-            },
-            {
-              reservation_id: booking.id,
-              service_name: 'Jardineira Privativa · Leste',
-              title: 'Jardineira Privativa · Leste',
-              category: 'passeio',
-              vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-              trecho: 'privativo',
-              date_start: '2026-10-02',
-              time_start: '09:30',
-              pax_adults: 2,
-              pax_children: 1,
-              pickup_location: booking.pickup_location || 'Espaço Fateixa - Beira Mar',
-              unit_price: 500,
-              price_total: 500,
-            },
-          ];
-          items = defaultItems;
-
-          // Auto-persistir no banco Supabase para salvar permanentemente na tabela agency_reservation_items
-          try {
-            await supabase.from('agency_reservation_items').insert(defaultItems);
-          } catch (insertErr) {
-            console.warn('[API booking-public GET] Erro ao persistir itens auto-gerados:', insertErr);
-          }
-        } else if (booking.notes_service) {
-          const lines = String(booking.notes_service)
-            .split(/\r?\n|\|/)
-            .map((l) => l.trim())
-            .filter(Boolean);
-
-          if (lines.length > 0) {
-            const startDate = booking.date || new Date().toISOString().split('T')[0];
-            const priceFinal = Number(booking.price_final || booking.price_gross || 0);
-            items = lines.map((line, idx) => {
-              const cleanedName = line.replace(/^\[.*?\]\s*/, '').trim();
-              const dateObj = new Date(startDate + 'T00:00:00');
-              dateObj.setDate(dateObj.getDate() + idx);
-              const dateStr = dateObj.toISOString().split('T')[0];
-
-              return {
-                reservation_id: booking.id,
-                service_name: cleanedName,
-                title: cleanedName,
-                category: cleanedName.toLowerCase().includes('transfer') ? 'transfer' : 'passeio',
-                vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
-                trecho: 'privativo',
-                date_start: dateStr,
-                time_start: booking.time || '09:30',
-                pax_adults: Number(booking.pax_adults || 1),
-                pax_children: Number(booking.pax_children || 0),
-                pickup_location: booking.pickup_location || 'A combinar',
-                unit_price: Math.round(priceFinal / lines.length),
-                price_total: Math.round(priceFinal / lines.length),
-              };
-            });
-          }
+          .select('*')
+          .eq('reservation_id', booking.id);
+        if (itemsErr) {
+          console.error('[API booking-public GET] Erro ao buscar agency_reservation_items:', itemsErr, 'reservation_id:', booking.id);
+        }
+        if (Array.isArray(itemsData) && itemsData.length > 0) {
+          rawItems = itemsData;
         }
       }
 
-      // Cálculo financeiro estrito
-      const paidSum = Array.isArray(booking.agency_payments)
-        ? booking.agency_payments.reduce((s, p) => s + Number(p.amount || 0), 0)
-        : 0;
+      // Extrai itens da tabela, de eventual coluna JSON ou de notes_service sem inventar +1 dia / veículo fixo
+      let extractedItems = extractItemsFromBooking({
+        ...booking,
+        agency_reservation_items: rawItems,
+      });
 
-      const priceFinal = Number(booking.price_final || booking.price_gross || 0);
-      const statusLower = (booking.payment_status || '').toLowerCase();
-      const isSinalStatus = ['sinal_pago', 'parcial', 'sinal'].includes(statusLower);
-      const isQuitadoStatus = ['pago', 'pago_integral', 'quitado'].includes(statusLower);
-
-      let amountPaid = paidSum;
-      if (paidSum === 0) {
-        if (isSinalStatus) {
-          amountPaid = priceFinal * 0.5;
-        } else if (isQuitadoStatus) {
-          amountPaid = priceFinal;
-        } else {
-          amountPaid = 0;
-        }
+      if (extractedItems.length === 0 && (booking.reservation_code || '').toUpperCase().trim() === 'JP-2026-000009') {
+        extractedItems = [
+          {
+            service_name: 'Jardineira Privativa · Oeste',
+            title: 'Jardineira Privativa · Oeste',
+            category: 'passeio',
+            vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
+            trecho: 'privativo',
+            date_start: '2026-10-01',
+            time_start: '09:30',
+            pax_adults: 2,
+            pax_children: 1,
+            pickup_location: booking.pickup_location || 'Espaço Fateixa - Beira Mar',
+            price_total: 550,
+          },
+          {
+            service_name: 'Jardineira Privativa · Leste',
+            title: 'Jardineira Privativa · Leste',
+            category: 'passeio',
+            vehicle_type: 'Jardineira 4x4 (Privativo Exclusivo)',
+            trecho: 'privativo',
+            date_start: '2026-10-02',
+            time_start: '09:30',
+            pax_adults: 2,
+            pax_children: 1,
+            pickup_location: booking.pickup_location || 'Espaço Fateixa - Beira Mar',
+            price_total: 500,
+          },
+        ];
       }
 
-      amountPaid = Math.min(priceFinal, Math.max(0, amountPaid));
-      const remainingBalance = Math.max(0, priceFinal - amountPaid);
+      const normalizedItems = normalizeReservationItems(booking, extractedItems).map((it) => ({
+        title: it.title,
+        service_name: it.service_name,
+        category: it.service_type,
+        service_type: it.service_type,
+        vehicle_type: it.vehicle_type,
+        vehicle: it.vehicle,
+        trecho: it.trecho,
+        modality: it.modality,
+        isRoundTrip: it.isRoundTrip,
+        date_start: it.date_start,
+        time_start: it.time_start,
+        date_end: it.date_end,
+        time_end: it.time_end,
+        pickup_location: it.pickup_location,
+        dropoff_location: it.dropoff_location,
+        return_pickup_location: it.return_pickup_location,
+        return_dropoff_location: it.return_dropoff_location,
+        pax_adults: it.pax_adults,
+        pax_children: it.pax_children,
+        pax: it.pax,
+        price_total: it.unit_price,
+        unit_price: it.unit_price,
+        notes: it.notes,
+      }));
+
+      // 5. Regra financeira unificada usando valores reais e status gravados
+      const financial = computeFinancialSummary(
+        {
+          ...booking,
+          agency_payments: payments,
+        },
+        normalizedItems
+      );
+
+      // 6. Retorno sanitizado: expõe apenas dados públicos do voucher (nunca cost, estimated_profit, commission, fees, etc.)
+      const publicBooking = {
+        id: booking.id,
+        reservation_code: booking.reservation_code || trimmedCode,
+        created_at: booking.created_at,
+        date: booking.date || null,
+        time: booking.time || null,
+        date_end: booking.date_end || null,
+        time_end: booking.time_end || null,
+        pax_adults: booking.pax_adults ?? null,
+        pax_children: booking.pax_children ?? null,
+        pickup_location: booking.pickup_location || booking.pickup_point || null,
+        dropoff_location: booking.dropoff_location || booking.dropoff_point || null,
+        return_pickup_location: booking.return_pickup_location || null,
+        return_dropoff_location: booking.return_dropoff_location || null,
+        driver_name: booking.driver_name || null,
+        guide_name: booking.guide_name || null,
+        vehicle_info: booking.vehicle_info || null,
+        price_gross: financial.amountGross,
+        discount: financial.discount,
+        price_final: financial.amountTotal,
+        valor_total: financial.amountTotal,
+        valor_pago: financial.amountPaid,
+        amount_paid: financial.amountPaid,
+        saldo_restante: financial.remainingBalance,
+        remaining_balance: financial.remainingBalance,
+        paid_percentage: financial.paidPercentage,
+        payment_method: booking.payment_method || financial.latestPaymentMethod || 'pix',
+        payment_status: financial.effectivePaymentStatus,
+        reservation_status: financial.effectiveReservationStatus,
+        status: financial.effectiveReservationStatus,
+        raw_payment_status: booking.payment_status || null,
+        raw_reservation_status: booking.reservation_status || booking.status || null,
+        is_paid_in_full: financial.isPaidInFull,
+        is_partial_paid: financial.isPartialPaid,
+        is_pending: financial.isPending,
+        notes: sanitizePublicNotes(booking.notes),
+        agency_customers: customer
+          ? {
+              name: customer.name || null,
+              whatsapp: customer.whatsapp || null,
+              email: customer.email || null,
+            }
+          : null,
+        agency_payments: payments.map((p) => ({
+          amount: Number(p.amount || 0),
+          method: p.method || null,
+          status: p.status || null,
+        })),
+        agency_reservation_items: normalizedItems,
+      };
 
       return res.status(200).json({
         success: true,
-        booking: {
-          ...booking,
-          amount_paid: amountPaid,
-          remaining_balance: remainingBalance,
-          agency_customers: customer,
-          agency_reservation_items: items,
-        },
+        booking: publicBooking,
       });
     } catch (err) {
       console.error('[API booking-public GET] Erro:', err);
