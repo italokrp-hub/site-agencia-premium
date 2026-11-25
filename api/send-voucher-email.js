@@ -4,6 +4,7 @@ import {
   extractItemsFromBooking,
   normalizeReservationItems,
   formatModalityLabel,
+  formatCleanServiceTitle,
   formatPaymentMethodLabel,
   isTransferService,
   getDistinctDropoff,
@@ -239,7 +240,9 @@ export default async function handler(req, res) {
         }]);
 
     const firstItem = items[0] || {};
-    const mainServiceName = firstItem.service_name || firstItem.title || (isEnglish ? 'Jericoacoara Luxury Tour / Transfer' : 'Transfer & Passeio Jericoacoara Premium');
+    const mainServiceName = firstItem.service_name || firstItem.title
+      ? formatCleanServiceTitle(firstItem)
+      : (isEnglish ? 'Jericoacoara Luxury Tour / Transfer' : 'Transfer & Passeio Jericoacoara Premium');
 
     const formatDateBr = (isoDate) => {
       if (!isoDate) return isEnglish ? 'To be confirmed' : 'A combinar';
@@ -327,7 +330,7 @@ export default async function handler(req, res) {
     const tourItems = items.filter((it) => !isTransferService(it));
 
     const renderTransferHtml = (it, idx, total) => {
-      const itName = it.service_name || it.title || (isEnglish ? `Transfer ${idx + 1}` : `Transfer ${idx + 1}`);
+      const itName = formatCleanServiceTitle(it) || (isEnglish ? `Transfer ${idx + 1}` : `Transfer ${idx + 1}`);
       const itDate = formatDateBr(it.date);
       const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : '';
       const itVehicle = formatModalityLabel(it);
@@ -354,7 +357,7 @@ export default async function handler(req, res) {
     };
 
     const renderTourHtml = (it, idx, total) => {
-      const itName = it.service_name || it.title || (isEnglish ? `Tour ${idx + 1}` : `Passeio ${idx + 1}`);
+      const itName = formatCleanServiceTitle(it) || (isEnglish ? `Tour ${idx + 1}` : `Passeio ${idx + 1}`);
       const itDate = formatDateBr(it.date);
       const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : ` · ${isEnglish ? 'Time to be confirmed' : 'Horário a combinar'}`;
       const itVehicle = formatModalityLabel(it);
@@ -410,7 +413,7 @@ export default async function handler(req, res) {
         `  [${isEnglish ? 'TRANSFERS' : 'TRANSFERS & TRANSLADOS'}]\n` +
           transferItems
             .map((it, idx) => {
-              const itName = it.service_name || it.title;
+              const itName = formatCleanServiceTitle(it);
               const itDate = formatDateBr(it.date);
               const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : '';
               const itVehicle = formatModalityLabel(it);
@@ -430,7 +433,7 @@ export default async function handler(req, res) {
         `  [${isEnglish ? 'TOURS & EXPERIENCES' : 'PASSEIOS & EXPERIÊNCIAS'} — ${isEnglish ? 'Pickup & return at same hotel' : 'Embarque e retorno na mesma hospedagem informada, salvo observação específica.'}]\n` +
           tourItems
             .map((it, idx) => {
-              const itName = it.service_name || it.title;
+              const itName = formatCleanServiceTitle(it);
               const itDate = formatDateBr(it.date);
               const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : ` (${isEnglish ? 'time TBD' : 'horário a combinar'})`;
               const itVehicle = formatModalityLabel(it);

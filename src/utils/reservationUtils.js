@@ -721,3 +721,156 @@ export function sanitizePublicNotes(rawNotes) {
     .filter((part) => part && !/^\[EMAIL_VOUCHER_/i.test(part))
     .join(' | ');
 }
+
+function stripAccentsLower(str) {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+const PORTUGUESE_LOWER_WORDS = new Set(['de', 'do', 'da', 'dos', 'das', 'e', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'a', 'o', 'as', 'os']);
+const PRESERVED_UPPER_ACRONYMS = new Set(['JJD', 'FOR', 'UTV', 'VIP', 'CE']);
+
+function normalizePortugueseCasing(text) {
+  const s = String(text || '').trim();
+  if (!s) return '';
+  // Só re-capitaliza se estiver todo em maiúsculas (ou quase todo em maiúsculas)
+  const letters = s.replace(/[^A-Za-zÀ-ÿ]/g, '');
+  const isAllUpper = letters.length > 0 && letters === letters.toUpperCase();
+  if (!isAllUpper) return s;
+
+  return s
+    .split(/\s+/)
+    .map((word, idx) => {
+      const cleanUpper = word.toUpperCase();
+      if (PRESERVED_UPPER_ACRONYMS.has(cleanUpper)) return cleanUpper;
+      if (/^\d+x\d+$/i.test(word)) return word.toLowerCase();
+      const lower = word.toLowerCase();
+      if (idx > 0 && PORTUGUESE_LOWER_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
+const REDUNDANT_VEHICLE_MODALITY_PATTERNS = [
+  /\bsw4\s*\/\s*hilux\s*4x4\b/gi,
+  /\bhilux\s*4x4\b/gi,
+  /\bjardineira\s*4x4\b/gi,
+  /\butv\s*4x4\b/gi,
+  /\bve[ií]culo\s*4x4\b/gi,
+  /\bvan\s*\/\s*[oô]nibus\b/gi,
+  /\b(?:hilux|sw4|buggy|quadriciclo|jardineira|utv|can-am|maverick)\b/gi,
+  /\b4x4\b/gi,
+  /\b(?:privativ[oa]s?\s*exclusiv[oa]s?|privativ[oa]s?|exclusiv[oa]s?|compartilhad[oa]s?|coletiv[oa]s?)\b/gi,
+];
+
+function stripRedundantVehicleTokens(segment) {
+  const original = String(segment || '').trim();
+  let out = original;
+  for (const rx of REDUNDANT_VEHICLE_MODALITY_PATTERNS) {
+    out = out.replace(rx, ' ');
+  }
+  out = out
+    .replace(/^[\s\-–—·•:,/|]+|[\s\-–—·•:,/|]+$/g, '')
+    .replace(/\s*[-–—]+\s*$/g, '')
+    .replace(/^\s*[-–—]+\s*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  // Evita quebrar frases como "Passeio de Buggy" deixando preposição solta no final ("Passeio de")
+  if (/\b(?:de|do|da|dos|das|em|no|na|nos|nas|com|para|por)$/i.test(out)) {
+    return original;
+  }
+  return out;
+}
+
+function containsKeyword(haystack, needle) {
+  const h = stripAccentsLower(haystack);
+  const n = stripAccentsLower(needle);
+  if (!h || !n) return false;
+  if (h === n) return true;
+  const escaped = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`).test(h);
+}
+
+/**
+ * Limpa e padroniza o título de exibição de um serviço para evitar repetições de sufixos,
+ * redundância com a tag de veículo/modalidade e textos inteiramente em caixa alta.
+ *
+ * @param {Object|string} itemOrTitle - Objeto do item ou string do título principal
+ * @param {string} [extraSuffix] - Sufixo/subcategoria opcional
+ * @param {boolean|null} [forceIsTransfer] - Força classificação de transfer se informado
+ * @returns {string} Título limpo e formatado
+ */
+export function formatCleanServiceTitle(itemOrTitle, extraSuffix = '', forceIsTransfer = null) {
+  const isObj = itemOrTitle && typeof itemOrTitle === 'object';
+  const rawTitle = isObj
+    ? (itemOrTitle.service_name || itemOrTitle.title || itemOrTitle.name || '')
+    : String(itemOrTitle || '');
+  const rawSuffix = isObj
+    ? (itemOrTitle.subcategory || itemOrTitle.subcategoria || extraSuffix || '')
+    : String(extraSuffix || '');
+
+  const isTransfer = forceIsTransfer !== null
+    ? Boolean(forceIsTransfer)
+    : isObj
+    ? isTransferService(itemOrTitle)
+    : /transfer|translado|traslado/i.test(stripAccentsLower(`${rawTitle} ${rawSuffix}`));
+
+  const rawParts = [...String(rawTitle).split(/[·|]/), ...String(rawSuffix).split(/[·|]/)]
+    .map((p) => p.replace(/\s{2,}/g, ' ').trim())
+    .filter(Boolean);
+
+  if (rawParts.length === 0) {
+    return isTransfer ? 'Transfer Jericoacoara' : 'Passeio Jericoacoara';
+  }
+
+  // Deduplica sufixos já presentes no título acumulado (case-insensitive e sem acentos)
+  const dedupedParts = [];
+  for (const part of rawParts) {
+    const accumulated = dedupedParts.join(' ');
+    if (dedupedParts.length === 0 || !containsKeyword(accumulated, part)) {
+      dedupedParts.push(part);
+    }
+  }
+
+  // Remove tokens redundantes de veículo/modalidade de cada segmento
+  const cleanedParts = dedupedParts
+    .map((p) => normalizePortugueseCasing(stripRedundantVehicleTokens(p)))
+    .filter(Boolean);
+
+  // Deduplica novamente após limpeza (ex: "OESTE - HILUX 4X4" -> "Oeste" e sufixo "Oeste")
+  const finalParts = [];
+  for (const part of cleanedParts) {
+    const accumulated = finalParts.join(' ');
+    if (finalParts.length === 0 || !containsKeyword(accumulated, part)) {
+      finalParts.push(part);
+    }
+  }
+
+  if (finalParts.length === 0) {
+    return normalizePortugueseCasing(dedupedParts.join(' · '));
+  }
+
+  let joined = finalParts.join(' ');
+
+  // Padronização amigável para passeios e transfers conhecidos sem redundância
+  if (!isTransfer) {
+    const norm = stripAccentsLower(joined);
+    if (norm === 'oeste' || norm === 'lado oeste') return 'Passeio Lado Oeste';
+    if (norm === 'leste' || norm === 'lado leste') return 'Passeio Lado Leste';
+    if (!/^(passeio|roteiro|experi[eê]ncia|trilha|tour|voo)\b/i.test(norm)) {
+      return `Passeio ${joined}`;
+    }
+    return joined;
+  }
+
+  // Para transfers: se o prefixo ficou exatamente "Transfer" e há destino/origem depois, concatena limpo
+  if (finalParts.length > 1 && stripAccentsLower(finalParts[0]) === 'transfer') {
+    joined = `Transfer ${finalParts.slice(1).join(' ')}`;
+  }
+
+  return joined.replace(/\s{2,}/g, ' ').trim();
+}

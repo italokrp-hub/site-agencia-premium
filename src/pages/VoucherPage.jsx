@@ -33,6 +33,7 @@ import { supabase } from '@/lib/supabase';
 import { buildWhatsAppLink, buildConciergeWhatsAppLink } from '@/utils/whatsapp';
 import {
   formatModalityLabel,
+  formatCleanServiceTitle,
   computeFinancialSummary,
   extractItemsFromBooking,
   normalizeReservationItems,
@@ -594,7 +595,8 @@ export default function VoucherPage() {
 
   const conciergeUrl = useMemo(() => {
     if (!booking) return '';
-    const mainService = booking.items?.[0]?.service_name || booking.items?.[0]?.title || 'Transfer / Passeio em Jericoacoara';
+    const firstItem = booking.items?.[0];
+    const mainService = firstItem ? formatCleanServiceTitle(firstItem) : 'Transfer / Passeio em Jericoacoara';
     const mainDate = booking.items?.[0]?.date
       ? new Date(booking.items[0].date + 'T00:00:00').toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR')
       : 'A combinar';
@@ -1011,7 +1013,7 @@ export default function VoucherPage() {
                             <div key={`tr-${idx}`} className="rounded-xl border border-gray-200 bg-slate-50/50 p-3 space-y-2">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
                                 <h5 className="font-extrabold text-sm sm:text-base text-gray-900 leading-snug">
-                                  {item.service_name || item.title}
+                                  {formatCleanServiceTitle(item)}
                                 </h5>
                                 <span className="inline-flex items-center gap-1 self-start sm:self-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#2C7A7B]/10 text-[#2C7A7B] border border-[#2C7A7B]/20 shrink-0">
                                   <Car className="w-3 h-3" />
@@ -1085,7 +1087,7 @@ export default function VoucherPage() {
                             <div key={`tour-${idx}`} className="rounded-xl border border-gray-200 bg-slate-50/50 p-3 space-y-2">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
                                 <h5 className="font-extrabold text-sm sm:text-base text-gray-900 leading-snug">
-                                  {item.service_name || item.title}
+                                  {formatCleanServiceTitle(item)}
                                 </h5>
                                 <span className="inline-flex items-center gap-1 self-start sm:self-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#2C7A7B]/10 text-[#2C7A7B] border border-[#2C7A7B]/20 shrink-0">
                                   <Car className="w-3 h-3" />
