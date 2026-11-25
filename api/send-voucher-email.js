@@ -8,6 +8,7 @@ import {
   formatPaymentMethodLabel,
   isTransferService,
   getDistinctDropoff,
+  extractCompanions,
 } from '../src/utils/reservationUtils.js';
 
 // Cache em memória para garantir idempotência em requisições automáticas concorrentes na mesma instância serverless
@@ -238,6 +239,17 @@ export default async function handler(req, res) {
           time_start: bookingWithRelations.time || null,
           pax_adults: bookingWithRelations.pax_adults || 1,
         }]);
+
+    const companions = extractCompanions(bookingWithRelations, extracted);
+    const companionsTextList = companions
+      .map((c) => (c.type ? `${c.name} (${c.type})` : c.name))
+      .join(', ');
+    const companionsPillsHtml = companions
+      .map(
+        (c) =>
+          `<span style="display: inline-block; background-color: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16); color: #e2e8f0; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px; margin: 2px 4px 2px 0;">${c.name}${c.type ? ` <span style="color: #D4AF37;">· ${c.type}</span>` : ''}</span>`
+      )
+      .join('');
 
     const firstItem = items[0] || {};
     const mainServiceName = firstItem.service_name || firstItem.title
@@ -470,7 +482,7 @@ ${statusBadgeText}
 --------------------------------------------------
 
 RESERVATION DETAILS:
-${servicesListText}
+${companions.length > 0 ? `- Booking Holder: ${clientGreeting}\n- Companions: ${companionsTextList}\n` : ''}${servicesListText}
 - Date & Time: ${items.length > 1 ? `${formattedDate} (${items.length} scheduled services)` : `${formattedDate}${departureTime ? ` at ${departureTime}h` : ''}`}
 - Total Passengers: ${totalPax} person(s)
 - Total Amount: ${amountTotalFormatted}
@@ -511,7 +523,7 @@ ${statusBadgeText}
 --------------------------------------------------
 
 DETALHES DA SUA RESERVA:
-${servicesListText}
+${companions.length > 0 ? `- Titular: ${clientGreeting}\n- Acompanhantes: ${companionsTextList}\n` : ''}${servicesListText}
 - Data & Horário: ${items.length > 1 ? `${formattedDate} (${items.length} serviços agendados)` : `${formattedDate}${departureTime ? ` às ${departureTime}h` : ''}`}
 - Total de Passageiros: ${totalPax} passageiro(s)
 - Valor Total: ${amountTotalFormatted}
@@ -609,6 +621,16 @@ Vila de Jericoacoara, Jijoca de Jericoacoara - CE, Brasil
           <tr>
             <td style="padding: 0 24px 20px 24px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #122123; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;">
+                ${companions.length > 0 ? `
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); width: 32%; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; vertical-align: top;">
+                    ${isEnglish ? 'Holder &amp; Companions' : 'Titular &amp; Acompanhantes'}
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #ffffff; font-size: 13px;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">${clientGreeting}</div>
+                    <div>${companionsPillsHtml}</div>
+                  </td>
+                </tr>` : ''}
                 <tr>
                   <td style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); width: 32%; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; vertical-align: top;">
                     ${isEnglish ? 'Service(s)' : 'Serviço(s)'}

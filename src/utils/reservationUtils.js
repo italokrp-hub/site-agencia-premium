@@ -874,3 +874,159 @@ export function formatCleanServiceTitle(itemOrTitle, extraSuffix = '', forceIsTr
 
   return joined.replace(/\s{2,}/g, ' ').trim();
 }
+
+const COMPANION_FIELD_NAMES = [
+  'companions',
+  'acompanhantes',
+  'passengers',
+  'passageiros',
+  'additional_passengers',
+  'companion_names',
+  'guest_names',
+  'guests',
+  'lista_passageiros',
+  'nomes_acompanhantes',
+];
+
+function normalizeCompanionType(rawType) {
+  const t = stripAccentsLower(rawType);
+  if (!t) return null;
+  if (t.includes('crianc') || t.includes('child') || t.includes('kid') || t.includes('menor') || t.includes('infantil') || t === 'chd') {
+    return 'Criança';
+  }
+  if (t.includes('bebe') || t.includes('infant') || t.includes('baby') || t.includes('colo')) {
+    return 'Bebê';
+  }
+  if (t.includes('adult') || t === 'adt') {
+    return 'Adulto';
+  }
+  return null;
+}
+
+function sanitizeCompanionNameText(rawText) {
+  let text = String(rawText || '')
+    .replace(/^[\s\-–—•*\d.)]+/, '')
+    .trim();
+  if (!text) return { name: '', type: null };
+
+  let inferredType = null;
+  const typeMatch = text.match(/\(([^)]+)\)\s*$/);
+  if (typeMatch) {
+    const maybeType = normalizeCompanionType(typeMatch[1]);
+    if (maybeType) {
+      inferredType = maybeType;
+      text = text.slice(0, typeMatch.index).trim();
+    }
+  }
+
+  // LGPD: remove qualquer CPF, RG, passaporte, telefone ou e-mail embutido em texto livre
+  text = text
+    .replace(/\(?\b(?:cpf|rg|doc|documento|passaporte|passport)\b[:\s-]*[a-z0-9./-]+\)?/gi, '')
+    .replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, '')
+    .replace(/\S+@\S+\.\S+/g, '')
+    .replace(/^[\s\-–—:,/|]+|[\s\-–—:,/|]+$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (!text || /^\d+$/.test(text) || ['nao informado', 'não informado', 'a combinar'].includes(stripAccentsLower(text))) {
+    return { name: '', type: null };
+  }
+
+  return { name: text, type: inferredType };
+}
+
+function parseCompanionSource(rawValue) {
+  if (rawValue === null || rawValue === undefined || rawValue === '') return [];
+
+  let value = rawValue;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        value = JSON.parse(trimmed);
+      } catch {
+        // segue como texto delimitado
+      }
+    }
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/[\r\n,;]+/)
+      .map((part) => sanitizeCompanionNameText(part))
+      .filter((entry) => Boolean(entry.name));
+  }
+
+  const arr = Array.isArray(value) ? value : (typeof value === 'object' ? [value] : []);
+  const results = [];
+
+  for (const entry of arr) {
+    if (!entry) continue;
+    if (typeof entry === 'string') {
+      results.push(...parseCompanionSource(entry));
+      continue;
+    }
+    if (typeof entry === 'object') {
+      const rawName = entry.name ?? entry.nome ?? entry.full_name ?? entry.nome_completo ?? entry.guest_name ?? entry.passenger_name ?? '';
+      const rawType = entry.type ?? entry.tipo ?? entry.category ?? entry.categoria ?? entry.pax_type ?? entry.age_group ?? entry.faixa_etaria ?? null;
+      const cleaned = sanitizeCompanionNameText(rawName);
+      if (!cleaned.name) continue;
+      const normalizedType = normalizeCompanionType(rawType) || cleaned.type;
+      results.push(normalizedType ? { name: cleaned.name, type: normalizedType } : { name: cleaned.name });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Extrai e sanitiza a lista de acompanhantes/passageiros adicionais da reserva (LGPD):
+ * retorna apenas `{ name, type? }`, descartando CPF, RG, documentos, datas de nascimento,
+ * telefones ou e-mails, e removendo duplicidades e o próprio titular da reserva.
+ *
+ * @param {Object} booking - Registro principal da reserva
+ * @param {Array} [items] - Itens vinculados à reserva
+ * @returns {Array<{ name: string, type?: string }>}
+ */
+export function extractCompanions(booking = {}, items = []) {
+  if (!booking || typeof booking !== 'object') return [];
+
+  const holderNorm = stripAccentsLower(
+    booking.agency_customers?.name || booking.client_name || booking.customer_name || ''
+  );
+
+  const candidates = [];
+  for (const field of COMPANION_FIELD_NAMES) {
+    if (booking[field] !== undefined && booking[field] !== null) {
+      candidates.push(...parseCompanionSource(booking[field]));
+    }
+  }
+
+  if (Array.isArray(items)) {
+    for (const item of items) {
+      if (!item || typeof item !== 'object') continue;
+      for (const field of COMPANION_FIELD_NAMES) {
+        if (item[field] !== undefined && item[field] !== null) {
+          candidates.push(...parseCompanionSource(item[field]));
+        }
+      }
+    }
+  }
+
+  const seen = new Map();
+  for (const c of candidates) {
+    const normName = stripAccentsLower(c.name);
+    if (!normName) continue;
+    if (holderNorm && normName === holderNorm) continue;
+
+    const existing = seen.get(normName);
+    if (!existing) {
+      seen.set(normName, c.type ? { name: c.name, type: c.type } : { name: c.name });
+    } else if (!existing.type && c.type) {
+      seen.set(normName, { name: existing.name, type: c.type });
+    }
+  }
+
+  return Array.from(seen.values());
+}

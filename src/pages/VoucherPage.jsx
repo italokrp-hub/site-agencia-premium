@@ -40,6 +40,7 @@ import {
   sanitizePublicNotes,
   isTransferService,
   getDistinctDropoff,
+  extractCompanions,
 } from '@/utils/reservationUtils';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -200,6 +201,7 @@ export default function VoucherPage() {
 
     const normalizedItems = normalizeReservationItems(raw, extracted);
     const financialSummary = computeFinancialSummary(raw, normalizedItems);
+    const companions = extractCompanions({ ...raw, agency_customers: cust }, extracted);
 
     const rawEmail = cust.email || raw.client_email || '';
     const cleanEmail = rawEmail && !rawEmail.toLowerCase().includes('example.com') ? rawEmail : '';
@@ -210,6 +212,7 @@ export default function VoucherPage() {
       client_name: cust.name || raw.client_name || 'Cliente',
       client_phone: cust.whatsapp || cust.phone || raw.client_phone || '',
       client_email: cleanEmail,
+      companions,
       status: financialSummary.effectiveReservationStatus,
       reservation_status: financialSummary.effectiveReservationStatus,
       payment_status: financialSummary.effectivePaymentStatus,
@@ -952,6 +955,28 @@ export default function VoucherPage() {
                 </span>
               </div>
             </div>
+
+            {Array.isArray(booking.companions) && booking.companions.length > 0 && (
+              <div className="mt-3 pt-2.5 border-t border-gray-200/80">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                  <Users className="w-3 h-3 text-[#2C7A7B]" />
+                  Acompanhantes
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {booking.companions.map((comp, idx) => (
+                    <span
+                      key={`${comp.name}-${idx}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white text-gray-800 border border-gray-200"
+                    >
+                      <span>{comp.name}</span>
+                      {comp.type && (
+                        <span className="text-[10px] text-[#2C7A7B] font-bold">· {comp.type}</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 2: Service Details */}

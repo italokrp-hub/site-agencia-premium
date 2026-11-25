@@ -4,6 +4,7 @@ import {
   extractItemsFromBooking,
   normalizeReservationItems,
   sanitizePublicNotes,
+  extractCompanions,
 } from '../src/utils/reservationUtils.js';
 
 const sendTelegramNotification = async (data) => {
@@ -205,6 +206,9 @@ export default async function handler(req, res) {
         normalizedItems
       );
 
+      // 5b. Extração sanitizada de acompanhantes (LGPD: apenas { name, type? })
+      const companions = extractCompanions({ ...booking, agency_customers: customer }, rawItems);
+
       // 6. Retorno sanitizado: expõe apenas dados públicos do voucher (nunca cost, estimated_profit, commission, fees, etc.)
       const publicBooking = {
         id: booking.id,
@@ -216,6 +220,7 @@ export default async function handler(req, res) {
         time_end: booking.time_end || null,
         pax_adults: booking.pax_adults ?? null,
         pax_children: booking.pax_children ?? null,
+        companions,
         pickup_location: booking.pickup_location || booking.pickup_point || null,
         dropoff_location: booking.dropoff_location || booking.dropoff_point || null,
         return_pickup_location: booking.return_pickup_location || null,
