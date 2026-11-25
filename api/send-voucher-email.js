@@ -5,6 +5,8 @@ import {
   normalizeReservationItems,
   formatModalityLabel,
   formatPaymentMethodLabel,
+  isTransferService,
+  getDistinctDropoff,
 } from '../src/utils/reservationUtils.js';
 
 // Cache em memória para garantir idempotência em requisições automáticas concorrentes na mesma instância serverless
@@ -320,54 +322,127 @@ export default async function handler(req, res) {
       isEnglish,
     });
 
-    // 7. Renderização detalhada dos serviços para HTML e Plain-Text
-    const servicesListHtml = items.map((it, idx) => {
-      const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
+    // 7. Renderização detalhada e agrupada por categoria (Transfers vs. Passeios) para HTML e Plain-Text
+    const transferItems = items.filter((it) => isTransferService(it));
+    const tourItems = items.filter((it) => !isTransferService(it));
+
+    const renderTransferHtml = (it, idx, total) => {
+      const itName = it.service_name || it.title || (isEnglish ? `Transfer ${idx + 1}` : `Transfer ${idx + 1}`);
       const itDate = formatDateBr(it.date);
-      const itTime = it.time ? `${it.time}h` : (isEnglish ? 'To be confirmed' : 'A combinar');
+      const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : '';
       const itVehicle = formatModalityLabel(it);
       const itPax = Number(it.pax || 1);
-      const itPickup = it.pickup_location || (isEnglish ? 'To be confirmed' : 'A combinar');
-      const itDropoff = it.dropoff_location;
+      const origIda = it.pickup_location || (isEnglish ? 'To be confirmed' : 'A combinar');
+      const destIda = it.dropoff_location || (isEnglish ? 'To be confirmed' : 'A combinar');
 
-      const legDetailsHtml = it.isRoundTrip
-        ? `
-          <div style="font-size: 11px; color: #a2c4c5; margin-top: 3px; line-height: 1.5;">
-            🟢 <strong>${isEnglish ? 'Outbound' : 'Ida'}:</strong> ${itDate}${it.time ? ` ${isEnglish ? 'at' : 'às'} ${itTime}` : ''} · ${itPickup}${itDropoff ? ` → ${itDropoff}` : ''}<br/>
-            🔵 <strong>${isEnglish ? 'Return' : 'Volta'}:</strong> ${formatDateBr(it.date_end)}${it.time_end ? ` ${isEnglish ? 'at' : 'às'} ${it.time_end}h` : ''} · ${it.return_pickup_location || itDropoff || (isEnglish ? 'To be confirmed' : 'A combinar')} → ${it.return_dropoff_location || itPickup}<br/>
-            🚘 ${itVehicle} · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}
-          </div>
-        `
-        : `
-          <div style="font-size: 11px; color: #a2c4c5; margin-top: 3px; line-height: 1.5;">
-            📅 ${itDate}${it.time ? ` ${isEnglish ? 'at' : 'às'} ${itTime}` : ''} · 🚘 ${itVehicle} · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}<br/>
-            📍 ${isEnglish ? 'Pickup' : 'Embarque'}: ${itPickup}${itDropoff ? ` · ${isEnglish ? 'Dropoff' : 'Desembarque'}: ${itDropoff}` : ''}
-          </div>
-        `;
+      const voltaLine = it.isRoundTrip
+        ? `<br/><span style="color: #67e8f9; font-weight: 700;">${isEnglish ? 'Return' : 'Volta'}:</span> ${formatDateBr(it.date_end)}${it.time_end ? ` ${isEnglish ? 'at' : 'às'} ${it.time_end}h` : ''} — ${it.return_pickup_location || destIda} → ${it.return_dropoff_location || origIda}`
+        : '';
 
       return `
-        <div style="padding: 8px 0; border-bottom: ${idx < items.length - 1 ? '1px dashed rgba(255,255,255,0.12)' : 'none'};">
-          ${items.length > 1 ? `<span style="color: #D4AF37; font-weight: 800; font-size: 11px; text-transform: uppercase;">✦ ${isEnglish ? 'Service' : 'Serviço'} ${idx + 1}:</span> ` : ''}
-          <strong style="color: #ffffff; font-size: 13px;">${itName}</strong>
-          ${legDetailsHtml}
+        <div style="padding: 8px 0; border-bottom: ${idx < total - 1 ? '1px dashed rgba(255,255,255,0.12)' : 'none'};">
+          <div style="margin-bottom: 3px;">
+            <strong style="color: #ffffff; font-size: 13px;">${itName}</strong>
+            <span style="display: inline-block; background-color: rgba(44,122,123,0.35); color: #a7f3d0; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">${itVehicle}</span>
+          </div>
+          <div style="font-size: 11px; color: #cbd5e1; line-height: 1.55;">
+            <span style="color: #34d399; font-weight: 700;">${isEnglish ? 'Outbound' : 'Ida'}:</span> ${itDate}${itTime} — ${origIda} → ${destIda}${voltaLine}<br/>
+            <span style="color: #94a3b8;">👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'} · ${it.isRoundTrip ? (isEnglish ? 'Round-trip' : 'Ida e Volta') : (isEnglish ? 'One-way' : 'Somente Ida')}</span>
+          </div>
         </div>
       `;
-    }).join('');
+    };
 
-    const servicesListText = items.map((it, idx) => {
-      const itName = it.service_name || it.title || (isEnglish ? `Service ${idx + 1}` : `Serviço ${idx + 1}`);
+    const renderTourHtml = (it, idx, total) => {
+      const itName = it.service_name || it.title || (isEnglish ? `Tour ${idx + 1}` : `Passeio ${idx + 1}`);
       const itDate = formatDateBr(it.date);
-      const itTime = it.time ? `${it.time}h` : (isEnglish ? 'To be confirmed' : 'A combinar');
+      const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : ` · ${isEnglish ? 'Time to be confirmed' : 'Horário a combinar'}`;
       const itVehicle = formatModalityLabel(it);
       const itPax = Number(it.pax || 1);
       const itPickup = it.pickup_location || (isEnglish ? 'To be confirmed' : 'A combinar');
-      const itDropoff = it.dropoff_location;
+      const distinctDropoff = getDistinctDropoff(itPickup, it.dropoff_location);
 
-      if (it.isRoundTrip) {
-        return `  ${idx + 1}. ${itName} [${itVehicle} | ${itPax} pax]\n     - Ida: ${itDate}${it.time ? ` às ${itTime}` : ''} | ${itPickup}${itDropoff ? ` -> ${itDropoff}` : ''}\n     - Volta: ${formatDateBr(it.date_end)}${it.time_end ? ` às ${it.time_end}h` : ''} | ${it.return_pickup_location || itDropoff || 'A combinar'} -> ${it.return_dropoff_location || itPickup}`;
-      }
-      return `  ${idx + 1}. ${itName} (${itDate}${it.time ? ` às ${itTime}` : ''} | ${itVehicle} | ${itPax} pax | Embarque: ${itPickup}${itDropoff ? ` -> ${itDropoff}` : ''})`;
-    }).join('\n');
+      return `
+        <div style="padding: 8px 0; border-bottom: ${idx < total - 1 ? '1px dashed rgba(255,255,255,0.12)' : 'none'};">
+          <div style="margin-bottom: 3px;">
+            <strong style="color: #ffffff; font-size: 13px;">${itName}</strong>
+            <span style="display: inline-block; background-color: rgba(44,122,123,0.35); color: #a7f3d0; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">${itVehicle}</span>
+          </div>
+          <div style="font-size: 11px; color: #a2c4c5; line-height: 1.55;">
+            📅 ${itDate}${itTime} · 📍 ${isEnglish ? 'Pickup' : 'Embarque'}: ${itPickup} · 👥 ${itPax} ${isEnglish ? 'pax' : 'passageiro(s)'}
+            ${distinctDropoff ? `<br/>📍 ${isEnglish ? 'Different dropoff' : 'Desembarque diferente'}: ${distinctDropoff}` : ''}
+          </div>
+        </div>
+      `;
+    };
+
+    const htmlSections = [];
+    if (transferItems.length > 0) {
+      htmlSections.push(`
+        <div style="margin-bottom: ${tourItems.length > 0 ? '12px' : '0'};">
+          <div style="font-size: 11px; font-weight: 800; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 4px; margin-bottom: 4px;">
+            🚘 ${isEnglish ? 'Transfers' : 'Transfers &amp; Translados'}
+          </div>
+          ${transferItems.map((it, idx) => renderTransferHtml(it, idx, transferItems.length)).join('')}
+        </div>
+      `);
+    }
+    if (tourItems.length > 0) {
+      htmlSections.push(`
+        <div>
+          <div style="border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 4px; margin-bottom: 4px;">
+            <div style="font-size: 11px; font-weight: 800; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px;">
+              🧭 ${isEnglish ? 'Tours &amp; Experiences' : 'Passeios &amp; Experiências'}
+            </div>
+            <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+              ${isEnglish ? 'Pickup and dropoff at the same accommodation unless noted otherwise.' : 'Embarque e retorno na mesma hospedagem informada, salvo observação específica.'}
+            </div>
+          </div>
+          ${tourItems.map((it, idx) => renderTourHtml(it, idx, tourItems.length)).join('')}
+        </div>
+      `);
+    }
+    const servicesListHtml = htmlSections.join('');
+
+    const textSections = [];
+    if (transferItems.length > 0) {
+      textSections.push(
+        `  [${isEnglish ? 'TRANSFERS' : 'TRANSFERS & TRANSLADOS'}]\n` +
+          transferItems
+            .map((it, idx) => {
+              const itName = it.service_name || it.title;
+              const itDate = formatDateBr(it.date);
+              const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : '';
+              const itVehicle = formatModalityLabel(it);
+              const itPax = Number(it.pax || 1);
+              const origIda = it.pickup_location || 'A combinar';
+              const destIda = it.dropoff_location || 'A combinar';
+              const voltaText = it.isRoundTrip
+                ? `\n     - Volta: ${formatDateBr(it.date_end)}${it.time_end ? ` às ${it.time_end}h` : ''} — ${it.return_pickup_location || destIda} -> ${it.return_dropoff_location || origIda}`
+                : '';
+              return `  ${idx + 1}. ${itName} [${itVehicle} | ${itPax} pax]\n     - Ida: ${itDate}${itTime} — ${origIda} -> ${destIda}${voltaText}`;
+            })
+            .join('\n')
+      );
+    }
+    if (tourItems.length > 0) {
+      textSections.push(
+        `  [${isEnglish ? 'TOURS & EXPERIENCES' : 'PASSEIOS & EXPERIÊNCIAS'} — ${isEnglish ? 'Pickup & return at same hotel' : 'Embarque e retorno na mesma hospedagem informada, salvo observação específica.'}]\n` +
+          tourItems
+            .map((it, idx) => {
+              const itName = it.service_name || it.title;
+              const itDate = formatDateBr(it.date);
+              const itTime = it.time ? ` ${isEnglish ? 'at' : 'às'} ${it.time}h` : ` (${isEnglish ? 'time TBD' : 'horário a combinar'})`;
+              const itVehicle = formatModalityLabel(it);
+              const itPax = Number(it.pax || 1);
+              const itPickup = it.pickup_location || 'A combinar';
+              const distinctDropoff = getDistinctDropoff(itPickup, it.dropoff_location);
+              return `  ${idx + 1}. ${itName} [${itVehicle} | ${itPax} pax] — ${itDate}${itTime} | Embarque: ${itPickup}${distinctDropoff ? ` | Desembarque diferente: ${distinctDropoff}` : ''}`;
+            })
+            .join('\n')
+      );
+    }
+    const servicesListText = textSections.join('\n\n');
 
     // 8. Otimização de Assunto Transacional (Anti-Spam: Sem exclamações, estilo bilhete aéreo)
     const serviceSubjectSnippet = items.length > 1

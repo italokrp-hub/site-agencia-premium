@@ -12,6 +12,7 @@ import {
   Phone,
   Mail,
   Car,
+  Compass,
   Users,
   ShieldCheck,
   ArrowLeft,
@@ -36,6 +37,8 @@ import {
   extractItemsFromBooking,
   normalizeReservationItems,
   sanitizePublicNotes,
+  isTransferService,
+  getDistinctDropoff,
 } from '@/utils/reservationUtils';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -586,7 +589,8 @@ export default function VoucherPage() {
     );
   }, [booking, financial]);
 
-  const isEnglish = language === 'en' || (booking?.payment_method || '').toLowerCase() === 'stripe';
+  const urlLang = (searchParams.get('lang') || searchParams.get('idioma') || '').toLowerCase();
+  const isEnglish = urlLang === 'en';
 
   const conciergeUrl = useMemo(() => {
     if (!booking) return '';
@@ -887,7 +891,7 @@ export default function VoucherPage() {
                     <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">
                       <CheckCircle className="w-3.5 h-3.5" />
                       {isPaidInFull
-                        ? (isEnglish ? 'Paid in Full (100%)' : 'Pagamento Quitado (100%)')
+                        ? (isEnglish ? 'Payment Confirmed' : 'Pagamento Confirmado')
                         : isPartialPaid
                         ? (isEnglish ? `Deposit Paid (${financial?.paidPercentage}%)` : `Sinal Pago (${financial?.paidPercentage}%)`)
                         : (isEnglish ? 'Reservation Confirmed' : 'Reserva Confirmada')}
@@ -897,12 +901,12 @@ export default function VoucherPage() {
                     <MessageCircle className="w-4 h-4 text-[#25D366]" />
                     {isEnglish
                       ? 'Align Your Reservation with our 24/7 VIP Concierge'
-                      : 'Próximo Passo Recomendado: Alinhamento com nosso Concierge'}
+                      : 'Alinhe os detalhes com nosso Concierge 24h'}
                   </h3>
                   <p className="text-xs text-gray-300 leading-relaxed">
                     {isEnglish
                       ? 'Our dedicated team is ready on WhatsApp to synchronize your exact pickup time, hotel address, and answer any questions with VIP priority.'
-                      : 'Nossa equipe exclusiva está a postos no WhatsApp para alinhar seu horário exato de saída, detalhes do hotel/pousada e tirar todas as suas dúvidas.'}
+                      : 'Nossa equipe está à disposição no WhatsApp para alinhar seu horário exato de saída, detalhes da hospedagem e tirar qualquer dúvida.'}
                   </p>
                 </div>
 
@@ -962,169 +966,179 @@ export default function VoucherPage() {
               )}
             </h3>
 
-            <div className="space-y-3">
-              {(booking.items || []).map((item, idx) => {
-                const formattedDate = item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar';
-                const formattedReturnDate = item.date_end ? new Date(item.date_end + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar';
-                const timeLabel = item.time ? `${item.time}h` : 'A combinar';
-                const returnTimeLabel = item.time_end ? `${item.time_end}h` : 'A combinar';
-                const baseModalityLabel = formatModalityLabel(item);
-                const modalityLabel = item.isRoundTrip
-                  ? `Transfer Ida e Volta · ${baseModalityLabel}`
-                  : baseModalityLabel;
+            {(() => {
+              const allItems = booking.items || [];
+              const transferItems = allItems.filter((it) => isTransferService(it));
+              const tourItems = allItems.filter((it) => !isTransferService(it));
 
+              const formatBrDate = (iso) =>
+                iso ? new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR') : 'A combinar';
+
+              const formatPax = (item) => {
                 const adults = Number(item.pax_adults || 0);
                 const children = Number(item.pax_children || 0);
-                let paxLabel = `${item.pax || 1} pessoa(s)`;
-                if (adults > 0 && children > 0) {
-                  paxLabel = `${adults} adulto(s), ${children} criança(s)`;
-                } else if (adults + children > 0) {
-                  paxLabel = `${adults + children} pessoa(s)`;
-                }
+                if (adults > 0 && children > 0) return `${adults} adulto(s), ${children} criança(s)`;
+                if (adults + children > 0) return `${adults + children} pessoa(s)`;
+                return `${item.pax || 1} pessoa(s)`;
+              };
 
-                return (
-                  <div key={idx} className="bg-white rounded-xl border border-gray-200 p-3 space-y-2.5">
-                    {/* Header do Serviço */}
-                    <div className="bg-[#2C7A7B]/5 p-2.5 sm:p-3 rounded-lg border border-[#2C7A7B]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                      <div>
-                        {booking.items.length > 1 && (
-                          <span className="text-[11px] font-black uppercase text-[#2C7A7B] tracking-wider block mb-0.5">
-                            SERVIÇO {idx + 1} DE {booking.items.length} · {formattedDate}{item.time ? ` ÀS ${item.time}H` : ''}
-                          </span>
-                        )}
-                        <h4 className="font-extrabold text-base sm:text-lg text-gray-900 leading-tight">
-                          {item.service_name || item.title || item.name || 'Passeio Jericoacoara'}
+              return (
+                <div className="space-y-4">
+                  {/* Grupo 1: Transfers & Translados */}
+                  {transferItems.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 border-b border-gray-200 pb-1.5">
+                        <Car className="w-3.5 h-3.5 text-[#2C7A7B]" />
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
+                          Transfers &amp; Translados
                         </h4>
                       </div>
-                      <div className="sm:text-right">
-                        <p className="text-xs text-[#2C7A7B] font-bold">
-                          Modalidade: {modalityLabel}
-                        </p>
+
+                      <div className="space-y-2">
+                        {transferItems.map((item, idx) => {
+                          const vehicleTag = formatModalityLabel(item);
+                          const dateIda = formatBrDate(item.date);
+                          const timeIda = item.time ? ` às ${item.time}h` : '';
+                          const origIda = item.pickup_location || 'A combinar';
+                          const destIda = item.dropoff_location || 'A combinar';
+
+                          const dateVolta = formatBrDate(item.date_end);
+                          const timeVolta = item.time_end ? ` às ${item.time_end}h` : '';
+                          const origVolta = item.return_pickup_location || item.dropoff_location || 'A combinar';
+                          const destVolta = item.return_dropoff_location || item.pickup_location || 'A combinar';
+
+                          return (
+                            <div key={`tr-${idx}`} className="rounded-xl border border-gray-200 bg-slate-50/50 p-3 space-y-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+                                <h5 className="font-extrabold text-sm sm:text-base text-gray-900 leading-snug">
+                                  {item.service_name || item.title}
+                                </h5>
+                                <span className="inline-flex items-center gap-1 self-start sm:self-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#2C7A7B]/10 text-[#2C7A7B] border border-[#2C7A7B]/20 shrink-0">
+                                  <Car className="w-3 h-3" />
+                                  {vehicleTag}
+                                </span>
+                              </div>
+
+                              <div className="space-y-1 text-xs text-gray-800 bg-white rounded-lg border border-gray-200/80 px-3 py-2">
+                                <p className="leading-relaxed">
+                                  <span className="inline-block font-extrabold text-emerald-700 uppercase text-[10px] tracking-wider mr-1.5">Ida:</span>
+                                  <span className="font-bold">{dateIda}{timeIda}</span>
+                                  <span className="text-gray-400 mx-1.5">—</span>
+                                  <span className="font-semibold text-gray-900">{origIda} → {destIda}</span>
+                                </p>
+                                {item.isRoundTrip && (
+                                  <p className="leading-relaxed pt-1 border-t border-gray-100">
+                                    <span className="inline-block font-extrabold text-cyan-700 uppercase text-[10px] tracking-wider mr-1.5">Volta:</span>
+                                    <span className="font-bold">{dateVolta}{timeVolta}</span>
+                                    <span className="text-gray-400 mx-1.5">—</span>
+                                    <span className="font-semibold text-gray-900">{origVolta} → {destVolta}</span>
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-600">
+                                <span className="inline-flex items-center gap-1 font-semibold">
+                                  <Users className="w-3.5 h-3.5 text-[#2C7A7B]" />
+                                  {formatPax(item)}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span className="font-semibold text-gray-700">
+                                  {item.isRoundTrip ? 'Trecho: Ida e Volta' : 'Trecho: Somente Ida'}
+                                </span>
+                              </div>
+
+                              {item.notes && (
+                                <p className="text-[11px] text-gray-600 bg-white px-2.5 py-1.5 rounded-lg border border-gray-100">
+                                  <strong className="text-gray-700">Observação:</strong> {item.notes}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
+                  )}
 
-                    {item.isRoundTrip ? (
+                  {/* Grupo 2: Passeios & Experiências */}
+                  {tourItems.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="border-b border-gray-200 pb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Compass className="w-3.5 h-3.5 text-[#2C7A7B]" />
+                          <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
+                            Passeios &amp; Experiências
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          Embarque e retorno na mesma hospedagem informada, salvo observação específica.
+                        </p>
+                      </div>
+
                       <div className="space-y-2">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {/* TRECHO DE IDA */}
-                          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 space-y-1.5">
-                            <div className="flex items-center justify-between border-b border-emerald-200 pb-1">
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800">
-                                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" /> TRECHO DE IDA
-                              </span>
-                              <span className="text-xs font-extrabold text-gray-900">
-                                {formattedDate}{item.time ? ` às ${timeLabel}` : ''}
-                              </span>
-                            </div>
-                            <div className="space-y-1 text-xs">
-                              <div className="bg-white/80 p-1.5 rounded-lg border border-emerald-100">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Ida)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || 'A combinar'}</span>
-                              </div>
-                              <div className="bg-white/80 p-1.5 rounded-lg border border-emerald-100">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Ida)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.dropoff_location || 'A combinar'}</span>
-                              </div>
-                            </div>
-                          </div>
+                        {tourItems.map((item, idx) => {
+                          const vehicleTag = formatModalityLabel(item);
+                          const dateStr = formatBrDate(item.date);
+                          const timeStr = item.time ? ` às ${item.time}h` : ' · Horário a combinar';
+                          const distinctDropoff = getDistinctDropoff(item.pickup_location, item.dropoff_location);
 
-                          {/* TRECHO DE VOLTA */}
-                          <div className="bg-cyan-50/70 border border-cyan-200 rounded-xl p-2.5 space-y-1.5">
-                            <div className="flex items-center justify-between border-b border-cyan-200 pb-1">
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-cyan-800">
-                                <span className="h-2 w-2 rounded-full bg-cyan-600 animate-pulse" /> TRECHO DE VOLTA
-                              </span>
-                              <span className="text-xs font-extrabold text-gray-900">
-                                {formattedReturnDate}{item.time_end ? ` às ${returnTimeLabel}` : ''}
-                              </span>
-                            </div>
-                            <div className="space-y-1 text-xs">
-                              <div className="bg-white/80 p-1.5 rounded-lg border border-cyan-100">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Embarque (Volta)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_pickup_location || item.dropoff_location || 'A combinar'}</span>
+                          return (
+                            <div key={`tour-${idx}`} className="rounded-xl border border-gray-200 bg-slate-50/50 p-3 space-y-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+                                <h5 className="font-extrabold text-sm sm:text-base text-gray-900 leading-snug">
+                                  {item.service_name || item.title}
+                                </h5>
+                                <span className="inline-flex items-center gap-1 self-start sm:self-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#2C7A7B]/10 text-[#2C7A7B] border border-[#2C7A7B]/20 shrink-0">
+                                  <Car className="w-3 h-3" />
+                                  {vehicleTag}
+                                </span>
                               </div>
-                              <div className="bg-white/80 p-1.5 rounded-lg border border-cyan-100">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Desembarque (Volta)</span>
-                                <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.return_dropoff_location || item.pickup_location || 'A combinar'}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                            <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                            <div>
-                              <span className="text-[10px] text-gray-400 block font-semibold uppercase">Passageiros (PAX)</span>
-                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{paxLabel}</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-800 bg-white rounded-lg border border-gray-200/80 px-3 py-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
+                                  <div>
+                                    <span className="text-[10px] text-gray-400 uppercase font-bold block leading-none mb-0.5">Data &amp; Horário</span>
+                                    <span className="font-bold text-gray-900">{dateStr}{timeStr}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <MapPin className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
+                                  <div>
+                                    <span className="text-[10px] text-gray-400 uppercase font-bold block leading-none mb-0.5">Local de Saída / Embarque</span>
+                                    <span className="font-bold text-gray-900">{item.pickup_location || 'A combinar com o motorista'}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
+                                  <div>
+                                    <span className="text-[10px] text-gray-400 uppercase font-bold block leading-none mb-0.5">Passageiros</span>
+                                    <span className="font-bold text-gray-900">{formatPax(item)}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {distinctDropoff && (
+                                <p className="text-[11px] text-gray-700 bg-white px-2.5 py-1.5 rounded-lg border border-gray-100">
+                                  <strong>Desembarque diferente:</strong> {distinctDropoff}
+                                </p>
+                              )}
+
+                              {item.notes && (
+                                <p className="text-[11px] text-gray-600 bg-white px-2.5 py-1.5 rounded-lg border border-gray-100">
+                                  <strong className="text-gray-700">Observação:</strong> {item.notes}
+                                </p>
+                              )}
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                            <Car className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                            <div>
-                              <span className="text-[10px] text-gray-400 block font-semibold uppercase">Veículo / Modalidade</span>
-                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{baseModalityLabel}</span>
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                          <Calendar className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                          <div>
-                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Data & Horário de Saída</span>
-                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">
-                              {formattedDate}{item.time ? ` às ${timeLabel}` : ' · Horário a combinar'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                          <MapPin className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                          <div>
-                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Local de Embarque</span>
-                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.pickup_location || 'A combinar com o motorista'}</span>
-                          </div>
-                        </div>
-
-                        {item.dropoff_location && (
-                          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100 sm:col-span-2">
-                            <MapPin className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                            <div>
-                              <span className="text-[10px] text-gray-400 block font-semibold uppercase">Local de Desembarque</span>
-                              <span className="font-extrabold text-xs sm:text-sm text-gray-900">{item.dropoff_location}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                          <Users className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                          <div>
-                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Passageiros (PAX)</span>
-                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{paxLabel}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                          <Car className="w-3.5 h-3.5 text-[#2C7A7B] shrink-0" />
-                          <div>
-                            <span className="text-[10px] text-gray-400 block font-semibold uppercase">Veículo / Modalidade</span>
-                            <span className="font-extrabold text-xs sm:text-sm text-gray-900">{baseModalityLabel}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {item.notes && (
-                      <div className="text-[11px] sm:text-xs text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                        <strong className="text-gray-700">Observação do item:</strong> {item.notes}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {booking.notes && (
               <div className="mt-2 text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100">

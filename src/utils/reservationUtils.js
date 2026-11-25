@@ -501,6 +501,22 @@ export function extractItemsFromBooking(booking = {}, explicitItems = null) {
   return [];
 }
 
+export function isTransferService(item = {}) {
+  const cat = String(item.service_type || item.category || item.tipo || '').toLowerCase().trim();
+  if (cat.includes('passeio') || cat.includes('tour') || cat.includes('experienc')) return false;
+  if (cat.includes('transfer') || cat.includes('translado') || cat.includes('traslado')) return true;
+  const title = String(item.service_name || item.title || item.name || '').toLowerCase();
+  return title.includes('transfer') || title.includes('translado') || title.includes('traslado');
+}
+
+export function getDistinctDropoff(pickup, dropoff) {
+  const d = String(dropoff || '').trim();
+  if (!d) return null;
+  const p = String(pickup || '').trim().toLowerCase();
+  if (p && d.toLowerCase() === p) return null;
+  return d;
+}
+
 /**
  * Normaliza os itens de uma reserva preservando todos os dados individuais de cada serviço.
  */
@@ -520,10 +536,17 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
       booking.title ||
       'Passeio Jericoacoara';
 
-    const categoryRaw = String(it.category || it.service_type || it.tipo || (!isMultiItem ? booking.service_type : '') || '').toLowerCase();
+    const titleLower = itemTitle.toLowerCase();
+    const categoryRaw = String(it.category || it.service_type || it.tipo || (!isMultiItem ? booking.service_type : '') || '').toLowerCase().trim();
+    const explicitTourCategory = categoryRaw.includes('passeio') || categoryRaw.includes('tour') || categoryRaw.includes('experienc');
     const isTransfer =
-      categoryRaw.includes('transfer') ||
-      itemTitle.toLowerCase().includes('transfer');
+      !explicitTourCategory &&
+      (categoryRaw.includes('transfer') ||
+        categoryRaw.includes('translado') ||
+        categoryRaw.includes('traslado') ||
+        titleLower.includes('transfer') ||
+        titleLower.includes('translado') ||
+        titleLower.includes('traslado'));
 
     const rawTrecho = String(
       it.trecho ||
@@ -531,7 +554,7 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
         it.modalidade ||
         it.trip_type ||
         it.route_type ||
-        (!isMultiItem ? booking.trecho : '') ||
+        (isTransfer && !isMultiItem ? booking.trecho : '') ||
         ''
     ).trim();
 
@@ -556,22 +579,26 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
         (!isMultiItem ? booking.time : null)
     );
 
-    const dateEnd = normalizeDateValue(
-      it.date_end ||
-        it.return_date ||
-        it.data_volta ||
-        it.data_retorno ||
-        (!isMultiItem ? booking.date_end : null)
-    );
+    const dateEnd = isTransfer
+      ? normalizeDateValue(
+          it.date_end ||
+            it.return_date ||
+            it.data_volta ||
+            it.data_retorno ||
+            (!isMultiItem ? booking.date_end : null)
+        )
+      : null;
 
-    const timeEnd = normalizeTimeValue(
-      it.time_end ||
-        it.return_time ||
-        it.horario_volta ||
-        it.hora_volta ||
-        it.return_departure_time ||
-        (!isMultiItem ? booking.time_end : null)
-    );
+    const timeEnd = isTransfer
+      ? normalizeTimeValue(
+          it.time_end ||
+            it.return_time ||
+            it.horario_volta ||
+            it.hora_volta ||
+            it.return_departure_time ||
+            (!isMultiItem ? booking.time_end : null)
+        )
+      : null;
 
     const pickupLocation =
       it.pickup_location ||
@@ -584,7 +611,7 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
       (!isMultiItem ? (booking.pickup_location || booking.pickup_point) : null) ||
       null;
 
-    const dropoffLocation =
+    const rawDropoffLocation =
       it.dropoff_location ||
       it.dropoff_point ||
       it.dropoff ||
@@ -595,28 +622,35 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
       (!isMultiItem ? (booking.dropoff_location || booking.dropoff_point) : null) ||
       null;
 
-    const returnPickupLocation =
+    const dropoffLocation = isTransfer
+      ? rawDropoffLocation
+      : getDistinctDropoff(pickupLocation, rawDropoffLocation);
+
+    const explicitReturnPickup =
       it.return_pickup_location ||
       it.return_pickup ||
       it.embarque_volta ||
       it.local_embarque_volta ||
       it.volta_embarque ||
-      (!isMultiItem ? booking.return_pickup_location : null) ||
-      dropoffLocation ||
+      (isTransfer && !isMultiItem ? booking.return_pickup_location : null) ||
       null;
 
-    const returnDropoffLocation =
+    const explicitReturnDropoff =
       it.return_dropoff_location ||
       it.return_dropoff ||
       it.desembarque_volta ||
       it.local_desembarque_volta ||
       it.volta_desembarque ||
-      (!isMultiItem ? booking.return_dropoff_location : null) ||
-      pickupLocation ||
+      (isTransfer && !isMultiItem ? booking.return_dropoff_location : null) ||
       null;
 
     const trechoLower = rawTrecho.toLowerCase();
-    const titleLower = itemTitle.toLowerCase();
+    const hasDistinctReturnRoute = Boolean(
+      (dateEnd && dateEnd !== dateStart) ||
+      (timeEnd && timeEnd !== timeStart) ||
+      (explicitReturnPickup && explicitReturnDropoff)
+    );
+
     const isRoundTrip =
       isTransfer &&
       (trechoLower.includes('ida_e_volta') ||
@@ -624,7 +658,16 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
         trechoLower.includes('round') ||
         titleLower.includes('ida e volta') ||
         titleLower.includes('ida & volta') ||
-        Boolean(dateEnd || timeEnd || it.return_pickup_location || it.return_dropoff_location || it.return_pickup || it.return_dropoff));
+        Boolean(dateEnd || timeEnd) ||
+        hasDistinctReturnRoute);
+
+    const returnPickupLocation = isRoundTrip
+      ? (explicitReturnPickup || dropoffLocation || null)
+      : null;
+
+    const returnDropoffLocation = isRoundTrip
+      ? (explicitReturnDropoff || pickupLocation || null)
+      : null;
 
     const vehicleRaw =
       it.vehicle_type ||
@@ -645,15 +688,15 @@ export function normalizeReservationItems(booking = {}, rawItems = []) {
       service_type: isTransfer ? 'transfer' : (categoryRaw || 'passeio'),
       vehicle: vehicleRaw || '',
       vehicle_type: vehicleRaw || '',
-      modality: it.modality || rawTrecho || (titleLower.includes('compartilhad') ? 'compartilhado' : 'privativo'),
-      trecho: rawTrecho || (isRoundTrip ? 'ida_e_volta' : 'privativo'),
+      modality: it.modality || (isRoundTrip ? 'ida_e_volta' : rawTrecho) || (titleLower.includes('compartilhad') ? 'compartilhado' : 'privativo'),
+      trecho: isTransfer ? (rawTrecho || (isRoundTrip ? 'ida_e_volta' : 'somente_ida')) : (rawTrecho || 'privativo'),
       isRoundTrip,
       date: dateStart,
       date_start: dateStart,
       time: timeStart,
       time_start: timeStart,
-      date_end: dateEnd,
-      time_end: timeEnd,
+      date_end: isRoundTrip ? dateEnd : null,
+      time_end: isRoundTrip ? timeEnd : null,
       pickup_location: pickupLocation,
       dropoff_location: dropoffLocation,
       return_pickup_location: returnPickupLocation,
